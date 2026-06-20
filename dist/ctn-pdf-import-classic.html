@@ -1,0 +1,1243 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>治験届管理 - 操作体験プロトタイプ</title>
+    <style>
+      :root {
+        color-scheme: light;
+        font-family: "Segoe UI", "Yu Gothic UI", Meiryo, sans-serif;
+        --bg: #f4f6f8;
+        --sidebar: #123e42;
+        --sidebar-active: rgba(255,255,255,.14);
+        --text: #152232;
+        --muted: #617080;
+        --panel: #ffffff;
+        --panel-soft: #f8fafc;
+        --line: #d8e0e8;
+        --line-soft: #edf1f5;
+        --brand: #f2c84b;
+        --blue: #1479ff;
+        --blue-soft: #ddecff;
+        --teal: #1f7a7a;
+        --green: #1e9b6c;
+        --amber: #b7791f;
+        --red: #c2415b;
+        --warning: #fff7e5;
+        --warning-line: #e6bd62;
+      }
+
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        min-height: 100vh;
+        background: var(--bg);
+        color: var(--text);
+        font-size: 14px;
+      }
+
+      button, input, select, textarea { font: inherit; }
+      button { cursor: pointer; }
+
+      .app {
+        min-height: 100vh;
+        display: grid;
+        grid-template-columns: 246px minmax(780px, 1fr);
+      }
+
+      .sidebar {
+        background: linear-gradient(180deg, #113f43 0%, #0f363b 100%);
+        color: #eaf7f6;
+        padding: 18px 14px;
+        position: sticky;
+        top: 0;
+        height: 100vh;
+        overflow: auto;
+      }
+
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 24px;
+      }
+
+      .logo {
+        width: 38px;
+        height: 38px;
+        display: grid;
+        place-items: center;
+        border-radius: 8px;
+        background: var(--brand);
+        color: #123e42;
+        font-weight: 800;
+      }
+
+      .brand-title { font-size: 16px; font-weight: 700; }
+      .brand-sub { margin-top: 3px; color: rgba(234,247,246,.72); font-size: 12px; }
+
+      .progress-card {
+        border: 1px solid rgba(255,255,255,.18);
+        border-radius: 8px;
+        padding: 14px;
+        margin-bottom: 22px;
+        background: rgba(255,255,255,.04);
+      }
+
+      .progress-top {
+        display: flex;
+        justify-content: space-between;
+        font-weight: 700;
+      }
+
+      .progress-track {
+        height: 6px;
+        margin: 12px 0 8px;
+        border-radius: 99px;
+        background: rgba(255,255,255,.22);
+        overflow: hidden;
+      }
+
+      .progress-bar {
+        width: 82%;
+        height: 100%;
+        background: #f7d563;
+      }
+
+      .progress-note { color: rgba(234,247,246,.74); font-size: 11px; }
+
+      .nav { display: grid; gap: 5px; }
+
+      .nav-section {
+        margin: 18px 8px 6px;
+        color: rgba(234,247,246,.58);
+        font-size: 11px;
+        font-weight: 800;
+        letter-spacing: .04em;
+      }
+
+      .nav-item {
+        width: 100%;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        min-height: 38px;
+        padding: 0 12px;
+        color: #eaf7f6;
+        border: 0;
+        border-radius: 6px;
+        background: transparent;
+        text-align: left;
+        font-weight: 600;
+        font-size: 13px;
+      }
+
+      .nav-item.active { background: var(--sidebar-active); }
+      .nav-icon { width: 17px; text-align: center; color: rgba(234,247,246,.82); }
+
+      main { padding: 24px 26px 60px; }
+
+      .topbar {
+        display: flex;
+        justify-content: space-between;
+        gap: 20px;
+        margin-bottom: 14px;
+      }
+
+      .eyebrow { color: var(--muted); font-size: 12px; font-weight: 600; }
+      h1 { margin: 2px 0 6px; font-size: 27px; letter-spacing: 0; }
+      .lead { margin: 0; color: var(--muted); }
+
+      .actions {
+        display: flex;
+        gap: 8px;
+        align-items: start;
+      }
+
+      .search {
+        width: 220px;
+        height: 36px;
+        padding: 0 12px;
+        border: 1px solid var(--line);
+        border-radius: 7px;
+        background: #fff;
+      }
+
+      .btn {
+        min-height: 36px;
+        padding: 0 12px;
+        border: 1px solid var(--line);
+        border-radius: 7px;
+        background: #fff;
+        color: var(--text);
+        font-weight: 700;
+      }
+
+      .btn.primary {
+        border-color: var(--blue);
+        background: var(--blue);
+        color: #fff;
+      }
+
+      .layout {
+        display: block;
+      }
+
+      .panel {
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: var(--panel);
+      }
+
+      .content-panel { padding: 16px; }
+
+      .tag {
+        display: inline-flex;
+        align-items: center;
+        height: 22px;
+        padding: 0 9px;
+        border-radius: 4px;
+        background: #e6f4f1;
+        color: var(--teal);
+        font-size: 11px;
+        font-weight: 800;
+      }
+
+      .section-header {
+        display: flex;
+        align-items: start;
+        justify-content: space-between;
+        gap: 16px;
+        padding-bottom: 16px;
+        border-bottom: 1px solid var(--line-soft);
+      }
+
+      h2 { margin: 8px 0 5px; font-size: 21px; }
+      h3 { margin: 8px 0 4px; font-size: 18px; }
+      .section-desc { color: var(--muted); margin: 0; line-height: 1.6; }
+
+      .kpi-grid {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(130px, 1fr));
+        gap: 12px;
+        margin: 16px 0;
+      }
+
+      .kpi {
+        border: 1px solid var(--line);
+        border-radius: 7px;
+        padding: 14px;
+        background: var(--panel-soft);
+      }
+
+      .kpi-label { color: var(--muted); font-size: 12px; }
+      .kpi-value { margin-top: 8px; font-size: 27px; font-weight: 800; }
+
+      .pipeline {
+        display: grid;
+        grid-template-columns: repeat(6, minmax(106px, 1fr));
+        gap: 8px;
+        margin: 16px 0;
+      }
+
+      .step {
+        min-height: 72px;
+        border: 1px solid var(--line);
+        border-radius: 7px;
+        background: var(--panel-soft);
+        padding: 10px 9px;
+      }
+
+      .num {
+        width: 23px;
+        height: 23px;
+        display: grid;
+        place-items: center;
+        margin-bottom: 12px;
+        border-radius: 50%;
+        background: #123e42;
+        color: #fff;
+        font-size: 11px;
+        font-weight: 800;
+      }
+
+      .step-title { font-size: 12px; font-weight: 800; }
+
+      .table-headline {
+        display: flex;
+        justify-content: space-between;
+        align-items: end;
+        margin-top: 4px;
+        gap: 12px;
+      }
+
+      .table-wrap { overflow-x: auto; }
+      table { width: 100%; border-collapse: collapse; margin-top: 12px; min-width: 760px; }
+      th {
+        padding: 9px 8px;
+        color: var(--muted);
+        background: #f5f7f9;
+        text-align: left;
+        font-size: 11px;
+        font-weight: 800;
+      }
+      td {
+        padding: 7px 8px;
+        border-bottom: 1px solid var(--line-soft);
+        vertical-align: middle;
+      }
+
+      .mini-btn {
+        width: 26px;
+        height: 26px;
+        border: 1px solid var(--line);
+        border-radius: 6px;
+        background: #fff;
+        font-weight: 800;
+      }
+
+      .input-like, .field-input, .field-select, .field-textarea {
+        width: 100%;
+        min-height: 34px;
+        padding: 0 10px;
+        border: 1px solid #cbd7e1;
+        border-radius: 5px;
+        background: #fbfcfd;
+        color: #39495a;
+        font-size: 13px;
+      }
+
+      .input-like {
+        display: flex;
+        align-items: center;
+      }
+
+      .field-textarea {
+        min-height: 78px;
+        padding: 9px 10px;
+        resize: vertical;
+      }
+
+      .record-list {
+        display: grid;
+        gap: 14px;
+        margin-top: 14px;
+      }
+
+      .record-card {
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: #fff;
+        overflow: hidden;
+      }
+
+      .record-card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+        padding: 12px 14px;
+        border-bottom: 1px solid var(--line-soft);
+        background: #f7fafc;
+      }
+
+      .record-title {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-weight: 800;
+      }
+
+      .record-title span {
+        color: var(--muted);
+        font-size: 12px;
+        font-weight: 700;
+      }
+
+      .record-fields {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(180px, 1fr));
+        gap: 12px;
+        padding: 14px;
+      }
+
+      .record-field label {
+        display: block;
+        margin-bottom: 6px;
+        color: var(--muted);
+        font-size: 11px;
+        font-weight: 800;
+      }
+
+      .record-field.wide {
+        grid-column: span 2;
+      }
+
+      .record-field.full {
+        grid-column: 1 / -1;
+      }
+
+      .form-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 12px;
+        margin: 16px 0;
+      }
+
+      .field label {
+        display: block;
+        margin-bottom: 6px;
+        color: var(--muted);
+        font-size: 12px;
+        font-weight: 800;
+      }
+
+      .span-2 { grid-column: span 2; }
+      .span-3 { grid-column: span 3; }
+
+      .status {
+        display: inline-flex;
+        align-items: center;
+        min-height: 24px;
+        padding: 0 8px;
+        border-radius: 99px;
+        font-size: 11px;
+        font-weight: 800;
+        white-space: nowrap;
+      }
+
+      .status.review { background: #fff3dd; color: var(--amber); }
+      .status.draft { background: #e8f1ff; color: #1d64c8; }
+      .status.approved { background: #e5f7ee; color: var(--green); }
+      .status.overdue { background: #ffe9ee; color: var(--red); }
+      .status.output { background: #edf0f4; color: #566474; }
+
+      .version-card {
+        margin-top: 16px;
+        padding: 16px;
+        border: 1px solid var(--line);
+        border-radius: 7px;
+        background: #fbfcfd;
+      }
+
+      .version-title {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 14px;
+        font-size: 17px;
+        font-weight: 800;
+      }
+
+      .version-body { color: var(--muted); line-height: 1.7; }
+
+      .workflow-strip {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 10px;
+        margin: 16px 0;
+      }
+
+      .workflow-card {
+        border: 1px solid var(--line);
+        border-radius: 7px;
+        padding: 12px;
+        background: var(--panel-soft);
+      }
+
+      .workflow-card strong {
+        display: block;
+        margin-bottom: 6px;
+      }
+
+      .workflow-card span {
+        color: var(--muted);
+        font-size: 12px;
+        line-height: 1.5;
+      }
+
+      .linked-master {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 10px;
+        margin: 16px 0;
+      }
+
+      .master-chip {
+        border: 1px solid var(--line);
+        border-radius: 7px;
+        padding: 12px;
+        background: #fff;
+      }
+
+      .master-chip small {
+        color: var(--muted);
+        font-weight: 700;
+      }
+
+      .right { display: none; }
+      .side-card { padding: 14px; position: relative; }
+      .side-card.primary {
+        border-color: var(--blue);
+        background: var(--blue-soft);
+        box-shadow: inset 0 0 0 1px rgba(20,121,255,.1);
+      }
+
+      .badge-dot {
+        position: absolute;
+        top: -9px;
+        left: 50%;
+        width: 20px;
+        height: 20px;
+        display: grid;
+        place-items: center;
+        border-radius: 50%;
+        background: var(--blue);
+        color: #fff;
+        font-size: 11px;
+        font-weight: 800;
+      }
+
+      .side-title {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+        font-weight: 800;
+        margin-bottom: 8px;
+      }
+
+      .side-list { margin: 0; padding-left: 18px; color: #405367; line-height: 1.6; }
+      .warning-box {
+        margin-top: 10px;
+        padding: 10px;
+        border: 1px solid var(--warning-line);
+        border-radius: 6px;
+        background: var(--warning);
+        color: #80621e;
+        font-weight: 700;
+      }
+
+      .toast {
+        position: fixed;
+        right: 24px;
+        bottom: 24px;
+        padding: 12px 16px;
+        border-radius: 8px;
+        background: #123e42;
+        color: #fff;
+        box-shadow: 0 14px 40px rgba(18,62,66,.28);
+        opacity: 0;
+        transform: translateY(10px);
+        pointer-events: none;
+        transition: .18s ease;
+      }
+
+      .toast.show {
+        opacity: 1;
+        transform: translateY(0);
+      }
+
+      @media (max-width: 1100px) {
+        .app { grid-template-columns: 210px minmax(0, 1fr); }
+        .layout { grid-template-columns: 1fr; }
+        .pipeline { grid-template-columns: repeat(3, 1fr); }
+        .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+        .form-grid { grid-template-columns: 1fr; }
+        .record-fields { grid-template-columns: 1fr; }
+        .record-field.wide { grid-column: auto; }
+        .span-2, .span-3 { grid-column: auto; }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="app">
+      <aside class="sidebar">
+        <div class="brand">
+          <div class="logo">CTN</div>
+          <div>
+            <div class="brand-title">治験届管理</div>
+            <div class="brand-sub">入力・版管理・承認</div>
+          </div>
+        </div>
+
+        <nav class="nav" id="nav"></nav>
+      </aside>
+
+      <main>
+        <div class="topbar">
+          <div>
+            <div class="eyebrow" id="pageEyebrow">Dashboard</div>
+            <h1 id="pageTitle">ダッシュボード</h1>
+            <p class="lead" id="pageLead">複数の治験届、変更届、期限、承認状態を横断して確認します。</p>
+          </div>
+          <div class="actions">
+            <input class="search" id="search" placeholder="⌕　画面内を検索" />
+            <button class="btn" id="saveBtn">▣ 保存</button>
+          </div>
+        </div>
+
+        <div class="layout">
+          <section class="panel content-panel" id="content"></section>
+        </div>
+      </main>
+    </div>
+    <div class="toast" id="toast">保存しました</div>
+
+    <script>
+      const pages = [
+        { id: "dashboard", icon: "⌁", label: "ダッシュボード", eyebrow: "Portfolio Dashboard", title: "ダッシュボード", lead: "複数の治験届、変更届、期限、承認状態を横断して確認します。" },
+        { id: "import", icon: "⇲", label: "既存PDF取込", eyebrow: "PDF Import & Versioning", title: "既存PDF取込", lead: "既存の治験届PDFを取り込み、構造化して次回変更届のベースにします。" },
+        { id: "summary", icon: "▤", label: "届出概要", eyebrow: "CTN Summary", title: "届出概要", lead: "届出基本情報、版、提出区分、変更理由を入力します。" },
+        { id: "suspend", icon: "☑", label: "中止情報", eyebrow: "Suspension", title: "中止情報", lead: "中止・終了・再開に関する届出情報を管理します。" },
+        { id: "plan", icon: "☑", label: "治験計画", eyebrow: "Trial Plan", title: "治験計画", lead: "対象疾患、相、デザイン、予定症例数などの計画情報を入力します。" },
+        { id: "cost", icon: "▦", label: "費用・調整医師・CRO", eyebrow: "Cost / Coordinator / CRO", title: "費用・調整医師・CRO", lead: "治験調整医師、CRO、費用負担情報を複数行で管理します。" },
+        { id: "mainDrug", icon: "◇", label: "主たる被験薬", eyebrow: "Primary Drug", title: "主たる被験薬", lead: "主たる被験薬の順序番号、成分、剤形、変更区分を管理します。" },
+        { id: "drugs", icon: "◇", label: "治験使用薬", eyebrow: "Investigational Products", title: "治験使用薬", lead: "治験使用薬を複数入力し、変更届の差分候補にします。" },
+        { id: "products", icon: "↻", label: "併用製品等", eyebrow: "Combination Products", title: "併用製品等", lead: "併用薬、医療機器、救済薬などを管理します。" },
+        { id: "institutions", icon: "▦", label: "医療機関情報", eyebrow: "Institutions", title: "医療機関情報", lead: "医療機関、責任医師、IRB、施設ごとの分担医師数を管理します。" },
+        { id: "siteSupport", icon: "▦", label: "施設別SMO・IRB", eyebrow: "SMO / IRB", title: "施設別SMO・IRB", lead: "施設ごとのSMO、IRB、委託先の紐づきを管理します。" },
+        { id: "other", icon: "☑", label: "その他情報", eyebrow: "Other Information", title: "その他情報", lead: "備考、補足、届出要否判断の根拠を管理します。" },
+        { id: "attachments", icon: "◇", label: "添付資料・備考", eyebrow: "Attachments", title: "添付資料・備考", lead: "SharePoint上の根拠資料、外字説明資料、添付版を紐づけます。" },
+        { id: "submitter", icon: "▦", label: "届出者・海外依頼者", eyebrow: "Submitter", title: "届出者・海外依頼者", lead: "届出者、海外依頼者、担当者連絡先を管理します。" },
+        { id: "doctors", icon: "⌘", label: "医師情報", eyebrow: "Doctors", title: "医師情報", lead: "責任医師、分担医師、治験調整医師の氏名表記、外字、変更期限を管理します。" },
+        { id: "partners", icon: "▦", label: "関係者・委託先", eyebrow: "Partners", title: "関係者・委託先", lead: "CRO、SMO、委託先、レビュー担当者を管理します。" },
+        { id: "references", icon: "▤", label: "参照届出", eyebrow: "References", title: "参照届出", lead: "初回届、変更届、過去版PDF、差分履歴を参照します。" }
+      ];
+
+      const workspacePageIds = ["dashboard", "import", "summary", "suspend", "plan"];
+      const masterPageIds = pages.map(page => page.id).filter(id => !workspacePageIds.includes(id));
+
+      const portfolio = Array.from({ length: 10 }, (_, index) => {
+        const no = String(index + 1).padStart(2, "0");
+        const states = ["review", "draft", "approved", "overdue", "output"];
+        return {
+          id: `CTN-${no}`,
+          product: `試験薬 ${String.fromCharCode(65 + index)}`,
+          protocol: `JPN-CTN-2026-${no}`,
+          changeCount: 10 + (index % 4),
+          owner: ["佐藤", "田中", "鈴木", "高橋", "山本"][index % 5],
+          reviewer: ["薬事A", "薬事B", "医学", "CMC", "QA"][index % 5],
+          due: `2026-${String(7 + (index % 4)).padStart(2, "0")}-${String(8 + index).padStart(2, "0")}`,
+          status: states[index % states.length]
+        };
+      });
+
+      const importJobs = [
+        ["000236407.pdf", "確認待ち", "v1.0", "72%", "48/63", "抽出候補を確認"],
+        ["000270151.pdf", "取込済み", "v1.1", "86%", "59/63", "変更届を作成可能"],
+        ["初回届_試験薬C.pdf", "OCR中", "v1.0", "処理中", "12/63", "処理完了待ち"],
+        ["変更届_試験薬D_06.pdf", "人手確認", "v1.6", "81%", "55/63", "外字確認"],
+        ["変更届_試験薬E_03.pdf", "取込済み", "v1.3", "91%", "61/63", "差分確認"]
+      ];
+
+      const datasets = {
+        summary: [
+          ["001", "届出区分", "初回届", "変更なし", "2026-1001"],
+          ["002", "変更届区分", "第10回変更届", "追加", "分担医師変更を含む"],
+          ["003", "提出予定日", "2026-07-15", "更新", "レビュー後確定"],
+          ["004", "提出先", "PMDA", "変更なし", "DDW登録前確認"],
+          ["005", "版番号", "v1.10 draft", "更新", "承認後approved"]
+        ],
+        suspend: [
+          ["001", "中止有無", "該当なし", "変更なし", "継続中"],
+          ["002", "終了予定", "2027-03-31", "変更なし", "症例登録状況に依存"],
+          ["003", "一時中断理由", "", "未入力", "該当時に入力"],
+          ["004", "再開予定日", "", "未入力", "該当時に入力"],
+          ["005", "安全性判断", "継続可", "確認済", "医学レビュー済"]
+        ],
+        plan: [
+          ["001", "対象疾患", "慢性炎症性疾患", "変更なし", "概要資料参照"],
+          ["002", "開発相", "Phase IIb", "変更なし", "初回届から継続"],
+          ["003", "試験デザイン", "二重盲検比較", "変更なし", "ランダム化あり"],
+          ["004", "予定症例数", "240", "更新", "施設追加に伴う見直し"],
+          ["005", "実施期間", "2026-04-01 - 2027-03-31", "変更なし", "計画書v3"]
+        ],
+        cost: [
+          ["001", "治験調整医師", "山田 太郎 / 東京中央病院", "変更なし", "順序番号固定"],
+          ["002", "治験調整医師", "渡邊 花子 / 大阪北医療センター", "表記確認", "外字候補"],
+          ["003", "CRO", "CTN Clinical Research", "変更なし", "モニタリング"],
+          ["004", "CRO", "Global CRO Japan", "追加", "安全性情報"],
+          ["005", "費用負担", "依頼者負担", "変更なし", "契約書リンク"]
+        ],
+        mainDrug: [
+          ["001", "AXR-214", "10mg錠", "変更なし", "主たる被験薬"],
+          ["002", "AXR-214", "20mg錠", "追加", "用量追加"],
+          ["003", "成分コード", "AXR214", "変更なし", "XSD連携"],
+          ["004", "製造所", "Tokyo Plant", "更新", "所在地確認"],
+          ["005", "保管条件", "2-8℃", "変更なし", "添付資料あり"]
+        ],
+        drugs: [
+          ["001", "主たる被験薬", "AXR-214 10mg錠", "変更なし", "順序番号固定"],
+          ["002", "主たる被験薬", "AXR-214 20mg錠", "追加", "次回届出対象"],
+          ["003", "対照薬", "プラセボ錠", "変更なし", "包装変更なし"],
+          ["004", "救済薬", "レスキュー薬A", "追加", "条件付き使用"],
+          ["005", "併用禁止薬", "薬剤B", "更新", "IB改訂に伴う"]
+        ],
+        products: [
+          ["001", "併用薬", "救済薬A", "追加", "条件付き使用"],
+          ["002", "医療機器相当", "検査機器X", "該当あり", "添付資料あり"],
+          ["003", "診断薬", "バイオマーカー試薬", "変更なし", "研究用"],
+          ["004", "併用禁止薬", "薬剤B", "更新", "注意喚起"],
+          ["005", "支持療法", "標準治療C", "変更なし", "手順書参照"]
+        ],
+        institutions: [
+          ["001", "東京中央病院", "山田 太郎", "IRB登録済", "分担医師12名"],
+          ["002", "大阪北医療センター", "渡邊 花子", "外字確認中", "分担医師8名"],
+          ["003", "名古屋臨床病院", "高橋 健", "追加", "6か月期限候補"],
+          ["004", "福岡総合医療センター", "佐藤 美咲", "変更なし", "SMOあり"],
+          ["005", "札幌メディカル", "鈴木 一郎", "更新", "所在地確認"]
+        ],
+        siteSupport: [
+          ["001", "東京中央病院", "SMO Tokyo", "中央IRB A", "契約中"],
+          ["002", "大阪北医療センター", "SMO West", "施設IRB", "追加"],
+          ["003", "名古屋臨床病院", "SMO Central", "中央IRB B", "確認中"],
+          ["004", "福岡総合医療センター", "SMO Kyushu", "施設IRB", "変更なし"],
+          ["005", "札幌メディカル", "SMO North", "中央IRB A", "更新"]
+        ],
+        other: [
+          ["001", "備考", "治験届手引き確認済", "変更なし", "2024年3月版参照"],
+          ["002", "届出要否判断", "要届出", "更新", "分担医師追加"],
+          ["003", "社内確認", "薬事確認中", "レビュー中", "承認待ち"],
+          ["004", "PMDA照会", "該当なし", "変更なし", "現時点"],
+          ["005", "次回対応", "変更届作成", "追加", "期限前リマインド"]
+        ],
+        attachments: [
+          ["001", "治験実施計画書", "Protocol v3.0", "更新", "SharePointリンク"],
+          ["002", "IB", "IB v5.1", "更新", "安全性変更"],
+          ["003", "外字説明資料", "gaiji_AXR214.pdf", "作成中", "渡邊/髙橋"],
+          ["004", "契約書", "CRO契約書.pdf", "変更なし", "委託範囲"],
+          ["005", "PDF原本", "000270151.pdf", "取込済み", "版固定"]
+        ],
+        submitter: [
+          ["001", "届出者", "株式会社CTNファーマ", "変更なし", "東京都千代田区"],
+          ["002", "担当者", "佐藤 薬事", "更新", "メール確認済"],
+          ["003", "海外依頼者", "Asteria BioPharma", "変更なし", "US"],
+          ["004", "共同開発先", "共同開発先A", "追加", "大阪府大阪市"],
+          ["005", "連絡先", "regulatory@example.com", "変更なし", "代表アドレス"]
+        ],
+        doctors: [
+          ["001", "責任医師", "山田 太郎", "変更なし", "JIS表記確認済"],
+          ["002", "治験調整医師", "渡邊 花子", "表記確認", "外字説明候補"],
+          ["003", "分担医師", "髙橋 健", "追加", "6か月期限管理"],
+          ["004", "分担医師", "佐藤 美咲", "追加", "12か月期限管理"],
+          ["005", "分担医師", "鈴木 一郎", "削除", "変更届候補"]
+        ],
+        partners: [
+          ["001", "CRO", "CTN Clinical Research", "変更なし", "モニタリング"],
+          ["002", "CRO", "Global CRO Japan", "追加", "安全性情報"],
+          ["003", "SMO", "SMO Tokyo", "変更なし", "施設支援"],
+          ["004", "ベンダー", "EDC Vendor", "更新", "データ管理"],
+          ["005", "レビュー担当", "QA Review", "変更なし", "承認者"]
+        ],
+        references: [
+          ["001", "初回届", "000236407.pdf", "v1.0 confirmed", "参照元"],
+          ["002", "第1回変更届", "000270151.pdf", "v1.1 confirmed", "参照元"],
+          ["003", "第8回変更届", "change_08.pdf", "v1.8 approved", "比較対象"],
+          ["004", "第9回変更届", "change_09.pdf", "v1.9 approved", "直前版"],
+          ["005", "第10回変更届", "draft_10.pdf", "v1.10 draft", "作成中"]
+        ]
+      };
+
+      const stateLabels = {
+        review: "レビュー中",
+        draft: "入力中",
+        approved: "承認済",
+        overdue: "期限注意",
+        output: "出力済"
+      };
+
+      const masterConfigs = {
+        cost: {
+          note: "費用負担者、治験調整医師、CROを届出で選択できるマスタとして管理します。",
+          headers: ["順序", "種別", "氏名/名称", "所属機関/所在地", "所属/委託業務", "妥当性・備考", "変更区分", "変更日", "届出期限"],
+          rows: [
+            ["001", "費用負担者", "株式会社CTNファーマ", "東京都千代田区", "依頼者負担", "契約書確認済", "変更なし", "-", "-"],
+            ["002", "治験調整医師", "山田 太郎", "東京中央病院", "循環器内科", "外字なし", "変更なし", "-", "-"],
+            ["003", "治験調整医師", "渡邊 花子", "大阪北医療センター", "臨床薬理部", "外字説明候補", "表記確認", "2026-01-05", "2026-07-05"],
+            ["004", "CRO", "CTN Clinical Research", "東京都港区", "モニタリング・DM", "委託範囲確認済", "変更なし", "-", "-"],
+            ["005", "CRO", "Global CRO Japan", "大阪府大阪市", "安全性情報管理", "変更届候補", "追加", "2026-02-12", "2026-08-12"]
+          ]
+        },
+        mainDrug: {
+          note: "主たる被験薬の届出事項を管理します。製造所、成分分量、剤形、投与経路などはXML項目へ対応します。",
+          headers: ["順序", "治験成分記号", "30日調査区分", "製造所/営業所名", "所在地", "業者コード", "成分及び分量", "剤形コード", "投与経路コード", "変更区分"],
+          rows: [
+            ["001", "AXR-214", "対象外", "Tokyo Plant", "東京都北区", "123456789", "AXR-214 10mg", "01 錠剤", "01 経口", "変更なし"],
+            ["002", "AXR-214", "対象外", "Osaka Plant", "大阪府茨木市", "987654321", "AXR-214 20mg", "01 錠剤", "01 経口", "追加"],
+            ["003", "AXR-214", "対象外", "Quality Lab", "神奈川県横浜市", "112233445", "品質試験", "99 その他", "99 その他", "更新"]
+          ]
+        },
+        drugs: {
+          note: "治験使用薬・治験使用機器相当・治験使用製品相当を、順序番号を維持する突合キー型マスタとして管理します。",
+          headers: ["順序", "区分", "記号・名称", "薬/機器/製品別", "被験薬/対照薬等", "30日調査区分", "剤形", "投与経路", "数量突合キー", "変更区分"],
+          rows: [
+            ["001", "主たる被験薬", "AXR-214 10mg錠", "医薬品", "被験薬", "対象外", "錠剤", "経口", "IP-001", "変更なし"],
+            ["002", "主たる被験薬", "AXR-214 20mg錠", "医薬品", "被験薬", "対象外", "錠剤", "経口", "IP-002", "追加"],
+            ["003", "対照薬", "プラセボ錠", "医薬品", "対照薬", "対象外", "錠剤", "経口", "IP-003", "変更なし"],
+            ["004", "レスキュー薬", "救済薬A", "医薬品", "レスキュー薬", "対象外", "注射剤", "静注", "IP-004", "追加"],
+            ["005", "併用薬", "標準治療C", "医薬品", "併用薬", "対象外", "錠剤", "経口", "IP-005", "更新"]
+          ]
+        },
+        products: {
+          note: "併用薬、治験使用機器相当、治験使用製品相当を届出対象候補として管理します。",
+          headers: ["順序", "製品種別", "名称", "用途/位置づけ", "使用条件", "機器・製品記載", "添付資料", "変更区分", "備考"],
+          rows: [
+            ["001", "併用薬", "救済薬A", "レスキュー薬", "疼痛時のみ", "該当なし", "手順書v2", "追加", "条件付き使用"],
+            ["002", "医療機器相当", "検査機器X", "評価項目測定", "中央測定", "該当あり", "機器仕様書", "該当あり", "添付資料あり"],
+            ["003", "診断薬", "バイオマーカー試薬", "探索的評価", "研究用", "該当あり", "検査手順書", "変更なし", "研究用"],
+            ["004", "併用禁止薬", "薬剤B", "安全性管理", "併用禁止", "該当なし", "IB v5.1", "更新", "注意喚起"]
+          ]
+        },
+        institutions: {
+          note: "実施医療機関は施設単位で管理し、責任医師、分担医師、数量、IRB/SMOを配下に紐づけます。",
+          headers: ["順序", "医療機関名", "診療科", "所在地1", "所在地2", "電話番号", "責任医師", "予定被験者数", "IRB", "SMO", "変更区分"],
+          rows: [
+            ["001", "東京中央病院", "循環器内科", "東京都千代田区1-1", "", "03-1111-2222", "山田 太郎", "24", "中央IRB A", "SMO Tokyo", "変更なし"],
+            ["002", "大阪北医療センター", "臨床薬理部", "大阪府大阪市北区2-2", "", "06-2222-3333", "渡邊 花子", "18", "施設IRB", "SMO West", "表記確認"],
+            ["003", "名古屋臨床病院", "内科", "愛知県名古屋市3-3", "", "052-333-4444", "高橋 健", "12", "中央IRB B", "SMO Central", "追加"],
+            ["004", "福岡総合医療センター", "膠原病内科", "福岡県福岡市4-4", "", "092-444-5555", "佐藤 美咲", "16", "施設IRB", "SMO Kyushu", "変更なし"]
+          ]
+        },
+        siteSupport: {
+          note: "施設別にSMOとIRBの情報を管理します。SMOは名称・住所・委託業務、IRBは区分・設置者名・所在地を保持します。",
+          headers: ["順序", "医療機関", "種別", "名称/設置者名", "区分", "所在地1", "所在地2", "委託業務/備考", "変更区分"],
+          rows: [
+            ["001", "東京中央病院", "SMO", "SMO Tokyo", "-", "東京都港区", "", "CRC支援・文書管理", "変更なし"],
+            ["002", "東京中央病院", "IRB", "中央IRB A", "外部IRB", "東京都千代田区", "", "審査委員会", "変更なし"],
+            ["003", "大阪北医療センター", "SMO", "SMO West", "-", "大阪府大阪市", "", "施設支援", "追加"],
+            ["004", "大阪北医療センター", "IRB", "大阪北IRB", "院内IRB", "大阪府大阪市", "", "院内審査", "変更なし"]
+          ]
+        },
+        other: {
+          note: "カルタヘナ、生物由来製品、コンパニオン診断、国際共同治験など、届出要否判断に関わる補足情報を管理します。",
+          headers: ["順序", "項目", "該当性", "内容", "根拠資料", "変更区分", "備考"],
+          rows: [
+            ["001", "カルタヘナ法対象", "該当なし", "-", "Protocol v3", "変更なし", ""],
+            ["002", "生物由来製品", "該当なし", "-", "IB v5.1", "変更なし", ""],
+            ["003", "コンパニオン診断薬", "該当あり", "バイオマーカー検査を含む", "検査手順書", "更新", "確認中"],
+            ["004", "国際共同治験", "該当あり", "日本、米国、EU", "Global Plan", "変更なし", ""],
+            ["005", "遺伝子検査", "該当あり", "探索的解析", "ICF v2", "追加", "同意説明確認"]
+          ]
+        },
+        attachments: {
+          note: "Protocol、IB、ICF、外字置換説明資料などをSharePoint文書として版管理します。",
+          headers: ["順序", "資料区分", "資料名", "版", "SharePoint場所", "しおり/参照先", "状態", "外字説明", "備考"],
+          rows: [
+            ["001", "Protocol", "Protocol_AXR214.pdf", "v3.0", "CTN/Protocol", "B.3.12", "確定", "対象外", "届出根拠"],
+            ["002", "IB", "IB_AXR214.pdf", "v5.1", "CTN/IB", "安全性", "更新", "対象外", "安全性変更"],
+            ["003", "ICF", "ICF_site_template.pdf", "v2.0", "CTN/ICF", "施設別", "確認中", "対象外", ""],
+            ["004", "外字説明資料", "gaiji_explanation.docx", "draft", "CTN/Gaiji", "添付資料", "作成中", "対象", "渡邊/髙橋"]
+          ]
+        },
+        submitter: {
+          note: "治験届出者、担当者、海外依頼者又は外国製造業者の情報を管理します。",
+          headers: ["順序", "届出者種別", "届出者名称", "代表者氏名", "所在地1", "所在地2", "業者コード", "担当者氏名", "担当者所属", "電話/FAX/メール", "変更区分"],
+          rows: [
+            ["001", "治験依頼者", "株式会社CTNファーマ", "代表取締役 佐藤 一郎", "東京都千代田区1-1", "", "123456789", "佐藤 薬事", "薬事部", "regulatory@example.com", "変更なし"],
+            ["002", "海外依頼者", "Asteria BioPharma", "Jane Smith", "100 Main St", "Boston MA USA", "", "John Adams", "Regulatory", "global@example.com", "変更なし"],
+            ["003", "共同開発先", "共同開発先A", "田中 次郎", "大阪府大阪市2-2", "", "987654321", "田中 開発", "開発部", "dev@example.com", "追加"]
+          ]
+        },
+        doctors: {
+          note: "医師は不変IDで同一性を管理し、届出では責任医師・分担医師の異動をイベント行として出力します。",
+          headers: ["順序", "医師ID", "役割", "原表記", "届出用表記", "よみかな", "大学番号", "卒年", "所属施設", "異動区分", "実変更日", "届出期限", "外字"],
+          rows: [
+            ["001", "D001", "責任医師", "山田 太郎", "山田 太郎", "やまだ たろう", "13", "1998", "東京中央病院", "変更なし", "-", "-", "確認済"],
+            ["002", "D002", "治験調整医師", "渡邊 花子", "渡辺 花子", "わたなべ はなこ", "27", "2002", "大阪北医療センター", "氏名確認", "2026-01-05", "2026-07-05", "説明資料対象"],
+            ["003", "D003", "分担医師", "髙橋 健", "高橋 健", "たかはし けん", "23", "2005", "名古屋臨床病院", "追加", "2026-02-01", "2026-08-01", "承認済"],
+            ["004", "D004", "分担医師", "佐藤 美咲", "佐藤 美咲", "さとう みさき", "40", "2010", "福岡総合医療センター", "追加", "2026-02-15", "2026-08-15", "確認済"]
+          ]
+        },
+        partners: {
+          note: "CRO、SMO、委託先、レビュー担当など、届出作成に関与する組織を役割別に管理します。",
+          headers: ["順序", "組織種別", "名称", "所在地1", "所在地2", "委託業務/役割", "契約状態", "担当者", "変更区分", "備考"],
+          rows: [
+            ["001", "CRO", "CTN Clinical Research", "東京都港区", "", "モニタリング・DM", "契約中", "CRO担当A", "変更なし", ""],
+            ["002", "CRO", "Global CRO Japan", "大阪府大阪市", "", "安全性情報", "契約中", "Safety Lead", "追加", "変更届候補"],
+            ["003", "SMO", "SMO Tokyo", "東京都港区", "", "CRC支援", "契約中", "Site Lead", "変更なし", ""],
+            ["004", "ベンダー", "EDC Vendor", "東京都品川区", "", "EDC運用", "更新中", "Data Lead", "更新", "契約書確認"]
+          ]
+        },
+        references: {
+          note: "参照する初回届、変更届、PDF原本、確定版を管理します。変更届作成時の比較対象になります。",
+          headers: ["順序", "参照種別", "ファイル/受付番号", "版", "届出日", "状態", "比較対象", "SharePoint場所", "備考"],
+          rows: [
+            ["001", "初回届", "000236407.pdf", "v1.0 confirmed", "2025-04-01", "確定", "基準版", "CTN/PDF", "原本保存"],
+            ["002", "第1回変更届", "000270151.pdf", "v1.1 confirmed", "2025-07-15", "確定", "参照", "CTN/PDF", ""],
+            ["003", "第9回変更届", "change_09.pdf", "v1.9 approved", "2026-03-20", "承認済", "直前版", "CTN/PDF", ""],
+            ["004", "第10回変更届", "draft_10.pdf", "v1.10 draft", "未提出", "作成中", "作業版", "CTN/Draft", ""]
+          ]
+        }
+      };
+
+      let activePage = "dashboard";
+      let savedCount = 0;
+
+      function el(id) { return document.getElementById(id); }
+      function escapeHtml(value) {
+        return String(value ?? "").replace(/[&<>"']/g, ch => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[ch]));
+      }
+
+      function showToast(text) {
+        const toast = el("toast");
+        toast.textContent = text;
+        toast.classList.add("show");
+        setTimeout(() => toast.classList.remove("show"), 1600);
+      }
+
+      function renderNav() {
+        const renderItems = ids => ids.map(id => {
+          const page = pages.find(item => item.id === id);
+          return `
+            <button class="nav-item ${page.id === activePage ? "active" : ""}" data-page="${page.id}">
+              <span class="nav-icon">${page.icon}</span>${page.label}
+            </button>
+          `;
+        }).join("");
+        el("nav").innerHTML = `
+          <div class="nav-section">届出ワークスペース</div>
+          ${renderItems(workspacePageIds)}
+          <div class="nav-section">マスタ情報</div>
+          ${renderItems(masterPageIds)}
+        `;
+        document.querySelectorAll(".nav-item").forEach(btn => {
+          btn.addEventListener("click", () => {
+            activePage = btn.dataset.page;
+            render();
+          });
+        });
+      }
+
+      function setHeader(page) {
+        el("pageEyebrow").textContent = page.eyebrow;
+        el("pageTitle").textContent = page.title;
+        el("pageLead").textContent = page.lead;
+      }
+
+      function contextHtml(type = "default") {
+        if (type === "dashboard") {
+          return `
+            <section class="panel side-card primary">
+              <div class="badge-dot">1</div>
+              <div class="side-title">♢ 本日の確認</div>
+              <ul class="side-list">
+                <li>期限注意が2件あります</li>
+                <li>レビュー待ちが3件あります</li>
+                <li>承認済みのみPDF/XML出力できます</li>
+              </ul>
+            </section>
+            <section class="panel side-card">
+              <div class="side-title">△ リマインド</div>
+              <div class="warning-box">分担医師追加の6か月期限が近づいています</div>
+            </section>`;
+        }
+        if (type === "master") {
+          return `
+            <section class="panel side-card primary">
+              <div class="badge-dot">M</div>
+              <div class="side-title">♢ マスタ運用</div>
+              <ul class="side-list">
+                <li>マスタは治験届へ直接入力せず、選択して紐づけます</li>
+                <li>追加・変更・削除を変更イベントとして保持します</li>
+                <li>変更日から6か月/12か月期限を算出します</li>
+                <li>届出候補に採用すると届出ワークスペースに反映します</li>
+              </ul>
+            </section>
+            <section class="panel side-card">
+              <div class="side-title">△ マスタチェック</div>
+              <div class="warning-box">外字表記、順序番号、変更区分を確認してください</div>
+            </section>`;
+        }
+        if (type === "workspace") {
+          return `
+            <section class="panel side-card primary">
+              <div class="badge-dot">W</div>
+              <div class="side-title">♢ 届出作成</div>
+              <ul class="side-list">
+                <li>届出概要・中止情報・治験計画は届出パッケージの入力画面です</li>
+                <li>医師・医療機関・薬剤などはマスタから選択します</li>
+                <li>選択されたマスタ変更だけが変更届候補になります</li>
+                <li>レビュー承認後にPDF/XML出力を有効化します</li>
+              </ul>
+            </section>
+            <section class="panel side-card">
+              <div class="side-title">△ 紐づき確認</div>
+              <div class="warning-box">この届出には医師3件、施設2件、薬剤4件が紐づいています</div>
+            </section>`;
+        }
+        return `
+          <section class="panel side-card primary">
+            <div class="badge-dot">1</div>
+            <div class="side-title">♢ 入力ルール</div>
+            <ul class="side-list">
+              <li>複数行は順序番号を保持します</li>
+              <li>原表記と届出用表記を分けて管理します</li>
+              <li>変更・追加・削除は履歴に残します</li>
+              <li>承認後のみ出力を有効化します</li>
+            </ul>
+          </section>
+          <section class="panel side-card">
+            <div class="side-title">△ 未解決チェック</div>
+            <div class="warning-box">外字・期限・添付資料の確認状態を更新してください</div>
+          </section>`;
+      }
+
+      function renderDashboard() {
+        const rows = portfolio.map(item => `
+          <tr>
+            <td><button class="mini-btn" data-open="${item.id}">→</button></td>
+            <td><strong>${item.id}</strong><br><span class="section-desc">${item.product}</span></td>
+            <td>${item.protocol}</td>
+            <td>${item.changeCount}回</td>
+            <td>${item.owner}</td>
+            <td>${item.reviewer}</td>
+            <td>${item.due}</td>
+            <td><span class="status ${item.status}">${stateLabels[item.status]}</span></td>
+          </tr>
+        `).join("");
+        el("content").innerHTML = `
+          <div class="section-header">
+            <div>
+              <span class="tag">10件のダミーデータ</span>
+              <h2>治験届ポートフォリオ</h2>
+              <p class="section-desc">初回届と変更届が並行して更新される前提で、期限・担当・承認状態を一覧化します。</p>
+            </div>
+            <button class="btn primary" id="newCtnBtn">＋ 新規届出</button>
+          </div>
+          <div class="kpi-grid">
+            <div class="kpi"><div class="kpi-label">管理中の届出</div><div class="kpi-value">10</div></div>
+            <div class="kpi"><div class="kpi-label">変更届総数</div><div class="kpi-value">113</div></div>
+            <div class="kpi"><div class="kpi-label">期限注意</div><div class="kpi-value">2</div></div>
+            <div class="kpi"><div class="kpi-label">承認待ち</div><div class="kpi-value">3</div></div>
+          </div>
+          <div class="workflow-strip">
+            <div class="workflow-card"><strong>1. マスタ変更</strong><span>医師・施設・薬剤などの変更を台帳に登録</span></div>
+            <div class="workflow-card"><strong>2. 届出候補化</strong><span>変更区分と期限ルールから届出要否を判定</span></div>
+            <div class="workflow-card"><strong>3. 届出へ紐づけ</strong><span>対象CTNに必要なマスタ変更だけを選択</span></div>
+            <div class="workflow-card"><strong>4. レビュー・承認</strong><span>承認後にPDF確認とXML出力を実行</span></div>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>詳細</th><th>届出</th><th>プロトコル</th><th>変更届</th><th>担当</th><th>承認者</th><th>期限</th><th>状態</th></tr></thead>
+              <tbody>${rows}</tbody>
+            </table>
+          </div>`;
+        document.querySelectorAll("[data-open]").forEach(btn => {
+          btn.addEventListener("click", () => {
+            activePage = "summary";
+            render();
+            showToast(`${btn.dataset.open} の届出概要を開きました`);
+          });
+        });
+        el("newCtnBtn").addEventListener("click", () => showToast("新規届出の作成画面を開く想定です"));
+      }
+
+      function renderImport() {
+        const rows = importJobs.map((job, index) => `
+          <tr>
+            <td><button class="mini-btn">↑</button> <button class="mini-btn">↓</button></td>
+            ${job.map(value => `<td><input class="field-input" value="${escapeHtml(value)}"></td>`).join("")}
+          </tr>
+        `).join("");
+        el("content").innerHTML = `
+          <div class="section-header">
+            <div>
+              <span class="tag">Import Pipeline</span>
+              <h2>既存PDFからDB化</h2>
+              <p class="section-desc">PDFを原本として保存し、OCR/テキスト抽出、項目マッピング、人手確認を経て確定版を作成します。</p>
+            </div>
+            <button class="btn" id="importBtn">⇧ PDFを取り込む</button>
+          </div>
+          <div class="pipeline">
+            ${["PDF原本保存","テキスト/OCR抽出","XSD項目へマッピング","人手確認","確定版DB化","変更届バージョン作成"].map((label, i) => `
+              <div class="step"><div class="num">${i + 1}</div><div class="step-title">${label}</div></div>
+            `).join("")}
+          </div>
+          <div class="table-headline">
+            <div>
+              <span class="tag">複数入力</span>
+              <h3>PDF取込ジョブ</h3>
+              <p class="section-desc">取込済みPDFは原本、抽出結果、確定済み構造化データを紐づけます。</p>
+            </div>
+            <button class="btn" id="addImportRow">☰ 行を追加</button>
+          </div>
+          <div class="table-wrap">
+            <table id="importTable">
+              <thead><tr><th>操作</th><th>PDFファイル</th><th>状態</th><th>取込版</th><th>抽出信頼度</th><th>マッピング</th><th>次アクション</th></tr></thead>
+              <tbody>${rows}</tbody>
+            </table>
+          </div>
+          <div class="version-card">
+            <div class="version-title">⌘ 版管理イメージ</div>
+            <div class="version-body">初回PDF取込で v1.0 imported を作成し、確認後 v1.0 confirmed に確定します。変更届は確定済み版から新バージョンを作成し、差分入力と承認を経て approved として固定します。</div>
+          </div>`;
+        el("importBtn").addEventListener("click", () => showToast("PDF取込ジョブを作成しました"));
+        el("addImportRow").addEventListener("click", () => {
+          const tbody = document.querySelector("#importTable tbody");
+          tbody.insertAdjacentHTML("beforeend", `<tr><td><button class="mini-btn">↑</button> <button class="mini-btn">↓</button></td><td><input class="field-input" value="new-file.pdf"></td><td><input class="field-input" value="確認待ち"></td><td><input class="field-input" value="v1.0"></td><td><input class="field-input" value="--"></td><td><input class="field-input" value="0/63"></td><td><input class="field-input" value="抽出待ち"></td></tr>`);
+          showToast("行を追加しました");
+        });
+      }
+
+      function renderMasterPage(page) {
+        const config = masterConfigs[page.id] || masterConfigs.other;
+        const cards = config.rows.map((row, rowIndex) => {
+          const title = row[2] || row[1] || `${page.title} ${rowIndex + 1}`;
+          const subtitle = row[1] && row[2] ? row[1] : page.title;
+          const fields = config.headers.map((header, index) => {
+            const isLong = /所在地|備考|業務|内容|理由|SharePoint|資料|委託|連絡先|変更日|届出期限/.test(header);
+            const isFull = /成分及び分量|届出反映|使用条件/.test(header);
+            const cls = isFull ? "full" : isLong ? "wide" : "";
+            return `
+              <div class="record-field ${cls}">
+                <label>${escapeHtml(header)}</label>
+                <input class="field-input" value="${escapeHtml(row[index] ?? "")}">
+              </div>
+            `;
+          }).join("");
+          return `
+            <article class="record-card">
+              <div class="record-card-header">
+                <div class="record-title">${escapeHtml(title)} <span>${escapeHtml(subtitle)}</span></div>
+                <div><button class="mini-btn">↑</button> <button class="mini-btn">↓</button></div>
+              </div>
+              <div class="record-fields">${fields}</div>
+            </article>
+          `;
+        }).join("");
+        el("content").innerHTML = `
+          <div class="table-headline">
+            <div>
+              <span class="tag">実務項目</span>
+              <h3>${page.title} マスタ明細</h3>
+              <p class="section-desc">${config.note} 1レコードをカード形式で表示し、項目ラベルを見ながら入力できます。</p>
+            </div>
+            <div class="actions">
+              <button class="btn primary" id="requestReview">届出候補に追加</button>
+              <button class="btn" id="addMasterRow">☰ 行を追加</button>
+            </div>
+          </div>
+          <div class="record-list" id="masterRecords">${cards}</div>`;
+        el("requestReview").addEventListener("click", () => showToast("マスタ変更を届出候補に追加しました"));
+        el("addMasterRow").addEventListener("click", () => {
+          const list = document.querySelector("#masterRecords");
+          const next = String(list.children.length + 1).padStart(3, "0");
+          const fields = config.headers.map((header, index) => {
+            const value = index === 0 ? next : "";
+            const isLong = /所在地|備考|業務|内容|理由|SharePoint|資料|委託|連絡先|変更日|届出期限/.test(header);
+            const cls = isLong ? "wide" : "";
+            return `<div class="record-field ${cls}"><label>${escapeHtml(header)}</label><input class="field-input" value="${value}" placeholder="${escapeHtml(header)}"></div>`;
+          }).join("");
+          list.insertAdjacentHTML("beforeend", `<article class="record-card"><div class="record-card-header"><div class="record-title">新規レコード <span>${page.title}</span></div><div><button class="mini-btn">↑</button> <button class="mini-btn">↓</button></div></div><div class="record-fields">${fields}</div></article>`);
+          showToast("マスタレコードを追加しました");
+        });
+      }
+
+      function renderInputPage(page) {
+        const isMaster = masterPageIds.includes(page.id);
+        if (isMaster) {
+          renderMasterPage(page);
+          return;
+        }
+        const data = datasets[page.id] || datasets.other;
+        const rows = data.map(row => `
+          <tr>
+            <td><button class="mini-btn">↑</button> <button class="mini-btn">↓</button></td>
+            <td><input class="field-input" value="${escapeHtml(row[0])}"></td>
+            <td><input class="field-input" value="${escapeHtml(row[1])}"></td>
+            <td><input class="field-input" value="${escapeHtml(row[2])}"></td>
+            <td><select class="field-select">
+              ${["変更なし","追加","更新","削除","表記確認","レビュー中","確認済"].map(opt => `<option ${row[3] === opt ? "selected" : ""}>${opt}</option>`).join("")}
+            </select></td>
+            <td><input class="field-input" value="${escapeHtml(row[4])}"></td>
+          </tr>
+        `).join("");
+        const workflow = isMaster
+          ? `<div class="workflow-strip">
+              <div class="workflow-card"><strong>1. マスタ登録</strong><span>正本データとして医師・施設・薬剤などを登録</span></div>
+              <div class="workflow-card"><strong>2. 変更イベント</strong><span>追加・変更・削除と実際の変更日を保持</span></div>
+              <div class="workflow-card"><strong>3. 届出候補</strong><span>期限ルールと届出要否を自動判定</span></div>
+              <div class="workflow-card"><strong>4. 届出で選択</strong><span>対象CTNに紐づけて変更届を作成</span></div>
+            </div>`
+          : `<div class="linked-master">
+              <div class="master-chip"><small>選択済み医師マスタ</small><br><strong>3件</strong><br><span class="section-desc">責任医師1、分担医師2</span></div>
+              <div class="master-chip"><small>選択済み医療機関</small><br><strong>2件</strong><br><span class="section-desc">東京中央病院、大阪北医療センター</span></div>
+              <div class="master-chip"><small>選択済み薬剤マスタ</small><br><strong>4件</strong><br><span class="section-desc">主たる被験薬、対照薬など</span></div>
+            </div>`;
+        el("content").innerHTML = `
+          <div class="section-header">
+            <div>
+              <span class="tag">CTN Package</span>
+              <h2>${page.title}</h2>
+              <p class="section-desc">${isMaster ? "ここで登録したマスタ情報を、届出ワークスペース側で選択して届出パッケージに反映します。" : "届出固有の入力欄です。医師・施設・薬剤などは下の紐づきマスタから選択された内容を参照します。"}</p>
+            </div>
+            <button class="btn primary" id="requestReview">${isMaster ? "届出候補に追加" : "レビュー依頼"}</button>
+          </div>
+          ${workflow}
+          <div class="form-grid">
+            <div class="field"><label>${isMaster ? "マスタ種別" : "対象届出"}</label><input class="field-input" value="${isMaster ? page.title : "CTN-03 / 第10回変更届"}"></div>
+            <div class="field"><label>${isMaster ? "最終更新版" : "版"}</label><input class="field-input" value="${isMaster ? "master v2.4" : "v1.10 draft"}"></div>
+            <div class="field"><label>状態</label><select class="field-select"><option>入力中</option><option selected>${isMaster ? "有効" : "レビュー前"}</option><option>レビュー中</option><option>承認済</option></select></div>
+            <div class="field span-2"><label>${isMaster ? "届出反映ルール" : "変更理由"}</label><textarea class="field-textarea">${isMaster ? "変更イベントが発生した場合、実際の変更日・変更区分・期限ルールをもとに届出候補を作成します。" : "既存PDF取込版をベースに、選択済みマスタ変更内容を反映して変更届候補を作成します。"}</textarea></div>
+            <div class="field"><label>${isMaster ? "期限ルール" : "提出期限"}</label><input class="field-input" value="${isMaster ? "6か月/12か月判定" : "2026-07-15"}"></div>
+          </div>
+          <div class="table-headline">
+            <div>
+              <span class="tag">複数入力</span>
+              <h3>${page.title} 明細</h3>
+              <p class="section-desc">${isMaster ? "マスタ台帳として複数行を管理し、届出側では必要な行だけを選択します。" : "届出に紐づいたマスタ由来データと届出固有データを確認します。"}</p>
+            </div>
+            <button class="btn" id="addRow">☰ 行を追加</button>
+          </div>
+          <div class="table-wrap">
+            <table id="dataTable">
+              <thead><tr><th>操作</th><th>順序番号</th><th>項目</th><th>値</th><th>変更区分</th><th>備考</th></tr></thead>
+              <tbody>${rows}</tbody>
+            </table>
+          </div>`;
+        el("requestReview").addEventListener("click", () => showToast(isMaster ? "マスタ変更を届出候補に追加しました" : "レビュー依頼を作成しました"));
+        el("addRow").addEventListener("click", () => {
+          const tbody = document.querySelector("#dataTable tbody");
+          const next = String(tbody.children.length + 1).padStart(3, "0");
+          tbody.insertAdjacentHTML("beforeend", `<tr><td><button class="mini-btn">↑</button> <button class="mini-btn">↓</button></td><td><input class="field-input" value="${next}"></td><td><input class="field-input" value="新規項目"></td><td><input class="field-input" value=""></td><td><select class="field-select"><option>追加</option><option>更新</option><option>削除</option><option>変更なし</option></select></td><td><input class="field-input" value="入力してください"></td></tr>`);
+          showToast("明細行を追加しました");
+        });
+      }
+
+      function render() {
+        const page = pages.find(p => p.id === activePage) || pages[0];
+        setHeader(page);
+        renderNav();
+        if (activePage === "dashboard") renderDashboard();
+        else if (activePage === "import") renderImport();
+        else renderInputPage(page);
+        updateProgress();
+      }
+
+      function updateProgress() {
+        const percent = Math.min(100, 82 + savedCount);
+        const progressText = el("progressText");
+        const progressBar = el("progressBar");
+        if (!progressText || !progressBar) return;
+        progressText.textContent = `${percent}%`;
+        progressBar.style.width = `${percent}%`;
+      }
+
+      el("saveBtn").addEventListener("click", () => {
+        savedCount += 1;
+        updateProgress();
+        showToast("入力内容を保存しました");
+      });
+
+      el("search").addEventListener("input", event => {
+        const keyword = event.target.value.trim().toLowerCase();
+        document.querySelectorAll("#content tbody tr").forEach(row => {
+          row.style.display = row.textContent.toLowerCase().includes(keyword) ? "" : "none";
+        });
+      });
+
+      render();
+    </script>
+  </body>
+</html>

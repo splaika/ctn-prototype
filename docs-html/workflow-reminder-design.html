@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ワークフロー・リマインダー設計書 | CTN設計書</title>
+    <link rel="stylesheet" href="assets/docs.css" />
+  </head>
+  <body>
+    <div class="shell">
+      <aside class="sidebar">
+        <a class="brand" href="index.html"><span>CTN</span><strong>設計書ビューア</strong></a>
+        <nav><a href="architecture-overview.html">CTN作成支援システム 設計概要</a><a href="sharepoint-design.html">SharePoint設計書</a><a href="dataverse-design.html">Dataverse設計書</a><a class="active" href="workflow-reminder-design.html">ワークフロー・リマインダー設計書</a><a href="pdf-import-design.html">既存PDF取込・DB化設計書</a><a href="gaiji-handling-design.html">外字対応設計書</a><a href="react-microsoft-implementation.html">方針</a><a href="user-guide.html">ユーザーガイド</a><a href="admin-guide.html">管理者ガイド</a><a href="azure-static-web-apps-deploy.html">Azure Static Web Apps 公開手順</a></nav>
+      </aside>
+      <main class="document">
+        <div class="doc-meta">
+          <a href="index.html">設計書一覧</a>
+          <span>workflow-reminder-design.md</span>
+        </div>
+        <header class="doc-header">
+          <h1>ワークフロー・リマインダー設計書</h1>
+          <p>Markdown設計書をブラウザで読みやすい形式に変換したHTMLです。</p>
+        </header>
+        <details class="toc" open><summary>このページの目次</summary><a class="level-1" href="#ワークフロー-リマインダー設計書">ワークフロー・リマインダー設計書</a><a class="level-2" href="#ワークフロー">ワークフロー</a><a class="level-2" href="#ステップ">ステップ</a><a class="level-2" href="#出力制御">出力制御</a><a class="level-2" href="#期限管理">期限管理</a><a class="level-3" href="#期限ルール例">期限ルール例</a><a class="level-2" href="#テーブル">テーブル</a><a class="level-3" href="#regulatory-deadline-rules">regulatory_deadline_rules</a><a class="level-3" href="#regulatory-deadlines">regulatory_deadlines</a><a class="level-3" href="#reminder-notifications">reminder_notifications</a><a class="level-2" href="#power-automate設計">Power Automate設計</a><a class="level-3" href="#フロー1-期限作成">フロー1: 期限作成</a><a class="level-3" href="#フロー2-リマインダー送信">フロー2: リマインダー送信</a><a class="level-3" href="#フロー3-期限超過検知">フロー3: 期限超過検知</a></details>
+        <article class="content"><h1 id="ワークフロー-リマインダー設計書">ワークフロー・リマインダー設計書</h1>
+<h2 id="ワークフロー">ワークフロー</h2>
+<p>ワークフローは各入力ページではなく、ダッシュボードで集中管理する。</p>
+<h2 id="ステップ">ステップ</h2>
+<div class="table-wrap"><table><thead><tr><th>ステップ</th><th>説明</th><th>操作可能者</th></tr></thead><tbody><tr><td>起票</td><td>届出ドラフトを作成</td><td>起票者</td></tr><tr><td>レビュー</td><td>入力内容、外字、順序番号、添付資料を確認</td><td>レビュー担当</td></tr><tr><td>承認</td><td>電子署名付きで承認</td><td>承認者</td></tr><tr><td>PDF確認</td><td>承認済みデータからPDFイメージを生成して確認</td><td>起票者/承認者</td></tr><tr><td>出力</td><td>PDF/XML/XSD検証結果を生成しSharePointへ保存</td><td>システム</td></tr></tbody></table></div>
+<h2 id="出力制御">出力制御</h2>
+<ul><li><code>submission_versions.version_status = approved</code> になるまで出力不可。</li><li>承認前のPDFは参考プレビューのみ。正式出力扱いにしない。</li><li>承認後、<code>export_jobs</code> を作成する。</li><li>出力物はSharePoint <code>Generated Outputs</code> に保存する。</li></ul>
+<h2 id="期限管理">期限管理</h2>
+<p>分担医師などの変更は、実際の変更日を起点に6か月または12か月以内に届出が必要になるケースがある。</p>
+<h3 id="期限ルール例">期限ルール例</h3>
+<p>| 変更内容 | 期限 | 通知 | ---|---:|---| | 分担医師 追加 | 6か月以内 | 60/30/14/7/1日前 | | 分担医師 削除 | 6か月以内 | 60/30/14/7/1日前 | | 責任医師 氏名変更 | 12か月以内 | 90/60/30/14/7日前 | | SMO業務範囲変更 | 6か月以内 | 60/30/14/7日前 | | CRO業務範囲変更 | 6か月以内 | 60/30/14/7日前 |</p>
+<h2 id="テーブル">テーブル</h2>
+<h3 id="regulatory-deadline-rules">regulatory_deadline_rules</h3>
+<p>期限ルールのマスタ。</p>
+<div class="table-wrap"><table><thead><tr><th>列</th><th>説明</th></tr></thead><tbody><tr><td><code>target_event_type</code></td><td>追加、削除、氏名変更など</td></tr><tr><td><code>target_role</code></td><td>分担医師、責任医師、SMO、CROなど</td></tr><tr><td><code>due_months</code></td><td>6または12など</td></tr><tr><td><code>reminder_days_csv</code></td><td>60,30,14,7,1など</td></tr></tbody></table></div>
+<h3 id="regulatory-deadlines">regulatory_deadlines</h3>
+<p>実際の期限インスタンス。</p>
+<div class="table-wrap"><table><thead><tr><th>列</th><th>説明</th></tr></thead><tbody><tr><td><code>actual_change_date</code></td><td>実変更日</td></tr><tr><td><code>due_date</code></td><td>届出期限</td></tr><tr><td><code>owner</code></td><td>担当者</td></tr><tr><td><code>approver</code></td><td>承認者</td></tr><tr><td><code>status</code></td><td>open, drafted, submitted, closed, overdue</td></tr></tbody></table></div>
+<h3 id="reminder-notifications">reminder_notifications</h3>
+<p>通知予定と送信結果。</p>
+<div class="table-wrap"><table><thead><tr><th>列</th><th>説明</th></tr></thead><tbody><tr><td><code>deadline_id</code></td><td>期限インスタンス</td></tr><tr><td><code>notify_to</code></td><td>通知先</td></tr><tr><td><code>notify_role</code></td><td>owner, approverなど</td></tr><tr><td><code>scheduled_for</code></td><td>通知予定日</td></tr><tr><td><code>sent_at</code></td><td>送信日時</td></tr><tr><td><code>channel</code></td><td>email, Teamsなど</td></tr><tr><td><code>status</code></td><td>scheduled, sent, failed, cancelled</td></tr></tbody></table></div>
+<h2 id="power-automate設計">Power Automate設計</h2>
+<h3 id="フロー1-期限作成">フロー1: 期限作成</h3>
+<p>トリガー:</p>
+<ul><li><code>doctor_events</code> 作成/更新</li><li><code>smos_in_medical_institutions</code> 作成/更新</li><li><code>contract_research_organizations</code> 作成/更新</li></ul>
+<p>処理:</p>
+<p>1. 変更種別と役割から <code>regulatory_deadline_rules</code> を検索。 2. 実変更日 + 期限月数で <code>due_date</code> を計算。 3. <code>regulatory_deadlines</code> を作成。 4. <code>reminder_days_csv</code> に従い <code>reminder_notifications</code> を作成。</p>
+<h3 id="フロー2-リマインダー送信">フロー2: リマインダー送信</h3>
+<p>トリガー:</p>
+<ul><li>毎日朝</li></ul>
+<p>処理:</p>
+<p>1. <code>scheduled_for &lt;= today</code> かつ <code>status = scheduled</code> を検索。 2. 担当者と承認者へTeams/メール通知。 3. 送信成功時に <code>sent_at</code> と <code>status = sent</code> を更新。</p>
+<h3 id="フロー3-期限超過検知">フロー3: 期限超過検知</h3>
+<p>トリガー:</p>
+<ul><li>毎日朝</li></ul>
+<p>処理:</p>
+<p>1. <code>due_date &lt; today</code> かつ未提出の期限を検索。 2. <code>status = overdue</code> に更新。 3. 管理者、担当者、承認者へ通知。</p></article>
+      </main>
+    </div>
+  </body>
+</html>

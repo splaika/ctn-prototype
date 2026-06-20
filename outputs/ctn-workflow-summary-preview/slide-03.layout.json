@@ -1,0 +1,1001 @@
+{
+  "schema": "openai.presentation.layout/v4",
+  "unit": "px",
+  "slide": {
+    "aid": "sl/t2tz1w",
+    "id": "t2tz1w",
+    "slide": 3,
+    "layoutId": "b2a028d4-aeb1-4a86-b457-f17e19049a74",
+    "layoutName": "Title Slide",
+    "layoutType": "title",
+    "masterLayoutId": "a377951e-8724-4ad4-b489-23ed8e7888d5",
+    "masterLayoutName": "Master",
+    "backgroundColor": "#F8FAFC",
+    "frame": {
+      "left": 0,
+      "top": 0,
+      "width": 1280,
+      "height": 720
+    }
+  },
+  "theme": {
+    "colorSchemeName": "ChatGPT",
+    "colors": {
+      "accent1": "#156082",
+      "accent2": "#E97132",
+      "accent3": "#196B24",
+      "accent4": "#0F9ED5",
+      "accent5": "#A02B93",
+      "accent6": "#4EA72E",
+      "bg1": "#FFFFFF",
+      "bg2": "#000000",
+      "tx1": "#1F1F1F",
+      "tx2": "#FFFFFF",
+      "dk1": "#000000",
+      "lt1": "#FFFFFF",
+      "dk2": "#0E2841",
+      "lt2": "#E8E8E8",
+      "hlink": "#467886",
+      "folHlink": "#96607D"
+    },
+    "typefaces": [
+      "+mn-lt"
+    ]
+  },
+  "inheritedLayers": [
+    {
+      "scope": "layout",
+      "id": "b2a028d4-aeb1-4a86-b457-f17e19049a74",
+      "name": "Title Slide",
+      "type": "title",
+      "parentLayoutId": "a377951e-8724-4ad4-b489-23ed8e7888d5",
+      "elements": []
+    },
+    {
+      "scope": "master",
+      "id": "a377951e-8724-4ad4-b489-23ed8e7888d5",
+      "name": "Master",
+      "type": "master",
+      "elements": []
+    }
+  ],
+  "elements": [
+    {
+      "order": 1,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/itgfmlkj",
+      "id": "1",
+      "bbox": [
+        64,
+        42,
+        360,
+        22
+      ],
+      "geometry": "rect",
+      "text": "MVP VALUE",
+      "textPreview": "MVP VALUE",
+      "resolvedFontSize": 12,
+      "resolvedTextStyle": {
+        "fontSize": 12,
+        "typeface": "+mn-lt",
+        "color": "#00786F",
+        "bold": true,
+        "alignment": "left",
+        "insets": {
+          "top": 4.8,
+          "right": 9.6,
+          "bottom": 4.8,
+          "left": 9.6
+        }
+      },
+      "textLayout": {
+        "lineCount": 1,
+        "lines": [
+          {
+            "index": 1,
+            "text": "MVP VALUE"
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "MVP VALUE",
+          "resolvedTextStyle": {
+            "fontSize": 12,
+            "color": "#00786F",
+            "bold": true
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "MVP VALUE",
+              "fontSize": 12,
+              "color": "#00786F",
+              "bold": true
+            }
+          ],
+          "marginLeft": 0
+        }
+      ],
+      "lineWidth": 0
+    },
+    {
+      "order": 2,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/pkzupwb2",
+      "id": "2",
+      "bbox": [
+        64,
+        72,
+        820,
+        58
+      ],
+      "geometry": "rect",
+      "text": "MVPで示すべき改善効果",
+      "textPreview": "MVPで示すべき改善効果",
+      "resolvedFontSize": 30,
+      "resolvedTextStyle": {
+        "fontSize": 30,
+        "typeface": "+mn-lt",
+        "color": "#020618",
+        "bold": true,
+        "alignment": "left",
+        "insets": {
+          "top": 4.8,
+          "right": 9.6,
+          "bottom": 4.8,
+          "left": 9.6
+        }
+      },
+      "textLayout": {
+        "lineCount": 1,
+        "lines": [
+          {
+            "index": 1,
+            "text": "MVPで示すべき改善効果"
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "MVPで示すべき改善効果",
+          "resolvedTextStyle": {
+            "fontSize": 30,
+            "color": "#020618",
+            "bold": true
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "MVPで示すべき改善効果",
+              "fontSize": 30,
+              "color": "#020618",
+              "bold": true
+            }
+          ],
+          "marginLeft": 0
+        }
+      ],
+      "lineWidth": 0
+    },
+    {
+      "order": 3,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/0z61032l",
+      "id": "3",
+      "bbox": [
+        66,
+        132,
+        850,
+        42
+      ],
+      "geometry": "rect",
+      "text": "初回届20製品、各10回以上の変更届が並行しても、進捗・期限・差分・承認を同じ画面で追える状態を作る。",
+      "textPreview": "初回届20製品、各10回以上の変更届が並行しても、進捗・期限・差分・承認を同じ画面で追える状態を作る。",
+      "resolvedFontSize": 15,
+      "resolvedTextStyle": {
+        "fontSize": 15,
+        "typeface": "+mn-lt",
+        "color": "#45556C",
+        "alignment": "left",
+        "insets": {
+          "top": 4.8,
+          "right": 9.6,
+          "bottom": 4.8,
+          "left": 9.6
+        }
+      },
+      "textLayout": {
+        "lineCount": 1,
+        "lines": [
+          {
+            "index": 1,
+            "text": "初回届20製品、各10回以上の変更届が並行しても、進捗・期限・差分・承認を同じ画面で追える状態を作る。"
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "初回届20製品、各10回以上の変更届が並行しても、進捗・期限・差分・承認を同じ画面で追える状態を作る。",
+          "resolvedTextStyle": {
+            "fontSize": 15,
+            "color": "#45556C"
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "初回届20製品、各10回以上の変更届が並行しても、進捗・期限・差分・承認を同じ画面で追える状態を作る。",
+              "fontSize": 15,
+              "color": "#45556C"
+            }
+          ],
+          "marginLeft": 0
+        }
+      ],
+      "lineWidth": 0
+    },
+    {
+      "order": 4,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/72x4nap4",
+      "id": "4",
+      "bbox": [
+        64,
+        220,
+        536,
+        116
+      ],
+      "geometry": "roundRect",
+      "fillColor": "#FFFFFF",
+      "lineColor": "#E2E8F0",
+      "lineWidth": 1
+    },
+    {
+      "order": 5,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/ih4byhgn",
+      "id": "5",
+      "bbox": [
+        86,
+        244,
+        12,
+        68
+      ],
+      "geometry": "roundRect",
+      "fillColor": "#2B7FFF",
+      "lineColor": "#2B7FFF",
+      "lineWidth": 1
+    },
+    {
+      "order": 6,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/p8nqxs72",
+      "id": "6",
+      "bbox": [
+        116,
+        244,
+        420,
+        28
+      ],
+      "geometry": "rect",
+      "text": "全体像が把握できる",
+      "textPreview": "全体像が把握できる",
+      "resolvedFontSize": 18,
+      "resolvedTextStyle": {
+        "fontSize": 18,
+        "typeface": "+mn-lt",
+        "color": "#020618",
+        "bold": true,
+        "alignment": "left",
+        "insets": {
+          "top": 4.8,
+          "right": 9.6,
+          "bottom": 4.8,
+          "left": 9.6
+        }
+      },
+      "textLayout": {
+        "lineCount": 1,
+        "lines": [
+          {
+            "index": 1,
+            "text": "全体像が把握できる"
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "全体像が把握できる",
+          "resolvedTextStyle": {
+            "fontSize": 18,
+            "color": "#020618",
+            "bold": true
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "全体像が把握できる",
+              "fontSize": 18,
+              "color": "#020618",
+              "bold": true
+            }
+          ],
+          "marginLeft": 0
+        }
+      ],
+      "lineWidth": 0
+    },
+    {
+      "order": 7,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/0nuxc3yl",
+      "id": "7",
+      "bbox": [
+        116,
+        278,
+        430,
+        42
+      ],
+      "geometry": "rect",
+      "text": "製品別・届出別・版別に進捗、変更状況、期限、レビュー状態を横断して確認できる。",
+      "textPreview": "製品別・届出別・版別に進捗、変更状況、期限、レビュー状態を横断して確認できる。",
+      "resolvedFontSize": 13,
+      "resolvedTextStyle": {
+        "fontSize": 13,
+        "typeface": "+mn-lt",
+        "color": "#45556C",
+        "alignment": "left",
+        "insets": {
+          "top": 4.8,
+          "right": 9.6,
+          "bottom": 4.8,
+          "left": 9.6
+        }
+      },
+      "textLayout": {
+        "lineCount": 2,
+        "lines": [
+          {
+            "index": 1,
+            "text": "製品別・届出別・版別に進捗、変更状況、期限、レビュー状態を横断して確認で"
+          },
+          {
+            "index": 2,
+            "text": "きる。"
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "製品別・届出別・版別に進捗、変更状況、期限、レビュー状態を横断して確認できる。",
+          "resolvedTextStyle": {
+            "fontSize": 13,
+            "color": "#45556C"
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "製品別・届出別・版別に進捗、変更状況、期限、レビュー状態を横断して確認できる。",
+              "fontSize": 13,
+              "color": "#45556C"
+            }
+          ],
+          "marginLeft": 0
+        }
+      ],
+      "lineWidth": 0
+    },
+    {
+      "order": 8,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/7y1kre1w",
+      "id": "8",
+      "bbox": [
+        680,
+        220,
+        536,
+        116
+      ],
+      "geometry": "roundRect",
+      "fillColor": "#FFFFFF",
+      "lineColor": "#E2E8F0",
+      "lineWidth": 1
+    },
+    {
+      "order": 9,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/ed8v6psf",
+      "id": "9",
+      "bbox": [
+        702,
+        244,
+        12,
+        68
+      ],
+      "geometry": "roundRect",
+      "fillColor": "#FFB900",
+      "lineColor": "#FFB900",
+      "lineWidth": 1
+    },
+    {
+      "order": 10,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/8v6psfil",
+      "id": "10",
+      "bbox": [
+        732,
+        244,
+        420,
+        28
+      ],
+      "geometry": "rect",
+      "text": "期限漏れを防ぐ",
+      "textPreview": "期限漏れを防ぐ",
+      "resolvedFontSize": 18,
+      "resolvedTextStyle": {
+        "fontSize": 18,
+        "typeface": "+mn-lt",
+        "color": "#020618",
+        "bold": true,
+        "alignment": "left",
+        "insets": {
+          "top": 4.8,
+          "right": 9.6,
+          "bottom": 4.8,
+          "left": 9.6
+        }
+      },
+      "textLayout": {
+        "lineCount": 1,
+        "lines": [
+          {
+            "index": 1,
+            "text": "期限漏れを防ぐ"
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "期限漏れを防ぐ",
+          "resolvedTextStyle": {
+            "fontSize": 18,
+            "color": "#020618",
+            "bold": true
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "期限漏れを防ぐ",
+              "fontSize": 18,
+              "color": "#020618",
+              "bold": true
+            }
+          ],
+          "marginLeft": 0
+        }
+      ],
+      "lineWidth": 0
+    },
+    {
+      "order": 11,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/xczed8v6",
+      "id": "11",
+      "bbox": [
+        732,
+        278,
+        430,
+        42
+      ],
+      "geometry": "rect",
+      "text": "変更日を起点に6か月/12か月期限を算出し、担当者・承認者へリマインドする。",
+      "textPreview": "変更日を起点に6か月/12か月期限を算出し、担当者・承認者へリマインドする。",
+      "resolvedFontSize": 13,
+      "resolvedTextStyle": {
+        "fontSize": 13,
+        "typeface": "+mn-lt",
+        "color": "#45556C",
+        "alignment": "left",
+        "insets": {
+          "top": 4.8,
+          "right": 9.6,
+          "bottom": 4.8,
+          "left": 9.6
+        }
+      },
+      "textLayout": {
+        "lineCount": 1,
+        "lines": [
+          {
+            "index": 1,
+            "text": "変更日を起点に6か月/12か月期限を算出し、担当者・承認者へリマインドする。"
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "変更日を起点に6か月/12か月期限を算出し、担当者・承認者へリマインドする。",
+          "resolvedTextStyle": {
+            "fontSize": 13,
+            "color": "#45556C"
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "変更日を起点に6か月/12か月期限を算出し、担当者・承認者へリマインドする。",
+              "fontSize": 13,
+              "color": "#45556C"
+            }
+          ],
+          "marginLeft": 0
+        }
+      ],
+      "lineWidth": 0
+    },
+    {
+      "order": 12,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/qpg3ex0n",
+      "id": "12",
+      "bbox": [
+        64,
+        376,
+        536,
+        116
+      ],
+      "geometry": "roundRect",
+      "fillColor": "#FFFFFF",
+      "lineColor": "#E2E8F0",
+      "lineWidth": 1
+    },
+    {
+      "order": 13,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/fa9w3m94",
+      "id": "13",
+      "bbox": [
+        86,
+        400,
+        12,
+        68
+      ],
+      "geometry": "roundRect",
+      "fillColor": "#00BC7D",
+      "lineColor": "#00BC7D",
+      "lineWidth": 1
+    },
+    {
+      "order": 14,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/8jqh0fep",
+      "id": "14",
+      "bbox": [
+        116,
+        400,
+        420,
+        28
+      ],
+      "geometry": "rect",
+      "text": "レビューと承認を統制する",
+      "textPreview": "レビューと承認を統制する",
+      "resolvedFontSize": 18,
+      "resolvedTextStyle": {
+        "fontSize": 18,
+        "typeface": "+mn-lt",
+        "color": "#020618",
+        "bold": true,
+        "alignment": "left",
+        "insets": {
+          "top": 4.8,
+          "right": 9.6,
+          "bottom": 4.8,
+          "left": 9.6
+        }
+      },
+      "textLayout": {
+        "lineCount": 1,
+        "lines": [
+          {
+            "index": 1,
+            "text": "レビューと承認を統制する"
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "レビューと承認を統制する",
+          "resolvedTextStyle": {
+            "fontSize": 18,
+            "color": "#020618",
+            "bold": true
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "レビューと承認を統制する",
+              "fontSize": 18,
+              "color": "#020618",
+              "bold": true
+            }
+          ],
+          "marginLeft": 0
+        }
+      ],
+      "lineWidth": 0
+    },
+    {
+      "order": 15,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/x4nap4r6",
+      "id": "15",
+      "bbox": [
+        116,
+        434,
+        430,
+        42
+      ],
+      "geometry": "rect",
+      "text": "起票、レビュー、承認、出力を分け、承認前のPDF/XML出力を抑止する。",
+      "textPreview": "起票、レビュー、承認、出力を分け、承認前のPDF/XML出力を抑止する。",
+      "resolvedFontSize": 13,
+      "resolvedTextStyle": {
+        "fontSize": 13,
+        "typeface": "+mn-lt",
+        "color": "#45556C",
+        "alignment": "left",
+        "insets": {
+          "top": 4.8,
+          "right": 9.6,
+          "bottom": 4.8,
+          "left": 9.6
+        }
+      },
+      "textLayout": {
+        "lineCount": 1,
+        "lines": [
+          {
+            "index": 1,
+            "text": "起票、レビュー、承認、出力を分け、承認前のPDF/XML出力を抑止する。"
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "起票、レビュー、承認、出力を分け、承認前のPDF/XML出力を抑止する。",
+          "resolvedTextStyle": {
+            "fontSize": 13,
+            "color": "#45556C"
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "起票、レビュー、承認、出力を分け、承認前のPDF/XML出力を抑止する。",
+              "fontSize": 13,
+              "color": "#45556C"
+            }
+          ],
+          "marginLeft": 0
+        }
+      ],
+      "lineWidth": 0
+    },
+    {
+      "order": 16,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/qd4vmtwr",
+      "id": "16",
+      "bbox": [
+        680,
+        376,
+        536,
+        116
+      ],
+      "geometry": "roundRect",
+      "fillColor": "#FFFFFF",
+      "lineColor": "#E2E8F0",
+      "lineWidth": 1
+    },
+    {
+      "order": 17,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/fyxobm58",
+      "id": "17",
+      "bbox": [
+        702,
+        400,
+        12,
+        68
+      ],
+      "geometry": "roundRect",
+      "fillColor": "#FF2056",
+      "lineColor": "#FF2056",
+      "lineWidth": 1
+    },
+    {
+      "order": 18,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/87ed8bat",
+      "id": "18",
+      "bbox": [
+        732,
+        400,
+        420,
+        28
+      ],
+      "geometry": "rect",
+      "text": "入力品質を上げる",
+      "textPreview": "入力品質を上げる",
+      "resolvedFontSize": 18,
+      "resolvedTextStyle": {
+        "fontSize": 18,
+        "typeface": "+mn-lt",
+        "color": "#020618",
+        "bold": true,
+        "alignment": "left",
+        "insets": {
+          "top": 4.8,
+          "right": 9.6,
+          "bottom": 4.8,
+          "left": 9.6
+        }
+      },
+      "textLayout": {
+        "lineCount": 1,
+        "lines": [
+          {
+            "index": 1,
+            "text": "入力品質を上げる"
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "入力品質を上げる",
+          "resolvedTextStyle": {
+            "fontSize": 18,
+            "color": "#020618",
+            "bold": true
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "入力品質を上げる",
+              "fontSize": 18,
+              "color": "#020618",
+              "bold": true
+            }
+          ],
+          "marginLeft": 0
+        }
+      ],
+      "lineWidth": 0
+    },
+    {
+      "order": 19,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/xs72x4na",
+      "id": "19",
+      "bbox": [
+        732,
+        434,
+        430,
+        42
+      ],
+      "geometry": "rect",
+      "text": "外字、表記ゆれ、順序番号、複数医師・施設・薬剤の入力チェックを構造化する。",
+      "textPreview": "外字、表記ゆれ、順序番号、複数医師・施設・薬剤の入力チェックを構造化する。",
+      "resolvedFontSize": 13,
+      "resolvedTextStyle": {
+        "fontSize": 13,
+        "typeface": "+mn-lt",
+        "color": "#45556C",
+        "alignment": "left",
+        "insets": {
+          "top": 4.8,
+          "right": 9.6,
+          "bottom": 4.8,
+          "left": 9.6
+        }
+      },
+      "textLayout": {
+        "lineCount": 2,
+        "lines": [
+          {
+            "index": 1,
+            "text": "外字、表記ゆれ、順序番号、複数医師・施設・薬剤の入力チェックを構造化す"
+          },
+          {
+            "index": 2,
+            "text": "る。"
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "外字、表記ゆれ、順序番号、複数医師・施設・薬剤の入力チェックを構造化する。",
+          "resolvedTextStyle": {
+            "fontSize": 13,
+            "color": "#45556C"
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "外字、表記ゆれ、順序番号、複数医師・施設・薬剤の入力チェックを構造化する。",
+              "fontSize": 13,
+              "color": "#45556C"
+            }
+          ],
+          "marginLeft": 0
+        }
+      ],
+      "lineWidth": 0
+    },
+    {
+      "order": 20,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/lwval87e",
+      "id": "20",
+      "bbox": [
+        190,
+        560,
+        900,
+        64
+      ],
+      "geometry": "roundRect",
+      "fillColor": "#0F172B",
+      "lineColor": "#0F172B",
+      "lineWidth": 1
+    },
+    {
+      "order": 21,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/wb2hwfyx",
+      "id": "21",
+      "bbox": [
+        230,
+        580,
+        820,
+        28
+      ],
+      "geometry": "rect",
+      "text": "結論: DDWを置き換えるのではなく、DDW入力前後の社内プロセスを構造化し、提出品質と期限管理を安定させる。",
+      "textPreview": "結論: DDWを置き換えるのではなく、DDW入力前後の社内プロセスを構造化し、提出品質と期限管理を安定させる。",
+      "resolvedFontSize": 16,
+      "resolvedTextStyle": {
+        "fontSize": 16,
+        "typeface": "+mn-lt",
+        "color": "#FFFFFF",
+        "bold": true,
+        "alignment": "left",
+        "insets": {
+          "top": 4.8,
+          "right": 9.6,
+          "bottom": 4.8,
+          "left": 9.6
+        }
+      },
+      "textLayout": {
+        "lineCount": 1,
+        "lines": [
+          {
+            "index": 1,
+            "text": "結論: DDWを置き換えるのではなく、DDW入力前後の社内プロセスを構造化し、提出品質と期限管理を安定させる。"
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "結論: DDWを置き換えるのではなく、DDW入力前後の社内プロセスを構造化し、提出品質と期限管理を安定させる。",
+          "resolvedTextStyle": {
+            "fontSize": 16,
+            "color": "#FFFFFF",
+            "bold": true
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "結論: DDWを置き換えるのではなく、DDW入力前後の社内プロセスを構造化し、提出品質と期限管理を安定させる。",
+              "fontSize": 16,
+              "color": "#FFFFFF",
+              "bold": true
+            }
+          ],
+          "marginLeft": 0
+        }
+      ],
+      "lineWidth": 0
+    },
+    {
+      "order": 22,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/3q5o7qpg",
+      "id": "22",
+      "bbox": [
+        64,
+        670,
+        260,
+        20
+      ],
+      "geometry": "rect",
+      "text": "CTN作成支援 MVP | 3/3",
+      "textPreview": "CTN作成支援 MVP | 3/3",
+      "resolvedFontSize": 11,
+      "resolvedTextStyle": {
+        "fontSize": 11,
+        "typeface": "+mn-lt",
+        "color": "#90A1B9",
+        "alignment": "left",
+        "insets": {
+          "top": 4.8,
+          "right": 9.6,
+          "bottom": 4.8,
+          "left": 9.6
+        }
+      },
+      "textLayout": {
+        "lineCount": 1,
+        "lines": [
+          {
+            "index": 1,
+            "text": "CTN作成支援 MVP | 3/3"
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "CTN作成支援 MVP | 3/3",
+          "resolvedTextStyle": {
+            "fontSize": 11,
+            "color": "#90A1B9"
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "CTN作成支援 MVP | 3/3",
+              "fontSize": 11,
+              "color": "#90A1B9"
+            }
+          ],
+          "marginLeft": 0
+        }
+      ],
+      "lineWidth": 0
+    }
+  ],
+  "composeRuns": []
+}

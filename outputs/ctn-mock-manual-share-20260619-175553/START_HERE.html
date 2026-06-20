@@ -1,0 +1,328 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>治験届管理UI モック解説・操作マニュアル</title>
+<style>
+  :root{
+    --ink:#17242b;
+    --sub:#63727a;
+    --line:#dce6e9;
+    --panel:#fff;
+    --bg:#f5f7f8;
+    --teal:#123f43;
+    --teal2:#176154;
+    --mint:#e7f5f0;
+    --amber:#fff5d8;
+    --red:#fff0ec;
+    --blue:#e9f3ff;
+    --body:"Segoe UI","Yu Gothic UI",Meiryo,sans-serif;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{margin:0;background:var(--bg);color:var(--ink);line-height:1.85;font-family:var(--body);font-size:15px}
+  .shell{display:grid;grid-template-columns:270px minmax(0,1fr);max-width:1200px;margin:0 auto;min-height:100vh;background:#fff}
+  aside{position:sticky;top:0;height:100vh;overflow:auto;padding:28px 20px;border-right:1px solid var(--line);background:#fbfcfc}
+  aside strong{display:block;color:var(--teal);font-size:16px}
+  aside small{display:block;color:var(--sub);margin-top:4px}
+  nav{display:grid;gap:4px;margin-top:22px}
+  nav a{padding:8px 10px;border-radius:7px;color:var(--sub);text-decoration:none;font-size:13px}
+  nav a:hover{background:var(--mint);color:var(--teal)}
+  main{padding:54px 48px 80px}
+  .hero{padding-bottom:34px;border-bottom:1px solid var(--line)}
+  .eyebrow{color:var(--teal2);font-size:12px;font-weight:800;letter-spacing:.12em;text-transform:uppercase}
+  h1{font-size:34px;line-height:1.45;margin:10px 0 14px;letter-spacing:0}
+  h2{font-size:24px;line-height:1.5;margin:48px 0 14px;padding-bottom:10px;border-bottom:3px solid var(--teal)}
+  h3{font-size:18px;margin:28px 0 8px;color:var(--teal)}
+  h4{font-size:15px;margin:18px 0 4px}
+  p{margin:10px 0}
+  .lead{color:var(--sub);font-size:16px}
+  .note{padding:16px 18px;border:1px solid #cde4df;border-radius:8px;background:var(--mint);color:#254b45;margin:18px 0}
+  .warn{padding:14px 18px;border:1px solid #ead58d;border-radius:8px;background:var(--amber);color:#6b5200;margin:18px 0}
+  .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:16px 0}
+  .grid.two{grid-template-columns:repeat(2,1fr)}
+  .card{padding:16px;border:1px solid var(--line);border-radius:8px;background:var(--panel)}
+  .card strong{display:block;color:var(--teal);margin-bottom:5px}
+  .card small{color:var(--sub)}
+  .flow{display:flex;gap:8px;flex-wrap:wrap;margin:16px 0}
+  .flow span{flex:1;min-width:128px;padding:12px;border:1px solid var(--line);border-radius:8px;background:#fbfcfc;text-align:center;font-weight:700}
+  .flow span:nth-child(odd){background:var(--mint)}
+  .table{overflow:auto;border:1px solid var(--line);border-radius:8px;margin:16px 0}
+  table{width:100%;border-collapse:collapse;min-width:760px;font-size:14px}
+  th,td{padding:10px 12px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+  th{background:var(--teal);color:#fff;font-size:13px;white-space:nowrap}
+  tr:last-child td{border-bottom:0}
+  .pill{display:inline-block;padding:2px 8px;border-radius:999px;font-size:12px;font-weight:800}
+  .danger{background:var(--red);color:#9d351c}
+  .watch{background:var(--amber);color:#7b5b00}
+  .ok{background:var(--mint);color:var(--teal2)}
+  .blue{background:var(--blue);color:#25599c}
+  ul{padding-left:20px}
+  li{margin:6px 0}
+  code{padding:2px 5px;border-radius:5px;background:#eef2f3}
+  .screen{border:1px solid var(--line);border-radius:10px;overflow:hidden;margin:16px 0;background:#fff}
+  .screen .bar{display:flex;gap:8px;align-items:center;padding:10px 14px;background:#f6f8f9;border-bottom:1px solid var(--line);font-weight:800;color:var(--teal)}
+  .screen .body{padding:14px}
+  footer{margin-top:52px;padding-top:18px;border-top:1px solid var(--line);color:var(--sub);font-size:12px}
+  @media(max-width:920px){
+    .shell{grid-template-columns:1fr}
+    aside{position:static;height:auto;border-right:0;border-bottom:1px solid var(--line)}
+    nav{grid-template-columns:repeat(2,1fr)}
+    main{padding:32px 22px 60px}
+    .grid,.grid.two{grid-template-columns:1fr}
+    h1{font-size:28px}
+  }
+</style>
+</head>
+<body>
+<div class="shell">
+  <aside>
+    <strong>CTN UI Manual</strong>
+    <small>治験届管理UI モック解説</small>
+    <nav>
+      <a href="#overview">1. 全体像</a>
+      <a href="#layers">2. レイヤー構成</a>
+      <a href="#data">3. データの流れ</a>
+      <a href="#workspace">4. ワークスペース</a>
+      <a href="#authoring">5. 届出作成</a>
+      <a href="#master">6. マスタ管理</a>
+      <a href="#system">7. システム管理</a>
+      <a href="#workflow">8. ワークフロー</a>
+      <a href="#output">9. 出力・提出準備</a>
+      <a href="#review">10. レビュー観点</a>
+      <a href="#next">11. 次の検討</a>
+    </nav>
+  </aside>
+
+  <main>
+    <section class="hero">
+      <div class="eyebrow">Team Briefing / UX Mock Manual</div>
+      <h1>治験届管理UIモックの構造と使い方</h1>
+      <p class="lead">本資料は、現在のReactモックをチーム内で説明するための解説・マニュアルです。ワークスペース、マスタ管理、システム管理の3レイヤーを前提に、各画面が何を入力し、何を確認し、どのデータを次工程へ渡すかを整理します。</p>
+      <div class="note">
+        このモックの目的は、単なる入力フォームではなく、<b>既存データの取り込み、マスタ参照、届出ドラフト作成、差分・外字・期限チェック、レビュー承認、最終PDF/XML出力</b>までの業務UXを確認することです。
+      </div>
+    </section>
+
+    <section id="overview">
+      <h2>1. 全体像</h2>
+      <p>治験届は、届出種別によって必要な章や入力項目が変わります。また、医師、医療機関、治験使用薬、CRO/SMO/IRB、添付資料など、届出ごとに直接入力するだけでは管理しづらい情報が多く含まれます。</p>
+      <p>そのため、本UIでは日々の作業を行う「ワークスペース」、正本データを保守する「マスタ管理」、業務ルールを保守する「システム管理」に分けています。</p>
+      <div class="flow">
+        <span>既存PDF/XML</span>
+        <span>抽出候補</span>
+        <span>マスタ照合</span>
+        <span>届出ドラフト</span>
+        <span>レビュー・承認</span>
+        <span>PDF/XML出力</span>
+      </div>
+    </section>
+
+    <section id="layers">
+      <h2>2. レイヤー構成</h2>
+      <div class="grid">
+        <div class="card">
+          <strong>ワークスペース</strong>
+          <small>ダッシュボード、既存データ取り込み、届出作成、レビュー・承認、出力・提出準備を配置します。担当者が日々使う作業領域です。</small>
+        </div>
+        <div class="card">
+          <strong>マスタ管理</strong>
+          <small>医師、医療機関、治験使用薬、届出者、CRO/SMO/IRB、添付資料など、届出に引用される正本データを管理します。</small>
+        </div>
+        <div class="card">
+          <strong>システム管理</strong>
+          <small>XSDマッピング、コード、外字ルール、期限・通知ルール、権限、出力テンプレートなど、運用ルールを管理します。</small>
+        </div>
+      </div>
+      <p>この分け方により、ユーザーはまずワークスペースで「今やるべきこと」を確認し、必要に応じてマスタやシステム設定へ移動できます。</p>
+    </section>
+
+    <section id="data">
+      <h2>3. データの流れ</h2>
+      <p>本モックでは、取り込み値、マスタ値、手入力値を明確に分けます。PDFから抽出した値は正本ではなく、出典ページや信頼度を確認したうえで、届出ドラフトへ採用します。</p>
+      <div class="table">
+        <table>
+          <thead><tr><th>データ</th><th>発生場所</th><th>扱い</th><th>次工程</th></tr></thead>
+          <tbody>
+            <tr><td>抽出候補</td><td>既存データ取り込み</td><td>PDF/XMLから抽出された仮の値。信頼度と出典を持つ。</td><td>マスタ照合、人手確認</td></tr>
+            <tr><td>マスタ値</td><td>マスタ管理</td><td>医師、医療機関、薬剤、組織、資料などの正本。</td><td>届出作成時に参照</td></tr>
+            <tr><td>届出ドラフト</td><td>届出作成</td><td>届出種別に応じて入力・編集される作業中データ。</td><td>レビュー・承認</td></tr>
+            <tr><td>承認済み届出</td><td>レビュー・承認</td><td>承認フローを通過した固定版データ。</td><td>PDF/XML生成</td></tr>
+            <tr><td>提出パッケージ</td><td>出力・提出準備</td><td>PDF、XML、添付資料、検証結果、ファイル名をまとめた提出前セット。</td><td>提出・保管</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="workspace">
+      <h2>4. ワークスペース</h2>
+      <h3>ダッシュボード</h3>
+      <p>ダッシュボードは、単なる一覧ではなく作業優先度を判断する場所です。期限注意、レビュー待ち、取込未確認、外字確認、出力エラーを横断して表示します。</p>
+      <div class="screen">
+        <div class="bar">画面で見るもの</div>
+        <div class="body">
+          <ul>
+            <li>マスタ変更から生成された届出期限候補</li>
+            <li>PDF/XML取り込み後の未確認項目</li>
+            <li>外字説明資料の承認待ち</li>
+            <li>XSD検証や添付資料不足による出力エラー</li>
+            <li>レビュー・承認の滞留状況</li>
+          </ul>
+        </div>
+      </div>
+
+      <h3>既存データ取り込み</h3>
+      <p>取り込み画面では、PDFは最終成果物としてではなく、抽出値の根拠を確認する原本ビューアとして扱います。抽出候補、出典ページ、信頼度、XSDマッピング先、マスタ照合結果を確認し、届出ドラフトへ反映します。</p>
+      <div class="warn">
+        PDFプレビューは届出作成中には常設しません。途中段階で見るべきものは最終PDFではなく、取り込み元の原本と抽出根拠です。
+      </div>
+    </section>
+
+    <section id="authoring">
+      <h2>5. 届出作成</h2>
+      <p>届出作成画面は、左の章メニュー、中央の入力フォーム、右の補助パネルで構成します。右パネルは「チェック」「差分」「外字」「マスタ参照」に絞り、入力途中のPDF確認は行わない設計です。</p>
+      <div class="table">
+        <table>
+          <thead><tr><th>章</th><th>主な入力内容</th><th>補助チェック</th></tr></thead>
+          <tbody>
+            <tr><td>届出種別・基本情報</td><td>届出書種別、届出年月日、提出先、様式バージョン</td><td>届出種別による表示章制御</td></tr>
+            <tr><td>治験届出共通事項</td><td>治験成分記号、治験の種類、初回受付番号、届出回数</td><td>初回届・前回届出との整合</td></tr>
+            <tr><td>主たる被験薬</td><td>届出分類、届出区分、製造所、成分及び分量、製造方法</td><td>コード選択、長文欄、前回差分</td></tr>
+            <tr><td>治験計画の概要</td><td>実施計画書識別記号、開発相、目的、予定被験者数、用法用量</td><td>条件付き必須、投与経路コード整合</td></tr>
+            <tr><td>治験使用薬等</td><td>薬剤区分、名称、承認状況、成分及び分量</td><td>薬剤マスタ参照、数量情報</td></tr>
+            <tr><td>実施医療機関</td><td>施設名、診療科、所在地、電話、予定被験者数</td><td>医療機関マスタ参照</td></tr>
+            <tr><td>医師情報</td><td>責任医師、分担医師、大学番号、卒業年、追加理由</td><td>外字、大学番号、変更期限候補</td></tr>
+            <tr><td>CRO / SMO / IRB</td><td>委託先、業務範囲、IRB設置者、所在地</td><td>組織マスタ参照、外字/記号確認</td></tr>
+            <tr><td>添付資料・参照届出</td><td>資料名、版、外字説明資料、参照届出情報</td><td>添付不足、承認状態、参照整合</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="master">
+      <h2>6. マスタ管理</h2>
+      <p>マスタ管理では、各エンティティごとに登録済みレコード一覧と入力フォームを用意します。一覧から編集対象を選ぶと、そのレコードの値がフォームに反映されます。</p>
+      <div class="grid two">
+        <div class="card">
+          <strong>一覧</strong>
+          <small>ID、名称、補足、状態、最終更新、編集操作を表示します。複数レコードが存在することを前提に、現在どのレコードを編集しているかを明確にします。</small>
+        </div>
+        <div class="card">
+          <strong>入力フォーム</strong>
+          <small>選択したレコードのフィールドを編集します。ここでの更新は、届出作成時の参照値や変更届候補の発生元になります。</small>
+        </div>
+      </div>
+      <div class="table">
+        <table>
+          <thead><tr><th>マスタ</th><th>管理する主な項目</th><th>届出への影響</th></tr></thead>
+          <tbody>
+            <tr><td>医師マスタ</td><td>原表記氏名、届出用表記、よみかな、大学番号、卒業年、所属、外字扱い</td><td>責任医師・分担医師欄、外字説明資料、変更届候補</td></tr>
+            <tr><td>医療機関マスタ</td><td>施設名、診療科、所在地、電話、責任医師、IRB紐づけ</td><td>実施医療機関欄、施設別予定被験者数、IRB情報</td></tr>
+            <tr><td>治験使用薬マスタ</td><td>記号・名称、名称種別、区分、剤形コード、投与経路コード、数量単位、承認状況</td><td>主たる被験薬、治験使用薬、数量情報</td></tr>
+            <tr><td>届出者・依頼者マスタ</td><td>届出者種別、法人名、代表者、所在地、業者コード、担当者、連絡先</td><td>届出者欄、海外依頼者欄、変更届候補</td></tr>
+            <tr><td>CRO / SMO / IRBマスタ</td><td>種別、名称、住所、委託範囲、IRB区分、届出要否</td><td>CRO/SMO/IRB欄、外字確認、期限候補</td></tr>
+            <tr><td>添付資料マスタ</td><td>資料名、版、資料種別、必須条件、SharePoint保管先、承認状態、出力対象</td><td>添付資料欄、出力前チェック、提出パッケージ</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="system">
+      <h2>7. システム管理</h2>
+      <p>システム管理は、ユーザーが日々触る入力値ではなく、入力・検証・出力を支えるルールを管理するレイヤーです。</p>
+      <div class="table">
+        <table>
+          <thead><tr><th>機能</th><th>役割</th><th>利用される画面</th></tr></thead>
+          <tbody>
+            <tr><td>XSD項目・出力マッピング</td><td>画面項目とXML要素、PDF出力位置を対応させる</td><td>届出作成、出力・提出準備</td></tr>
+            <tr><td>コード・選択肢管理</td><td>剤形、投与経路、薬効分類、届出区分などの候補を管理する</td><td>届出作成、マスタ管理</td></tr>
+            <tr><td>外字・表記ゆれ管理</td><td>原表記、届出用表記、説明資料要否、承認履歴を管理する</td><td>届出作成、レビュー、出力</td></tr>
+            <tr><td>期限・通知ルール</td><td>変更イベントから期限候補と通知タイミングを計算する</td><td>ダッシュボード、レビュー</td></tr>
+            <tr><td>権限・ロール</td><td>担当者、レビュー担当、承認者、管理者の操作権限を管理する</td><td>全画面</td></tr>
+            <tr><td>出力テンプレート</td><td>PDF/XMLの版、命名規則、提出パッケージ構成を管理する</td><td>出力・提出準備</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="workflow">
+      <h2>8. レビュー・承認ワークフロー</h2>
+      <p>レビュー・承認画面では、入力途中のPDFを見るのではなく、差分、外字、添付不足、XSD警告、コメント、差戻し理由を確認します。PDFは承認直前または承認後に固定版として確認します。</p>
+      <div class="flow">
+        <span>下書き</span>
+        <span>入力完了</span>
+        <span>一次レビュー</span>
+        <span>薬事確認</span>
+        <span>承認待ち</span>
+        <span>出力準備</span>
+      </div>
+      <p>承認された届出データは固定版となり、その後にPDF/XML生成へ進みます。これにより、入力途中の値と最終成果物が混同されにくくなります。</p>
+    </section>
+
+    <section id="output">
+      <h2>9. 出力・提出準備</h2>
+      <p>出力・提出準備画面は、最終成果物を確認する場所です。PDFプレビューはここに配置し、XML生成、XSD検証、添付資料、ファイル名、提出パッケージをまとめて確認します。</p>
+      <div class="table">
+        <table>
+          <thead><tr><th>確認対象</th><th>確認内容</th><th>状態例</th></tr></thead>
+          <tbody>
+            <tr><td>PDF生成</td><td>承認済みデータから提出用PDFを生成し、章構成と表示内容を確認する</td><td><span class="pill ok">完了</span></td></tr>
+            <tr><td>XML生成</td><td>XSDマッピングに基づきXMLを生成する</td><td><span class="pill watch">警告あり</span></td></tr>
+            <tr><td>XSD検証</td><td>必須項目、型、桁数、コード値を検証する</td><td><span class="pill danger">エラーあり</span></td></tr>
+            <tr><td>添付資料</td><td>必須資料、外字説明資料、版、承認状態を確認する</td><td><span class="pill watch">不足あり</span></td></tr>
+            <tr><td>提出パッケージ</td><td>PDF、XML、添付資料、命名規則、保管先をまとめる</td><td><span class="pill blue">準備中</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="review">
+      <h2>10. レビュー時の確認観点</h2>
+      <ul>
+        <li>取り込み値は、原本PDFの該当ページと照合できるか</li>
+        <li>マスタ値との差分が、届出対象か、マスタ更新のみか、次回まとめ届出候補か判断できるか</li>
+        <li>外字は、原表記、届出用表記、説明資料要否、承認者が確認できるか</li>
+        <li>期限候補は、変更イベント、起算日、ルール、通知タイミングを説明できるか</li>
+        <li>PDFは、承認済みまたは承認直前に固定したデータから生成されているか</li>
+        <li>XML/XSDエラー、添付不足、ファイル名不整合が提出前に検出されるか</li>
+      </ul>
+    </section>
+
+    <section id="next">
+      <h2>11. 次に詰める項目</h2>
+      <div class="grid">
+        <div class="card">
+          <strong>入力フィールド棚卸し</strong>
+          <small>公式手引きとXSDに基づき、章ごとの必須/任意/条件付き必須、繰り返し項目を整理します。</small>
+        </div>
+        <div class="card">
+          <strong>届出種別ごとの表示制御</strong>
+          <small>計画届、変更届、終了届、中止届、開発中止届で必要な章と項目を切り替えます。</small>
+        </div>
+        <div class="card">
+          <strong>変更イベント設計</strong>
+          <small>マスタ変更から届出候補、期限候補、通知を生成するルールを精緻化します。</small>
+        </div>
+        <div class="card">
+          <strong>外字ルール</strong>
+          <small>使用可能文字、置換候補、説明資料出力、承認履歴を具体化します。</small>
+        </div>
+        <div class="card">
+          <strong>承認フロー</strong>
+          <small>担当者、一次レビュー、薬事確認、承認者、差戻し時の責任範囲を定義します。</small>
+        </div>
+        <div class="card">
+          <strong>出力検証</strong>
+          <small>PDF、XML、XSD、添付資料、ファイル命名、提出パッケージの検証条件を定義します。</small>
+        </div>
+      </div>
+    </section>
+
+    <footer>
+      CTN systemization summary / UX mock manual / Updated for current React prototype
+    </footer>
+  </main>
+</div>
+</body>
+</html>

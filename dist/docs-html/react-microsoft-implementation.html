@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>方針 | CTN設計書</title>
+    <link rel="stylesheet" href="assets/docs.css" />
+  </head>
+  <body>
+    <div class="shell">
+      <aside class="sidebar">
+        <a class="brand" href="index.html"><span>CTN</span><strong>設計書ビューア</strong></a>
+        <nav><a href="architecture-overview.html">CTN作成支援システム 設計概要</a><a href="sharepoint-design.html">SharePoint設計書</a><a href="dataverse-design.html">Dataverse設計書</a><a href="workflow-reminder-design.html">ワークフロー・リマインダー設計書</a><a href="pdf-import-design.html">既存PDF取込・DB化設計書</a><a href="gaiji-handling-design.html">外字対応設計書</a><a class="active" href="react-microsoft-implementation.html">方針</a><a href="user-guide.html">ユーザーガイド</a><a href="admin-guide.html">管理者ガイド</a><a href="azure-static-web-apps-deploy.html">Azure Static Web Apps 公開手順</a></nav>
+      </aside>
+      <main class="document">
+        <div class="doc-meta">
+          <a href="index.html">設計書一覧</a>
+          <span>react-microsoft-implementation.md</span>
+        </div>
+        <header class="doc-header">
+          <h1>方針</h1>
+          <p>Markdown設計書をブラウザで読みやすい形式に変換したHTMLです。</p>
+        </header>
+        <details class="toc" open><summary>このページの目次</summary><a class="level-2" href="#方針">方針</a><a class="level-2" href="#役割分担">役割分担</a><a class="level-2" href="#なぜ-power-apps-単体にしないか">なぜ Power Apps 単体にしないか</a><a class="level-2" href="#power-platform-はどこで使うか">Power Platform はどこで使うか</a><a class="level-2" href="#最初の実装ステップ">最初の実装ステップ</a><a class="level-2" href="#codexプラグインの使い分け">Codexプラグインの使い分け</a></details>
+        <article class="content"><p># React UI + Microsoft 基盤 実装方針</p>
+<h2 id="方針">方針</h2>
+<p>Power Apps の画面表現に寄せるのではなく、React/Vite で SaaS 型の業務 UI を作り、Microsoft 365 / Azure / Power Platform を業務基盤として接続する。</p>
+<h2 id="役割分担">役割分担</h2>
+<div class="table-wrap"><table><thead><tr><th>領域</th><th>採用技術</th><th>役割</th></tr></thead><tbody><tr><td>フロントエンド</td><td>React / Vite</td><td>左ナビ、ダッシュボード、入力フォーム、テーブル、検索、状態表示</td></tr><tr><td>認証</td><td>Microsoft Entra ID</td><td>社内アカウント、ロール、アクセス制御</td></tr><tr><td>正本データ</td><td>Dataverse</td><td>届出、変更イベント、マスタ、XSD項目、承認状態</td></tr><tr><td>文書管理</td><td>SharePoint</td><td>PDF原本、添付資料、外字説明資料、出力済みPDF/XML</td></tr><tr><td>通知・承認</td><td>Power Automate / Teams</td><td>レビュー依頼、差戻し、期限通知、承認連絡</td></tr><tr><td>変換・検証</td><td>Azure Functions</td><td>PDF/OCR処理、XML生成、XSD検証、外字資料生成</td></tr><tr><td>開発・配布</td><td>GitHub / Azure Static Web Apps</td><td>ソース管理、レビュー、継続デプロイ</td></tr></tbody></table></div>
+<h2 id="なぜ-power-apps-単体にしないか">なぜ Power Apps 単体にしないか</h2>
+<ul><li>画像のような SaaS 品質のUIを継続的に作り込むには、CSS/React の自由度が必要。</li><li>治験届は入力項目が多く、テーブル、カード、状態バッジ、検索、レビュー導線を高密度に扱う必要がある。</li><li>XSD項目との対応、PDF取込、人手確認、差分比較などは、画面部品を柔軟に作れるReactのほうが向く。</li></ul>
+<h2 id="power-platform-はどこで使うか">Power Platform はどこで使うか</h2>
+<p>Power Apps は本体UIではなく、簡易管理画面や補助確認画面に限定する。Power Automate は通知・承認・期限リマインダーに使い、Dataverse は業務データの正本として使う。</p>
+<h2 id="最初の実装ステップ">最初の実装ステップ</h2>
+<p>1. React UIをAzure Static Web Appsに配置する。 2. Microsoft Entra ID認証を追加する。 3. Dataverseに届出、変更イベント、マスタ、添付資料リンクのテーブルを作る。 4. SharePointに治験届ドキュメントライブラリを作る。 5. Azure FunctionsでPDF取込、XML生成、XSD検証を実装する。 6. Power AutomateでTeams通知と承認フローを接続する。</p>
+<h2 id="codexプラグインの使い分け">Codexプラグインの使い分け</h2>
+<ul><li>Figma: UI仕様、余白、色、コンポーネントの整理</li><li>GitHub: React / Azure Functions / XSD検証コードの管理</li><li>SharePoint: 添付資料、テンプレート、出力物の参照</li><li>Teams: レビュー依頼、承認、差戻し連絡</li></ul></article>
+      </main>
+    </div>
+  </body>
+</html>

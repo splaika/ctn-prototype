@@ -1,0 +1,843 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>CTN Team Share Site</title>
+    <style>
+      :root {
+        color-scheme: light;
+        font-family: "Segoe UI", "Yu Gothic UI", Meiryo, sans-serif;
+        --bg: #f4f7f8;
+        --surface: #ffffff;
+        --line: #dce6e8;
+        --text: #1d2b31;
+        --muted: #65777e;
+        --brand: #0f4c5c;
+        --brand-2: #197278;
+        --accent: #f2c94c;
+        --ok: #1d6b45;
+        --warn: #8a6410;
+        --danger: #b94124;
+        --radius: 8px;
+      }
+
+      * { box-sizing: border-box; }
+      html { scroll-behavior: smooth; }
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--text);
+      }
+
+      a { color: inherit; }
+      button, input { font: inherit; }
+      button { cursor: pointer; }
+
+      .site {
+        min-height: 100vh;
+      }
+
+      .top {
+        position: sticky;
+        top: 0;
+        z-index: 20;
+        border-bottom: 1px solid var(--line);
+        background: rgba(255, 255, 255, .96);
+        backdrop-filter: blur(12px);
+      }
+
+      .topbar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 22px;
+        min-height: 68px;
+        padding: 0 28px;
+      }
+
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        min-width: 280px;
+      }
+
+      .brand-mark {
+        display: grid;
+        place-items: center;
+        width: 42px;
+        height: 42px;
+        border-radius: var(--radius);
+        background: var(--brand);
+        color: #fff;
+        font-weight: 800;
+      }
+
+      .brand strong,
+      .brand span {
+        display: block;
+      }
+
+      .brand span,
+      .hero p,
+      .card p,
+      .doc-card span,
+      .artifact span,
+      .muted {
+        color: var(--muted);
+      }
+
+      .nav {
+        display: flex;
+        gap: 4px;
+        padding: 6px;
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        background: #f8fafb;
+      }
+
+      .nav a {
+        min-height: 34px;
+        padding: 8px 13px;
+        border-radius: 999px;
+        color: #40535a;
+        text-decoration: none;
+        font-size: 14px;
+        font-weight: 800;
+      }
+
+      .nav a:hover {
+        background: #eaf4f5;
+        color: var(--brand);
+      }
+
+      .actions {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+      }
+
+      .button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 38px;
+        padding: 0 13px;
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+        background: #fff;
+        color: var(--text);
+        text-decoration: none;
+        font-weight: 800;
+      }
+
+      .button.primary {
+        border-color: var(--brand);
+        background: var(--brand);
+        color: #fff;
+      }
+
+      .hero {
+        display: grid;
+        gap: 18px;
+        padding: 38px 28px 22px;
+      }
+
+      .hero-inner {
+        display: grid;
+        grid-template-columns: minmax(0, 1.15fr) minmax(360px, .85fr);
+        gap: 20px;
+        max-width: 1280px;
+        width: 100%;
+        margin: 0 auto;
+      }
+
+      .hero-panel {
+        padding: 26px;
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+        background: var(--surface);
+      }
+
+      .eyebrow {
+        margin: 0 0 8px;
+        color: var(--brand);
+        font-weight: 900;
+      }
+
+      h1, h2, h3, p {
+        margin: 0;
+      }
+
+      h1 {
+        font-size: 34px;
+        letter-spacing: 0;
+      }
+
+      h2 {
+        font-size: 24px;
+        letter-spacing: 0;
+      }
+
+      h3 {
+        font-size: 17px;
+        letter-spacing: 0;
+      }
+
+      p, li {
+        line-height: 1.68;
+      }
+
+      .status-grid,
+      .card-grid,
+      .doc-grid,
+      .artifact-grid {
+        display: grid;
+        gap: 12px;
+      }
+
+      .status-grid {
+        grid-template-columns: repeat(2, minmax(160px, 1fr));
+      }
+
+      .status {
+        padding: 14px;
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+        background: #fbfcfc;
+      }
+
+      .status strong {
+        display: block;
+        margin-top: 7px;
+        font-size: 24px;
+      }
+
+      .wrap {
+        display: grid;
+        gap: 26px;
+        max-width: 1280px;
+        margin: 0 auto;
+        padding: 18px 28px 40px;
+      }
+
+      .section {
+        display: grid;
+        gap: 14px;
+      }
+
+      .section-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-end;
+        gap: 18px;
+      }
+
+      .card-grid {
+        grid-template-columns: repeat(3, minmax(240px, 1fr));
+      }
+
+      .card,
+      .viewer,
+      .doc-card,
+      .artifact,
+      .workflow {
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+        background: var(--surface);
+      }
+
+      .card {
+        display: grid;
+        gap: 10px;
+        padding: 18px;
+      }
+
+      .card a {
+        color: var(--brand-2);
+        font-weight: 900;
+        text-decoration: none;
+      }
+
+      .viewer {
+        overflow: hidden;
+      }
+
+      .viewer-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+        padding: 12px 14px;
+        border-bottom: 1px solid var(--line);
+        background: #fbfcfc;
+      }
+
+      .viewer-tabs {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+
+      .viewer-tabs button {
+        min-height: 34px;
+        padding: 0 12px;
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        background: #fff;
+        color: #40535a;
+        font-weight: 800;
+      }
+
+      .viewer-tabs button.active {
+        border-color: var(--brand);
+        background: var(--brand);
+        color: #fff;
+      }
+
+      iframe {
+        display: block;
+        width: 100%;
+        height: 760px;
+        border: 0;
+        background: #fff;
+      }
+
+      .doc-grid {
+        grid-template-columns: repeat(3, minmax(240px, 1fr));
+      }
+
+      .doc-card {
+        display: grid;
+        gap: 7px;
+        padding: 15px;
+        text-decoration: none;
+      }
+
+      .doc-card:hover,
+      .artifact:hover {
+        border-color: #9cc2c7;
+        box-shadow: 0 10px 24px rgba(19, 61, 70, .08);
+      }
+
+      .doc-card strong,
+      .artifact strong {
+        color: var(--brand);
+      }
+
+      .artifact-grid {
+        grid-template-columns: repeat(4, minmax(180px, 1fr));
+      }
+
+      .artifact {
+        display: grid;
+        gap: 7px;
+        padding: 15px;
+        text-decoration: none;
+      }
+
+      .workflow {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(180px, 1fr));
+        gap: 0;
+        overflow: hidden;
+      }
+
+      .embedded-ui {
+        display: grid;
+        grid-template-columns: 210px minmax(0, 1fr) 250px;
+        overflow: hidden;
+        min-height: 560px;
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+        background: #edf5fb;
+      }
+
+      .embedded-ui.dark {
+        background: #2e394c;
+        color: #eef4ff;
+      }
+
+      .embedded-sidebar {
+        padding: 18px 14px;
+        border-right: 1px solid #c8d6e2;
+        background: #dfe8f8;
+      }
+
+      .embedded-ui.dark .embedded-sidebar {
+        border-color: #4c5b72;
+        background: #343f55;
+      }
+
+      .embedded-brand {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 20px;
+        font-weight: 900;
+      }
+
+      .embedded-brand span {
+        display: grid;
+        place-items: center;
+        width: 34px;
+        height: 34px;
+        border-radius: 8px;
+        background: #2f91b2;
+        color: #fff;
+      }
+
+      .embedded-nav {
+        display: grid;
+        gap: 6px;
+      }
+
+      .embedded-nav button {
+        min-height: 34px;
+        border: 0;
+        border-radius: 7px;
+        background: transparent;
+        color: inherit;
+        text-align: left;
+        font-weight: 800;
+      }
+
+      .embedded-nav button.active {
+        background: rgba(255,255,255,.72);
+      }
+
+      .embedded-ui.dark .embedded-nav button.active {
+        background: #1b2840;
+      }
+
+      .embedded-main {
+        min-width: 0;
+        padding: 18px;
+      }
+
+      .embedded-head {
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        align-items: start;
+        margin-bottom: 16px;
+      }
+
+      .embedded-actions {
+        display: flex;
+        gap: 8px;
+      }
+
+      .embedded-actions button,
+      .embedded-theme {
+        min-height: 32px;
+        padding: 0 10px;
+        border: 1px solid #d7e0ec;
+        border-radius: 7px;
+        background: #fff;
+        color: #1d2b31;
+        font-weight: 800;
+      }
+
+      .embedded-actions .primary {
+        border-color: #209168;
+        background: #209168;
+        color: #fff;
+      }
+
+      .embedded-ui.dark .embedded-actions button,
+      .embedded-ui.dark .embedded-theme {
+        border-color: #34445f;
+        background: #172337;
+        color: #eef4ff;
+      }
+
+      .embedded-panel,
+      .embedded-side-card {
+        border: 1px solid #d7e0ec;
+        border-radius: 8px;
+        background: #fff;
+      }
+
+      .embedded-ui.dark .embedded-panel,
+      .embedded-ui.dark .embedded-side-card {
+        border-color: #34445f;
+        background: #172337;
+      }
+
+      .embedded-panel {
+        padding: 14px;
+      }
+
+      .embedded-metrics {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(100px, 1fr));
+        gap: 10px;
+        margin: 12px 0;
+      }
+
+      .embedded-metric {
+        padding: 12px;
+        border: 1px solid #d7e0ec;
+        border-radius: 8px;
+        background: #f8fbff;
+      }
+
+      .embedded-ui.dark .embedded-metric {
+        border-color: #34445f;
+        background: #1d2a40;
+      }
+
+      .embedded-metric span,
+      .embedded-muted {
+        color: #65777e;
+      }
+
+      .embedded-ui.dark .embedded-metric span,
+      .embedded-ui.dark .embedded-muted {
+        color: #a9b7ca;
+      }
+
+      .embedded-metric strong {
+        display: block;
+        margin-top: 7px;
+        font-size: 22px;
+      }
+
+      .embedded-list {
+        display: grid;
+        gap: 8px;
+      }
+
+      .embedded-row {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        gap: 12px;
+        align-items: center;
+        padding: 11px;
+        border: 1px solid #d7e0ec;
+        border-radius: 8px;
+        background: #f8fbff;
+      }
+
+      .embedded-ui.dark .embedded-row {
+        border-color: #34445f;
+        background: #1d2a40;
+      }
+
+      .embedded-badge {
+        display: inline-flex;
+        align-items: center;
+        min-height: 24px;
+        padding: 0 9px;
+        border-radius: 999px;
+        background: rgba(243, 192, 107, .24);
+        color: #996522;
+        font-size: 12px;
+        font-weight: 900;
+      }
+
+      .embedded-side {
+        display: grid;
+        gap: 12px;
+        padding: 18px;
+        background: rgba(218, 238, 248, .78);
+      }
+
+      .embedded-ui.dark .embedded-side {
+        background: #2b4354;
+      }
+
+      .embedded-side-card {
+        padding: 14px;
+      }
+
+      .step {
+        display: grid;
+        gap: 8px;
+        padding: 16px;
+        border-right: 1px solid var(--line);
+      }
+
+      .step:last-child {
+        border-right: 0;
+      }
+
+      .step-no {
+        display: grid;
+        place-items: center;
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        background: var(--brand);
+        color: #fff;
+        font-weight: 900;
+      }
+
+      @media (max-width: 1080px) {
+        .topbar,
+        .hero-inner,
+        .section-head,
+        .workflow {
+          display: grid;
+        }
+
+        .embedded-ui {
+          grid-template-columns: 1fr;
+        }
+
+        .nav,
+        .actions,
+        .viewer-head {
+          flex-wrap: wrap;
+        }
+
+        .brand {
+          min-width: 0;
+        }
+
+        .card-grid,
+        .doc-grid,
+        .artifact-grid,
+        .status-grid,
+        .embedded-metrics {
+          grid-template-columns: 1fr;
+        }
+
+        .step {
+          border-right: 0;
+          border-bottom: 1px solid var(--line);
+        }
+
+        .step:last-child {
+          border-bottom: 0;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="site">
+      <header class="top">
+        <div class="topbar">
+          <div class="brand">
+            <div class="brand-mark">CTN</div>
+            <div>
+              <strong>Team Share Site</strong>
+              <span>UI・設計書・実装資料をチームで確認</span>
+            </div>
+          </div>
+          <nav class="nav" aria-label="サイト内ナビゲーション">
+            <a href="#ui">UI</a>
+            <a href="#docs">設計書</a>
+            <a href="#artifacts">成果物</a>
+            <a href="#process">進め方</a>
+          </nav>
+          <div class="actions">
+            <a class="button" href="portal.html">旧ポータル</a>
+            <a class="button primary" href="CTN_治験届プロトタイプ共有.zip">共有ZIP</a>
+          </div>
+        </div>
+      </header>
+
+      <section class="hero">
+        <div class="hero-inner">
+          <div class="hero-panel">
+            <p class="eyebrow">Project Overview</p>
+            <h1>治験届作成支援システム MVP共有サイト</h1>
+            <p>
+              Reactプロトタイプ、モダンUI案、SharePoint/Dataverse設計書、PDF取込・外字・ワークフロー資料を
+              1つのサイトから確認できるチーム共有用アウトプットです。
+            </p>
+          </div>
+          <div class="status-grid">
+            <article class="status"><span>UIアウトプット</span><strong>4</strong><p class="muted">React / Modern / Operations / Portal</p></article>
+            <article class="status"><span>HTML設計書</span><strong>9</strong><p class="muted">docs配下Markdown変換</p></article>
+            <article class="status"><span>DB設計</span><strong>SQL</strong><p class="muted">Dataverse設計の下敷き</p></article>
+            <article class="status"><span>共有形式</span><strong>HTML</strong><p class="muted">SharePoint配置も想定</p></article>
+          </div>
+        </div>
+      </section>
+
+      <main class="wrap">
+        <section class="section" id="ui">
+          <div class="section-head">
+            <div>
+              <h2>UI確認</h2>
+              <p class="muted">チーム内レビューでは、まず下の埋め込みUIを見ます。iframeや別HTMLが読めなくても、この画面自体でUIを確認できます。</p>
+            </div>
+            <a class="button" id="openFrame" href="index.html" target="_blank" rel="noreferrer">別タブで開く</a>
+          </div>
+
+          <section class="embedded-ui" id="embeddedUi">
+            <aside class="embedded-sidebar">
+              <div class="embedded-brand"><span>CT</span><div>CTN作成支援 Hub<br><small class="embedded-muted">届出入力・マスタ・版管理</small></div></div>
+              <nav class="embedded-nav">
+                <button class="active">ダッシュボード</button>
+                <button>届出入力</button>
+                <button>マスタ管理</button>
+                <button>既存PDF取込</button>
+                <button>外字・表記</button>
+                <button>出力・履歴</button>
+                <button class="embedded-theme" id="embeddedTheme">ダークモード</button>
+              </nav>
+            </aside>
+            <main class="embedded-main">
+              <div class="embedded-head">
+                <div>
+                  <h3>CTN-03 / 治験届作成支援</h3>
+                  <p class="embedded-muted">治験識別記号: JPN-CTN-2026-03・変更届 #11 draft・提出期限候補: 2026-06-12</p>
+                </div>
+                <div class="embedded-actions">
+                  <button>監査ログ</button>
+                  <button>差分確認</button>
+                  <button class="primary">承認へ回す</button>
+                </div>
+              </div>
+              <section class="embedded-panel">
+                <div class="section-head">
+                  <div>
+                    <h3>CTN作成ボード</h3>
+                    <p class="embedded-muted">入力項目、マスタ変更、既存PDF取込、外字、期限リマインダーを追跡します。</p>
+                  </div>
+                  <span class="embedded-badge">3件レビュー中</span>
+                </div>
+                <div class="embedded-metrics">
+                  <div class="embedded-metric"><span>入力完了</span><strong>76%</strong></div>
+                  <div class="embedded-metric"><span>マスタ変更</span><strong>18件</strong></div>
+                  <div class="embedded-metric"><span>外字確認</span><strong>5件</strong></div>
+                  <div class="embedded-metric"><span>期限注意</span><strong>4件</strong></div>
+                </div>
+                <div class="embedded-list">
+                  <article class="embedded-row"><div><strong>届出入力パッケージ</strong><p class="embedded-muted">届出概要、治験計画、医師情報、添付資料を入力中。</p></div><span class="embedded-badge">入力中</span></article>
+                  <article class="embedded-row"><div><strong>マスタ変更からの届出候補</strong><p class="embedded-muted">医師・医療機関・治験使用薬の変更イベントを変更届 #11 に紐付け。</p></div><span class="embedded-badge">18件</span></article>
+                  <article class="embedded-row"><div><strong>既存PDF取込・DB化</strong><p class="embedded-muted">確定版 v1.1 から変更届ドラフトを作成。</p></div><span class="embedded-badge">取込済</span></article>
+                  <article class="embedded-row"><div><strong>外字・期限リマインダー</strong><p class="embedded-muted">渡邊→渡辺、髙橋→高橋の説明資料と6か月期限を監視。</p></div><span class="embedded-badge">要確認</span></article>
+                </div>
+              </section>
+            </main>
+            <aside class="embedded-side">
+              <section class="embedded-side-card"><span class="embedded-badge">承認前チェック</span><h3>CTNの入力、マスタ変更、期限管理</h3><p class="embedded-muted">変更イベント、外字、根拠資料、PDF/XML出力準備を一画面で確認します。</p></section>
+              <section class="embedded-side-card"><span class="embedded-badge">Ready</span><h3>マスタ紐付け</h3><p class="embedded-muted">医師、医療機関、治験使用薬、添付資料を変更届へ紐付け</p></section>
+              <section class="embedded-side-card"><span class="embedded-badge">Open</span><h3>未確認項目</h3><p class="embedded-muted">外字説明、根拠資料リンク、6か月期限、承認前チェック</p></section>
+            </aside>
+          </section>
+
+          <div class="card-grid">
+            <article class="card">
+              <h3>Operations UI</h3>
+              <p>画像のような業務オペレーション画面構成です。ライト/ダークモード切替に対応しています。</p>
+              <a href="ctn-operations-ui.html">単体で開く</a>
+            </article>
+            <article class="card">
+              <h3>React UI</h3>
+              <p>現在の入力・管理プロトタイプ。ダッシュボード、マスタ管理、届出入力の動きを確認します。</p>
+              <a href="index.html">単体で開く</a>
+            </article>
+            <article class="card">
+              <h3>モダンUI案</h3>
+              <p>上部ホリゾンタルナビと届出入力専用サイドメニューを使った再設計案です。</p>
+              <a href="modern-ui-proposal.html">単体で開く</a>
+            </article>
+            <article class="card">
+              <h3>設計書ビューア</h3>
+              <p>Markdown設計書をHTML化した閲覧画面。ビジネス側レビューに使います。</p>
+              <a href="docs-html/index.html">単体で開く</a>
+            </article>
+          </div>
+
+          <section class="viewer">
+            <div class="viewer-head">
+              <div>
+                <strong id="frameTitle">Operations UI</strong>
+                <span class="muted" id="frameMeta">画像風のライト/ダーク対応UI</span>
+              </div>
+              <div class="viewer-tabs">
+                <button class="active" data-frame="ctn-operations-ui.html" data-title="Operations UI" data-meta="画像風のライト/ダーク対応UI">Operations UI</button>
+                <button data-frame="index.html" data-title="React UI" data-meta="現在のプロトタイプ">React UI</button>
+                <button data-frame="modern-ui-proposal.html" data-title="モダンUI案" data-meta="再設計HTMLモック">モダンUI案</button>
+                <button data-frame="docs-html/index.html" data-title="設計書ビューア" data-meta="docs配下MarkdownのHTML版">設計書</button>
+              </div>
+            </div>
+            <iframe id="preview" src="ctn-operations-ui.html" title="UI preview"></iframe>
+          </section>
+        </section>
+
+        <section class="section" id="docs">
+          <div class="section-head">
+            <div>
+              <h2>設計書</h2>
+              <p class="muted">各HTMLは `docs/` 配下のMarkdownから生成しています。</p>
+            </div>
+            <a class="button" href="docs-html/index.html">設計書一覧へ</a>
+          </div>
+          <div class="doc-grid">
+            <a class="doc-card" href="docs-html/architecture-overview.html"><strong>全体設計</strong><span>architecture-overview.md</span></a>
+            <a class="doc-card" href="docs-html/sharepoint-design.html"><strong>SharePoint設計</strong><span>sharepoint-design.md</span></a>
+            <a class="doc-card" href="docs-html/dataverse-design.html"><strong>Dataverse設計</strong><span>dataverse-design.md</span></a>
+            <a class="doc-card" href="docs-html/workflow-reminder-design.html"><strong>ワークフロー・リマインダー</strong><span>workflow-reminder-design.md</span></a>
+            <a class="doc-card" href="docs-html/pdf-import-design.html"><strong>既存PDF取込</strong><span>pdf-import-design.md</span></a>
+            <a class="doc-card" href="docs-html/gaiji-handling-design.html"><strong>外字対応</strong><span>gaiji-handling-design.md</span></a>
+            <a class="doc-card" href="docs-html/react-microsoft-implementation.html"><strong>React / Microsoft実装方針</strong><span>react-microsoft-implementation.md</span></a>
+            <a class="doc-card" href="docs-html/user-guide.html"><strong>ユーザーガイド</strong><span>user-guide.md</span></a>
+            <a class="doc-card" href="docs-html/admin-guide.html"><strong>管理者ガイド</strong><span>admin-guide.md</span></a>
+          </div>
+        </section>
+
+        <section class="section" id="artifacts">
+          <div class="section-head">
+            <div>
+              <h2>成果物</h2>
+              <p class="muted">チーム共有・実装引き継ぎで見るべきファイルです。</p>
+            </div>
+          </div>
+          <div class="artifact-grid">
+            <a class="artifact" href="README.md"><strong>README</strong><span>構成と起動方法</span></a>
+            <a class="artifact" href="database/schema.sql"><strong>DB Schema</strong><span>SQL設計</span></a>
+            <a class="artifact" href="docs-html/index.html"><strong>HTML Docs</strong><span>設計書ビューア</span></a>
+            <a class="artifact" href="CTN_治験届プロトタイプ共有.zip"><strong>共有ZIP</strong><span>メール/SharePoint共有用</span></a>
+          </div>
+        </section>
+
+        <section class="section" id="process">
+          <div class="section-head">
+            <div>
+              <h2>チームでの使い方</h2>
+              <p class="muted">MVP開発時は、この流れでレビューと更新を回します。</p>
+            </div>
+          </div>
+          <div class="workflow">
+            <article class="step"><span class="step-no">1</span><h3>UI確認</h3><p>React UIとモダンUI案を見て、業務側が画面粒度を確認します。</p></article>
+            <article class="step"><span class="step-no">2</span><h3>設計レビュー</h3><p>SharePoint/Dataverse/PDF取込/外字などのHTML設計書を確認します。</p></article>
+            <article class="step"><span class="step-no">3</span><h3>Issue化</h3><p>変更点をAzure DevOpsやTeamsでタスク化し、実装対象を確定します。</p></article>
+            <article class="step"><span class="step-no">4</span><h3>発行</h3><p>承認済み版はSharePointへ配置し、開発版はGit/Azure DevOpsで管理します。</p></article>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <script>
+      const buttons = document.querySelectorAll("[data-frame]");
+      const frame = document.getElementById("preview");
+      const frameTitle = document.getElementById("frameTitle");
+      const frameMeta = document.getElementById("frameMeta");
+      const openFrame = document.getElementById("openFrame");
+      const embeddedUi = document.getElementById("embeddedUi");
+      const embeddedTheme = document.getElementById("embeddedTheme");
+
+      buttons.forEach((button) => {
+        button.addEventListener("click", () => {
+          buttons.forEach((item) => item.classList.toggle("active", item === button));
+          frame.src = button.dataset.frame;
+          frameTitle.textContent = button.dataset.title;
+          frameMeta.textContent = button.dataset.meta;
+          openFrame.href = button.dataset.frame;
+        });
+      });
+
+      embeddedTheme.addEventListener("click", () => {
+        embeddedUi.classList.toggle("dark");
+      });
+    </script>
+  </body>
+</html>

@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Azure Static Web Apps 公開手順 | CTN設計書</title>
+    <link rel="stylesheet" href="assets/docs.css" />
+  </head>
+  <body>
+    <div class="shell">
+      <aside class="sidebar">
+        <a class="brand" href="index.html"><span>CTN</span><strong>設計書ビューア</strong></a>
+        <nav><a href="architecture-overview.html">CTN作成支援システム 設計概要</a><a href="sharepoint-design.html">SharePoint設計書</a><a href="dataverse-design.html">Dataverse設計書</a><a href="workflow-reminder-design.html">ワークフロー・リマインダー設計書</a><a href="pdf-import-design.html">既存PDF取込・DB化設計書</a><a href="gaiji-handling-design.html">外字対応設計書</a><a href="react-microsoft-implementation.html">方針</a><a href="user-guide.html">ユーザーガイド</a><a href="admin-guide.html">管理者ガイド</a><a class="active" href="azure-static-web-apps-deploy.html">Azure Static Web Apps 公開手順</a></nav>
+      </aside>
+      <main class="document">
+        <div class="doc-meta">
+          <a href="index.html">設計書一覧</a>
+          <span>azure-static-web-apps-deploy.md</span>
+        </div>
+        <header class="doc-header">
+          <h1>Azure Static Web Apps 公開手順</h1>
+          <p>Markdown設計書をブラウザで読みやすい形式に変換したHTMLです。</p>
+        </header>
+        <details class="toc" open><summary>このページの目次</summary><a class="level-1" href="#azure-static-web-apps-公開手順">Azure Static Web Apps 公開手順</a><a class="level-2" href="#目的">目的</a><a class="level-2" href="#公開される入口">公開される入口</a><a class="level-2" href="#ローカルでの生成">ローカルでの生成</a><a class="level-2" href="#azure-portalで作成する場合">Azure Portalで作成する場合</a><a class="level-2" href="#公開後の確認">公開後の確認</a><a class="level-2" href="#注意">注意</a><a class="level-2" href="#参考">参考</a></details>
+        <article class="content"><h1 id="azure-static-web-apps-公開手順">Azure Static Web Apps 公開手順</h1>
+<h2 id="目的">目的</h2>
+<p>このプロトタイプは、画面遷移と入力操作をレビューするためのフロントエンドモックです。保存用バックエンドやワークフロー実行基盤は含めず、Azure Static Web Appsで静的Webサイトとして公開します。</p>
+<h2 id="公開される入口">公開される入口</h2>
+<ul><li><code>/</code>: React版モック本体。画面遷移と入力操作を確認する入口です。</li><li><code>/team-site.html</code>: モック、マニュアル、設計書への共有サイトです。</li><li><code>/ctn-ux-react-standalone.html</code>: サーバー不要の単一HTML版です。</li><li><code>/ctn-ux-manual.html</code>: 操作マニュアルです。</li><li><code>/docs-html/index.html</code>: 設計書ビューアです。</li></ul>
+<h2 id="ローカルでの生成">ローカルでの生成</h2>
+<pre><code>npm install
+npm run build:site</code></pre>
+<p>生成物は <code>dist/</code> に出力されます。Azure Static Web Appsにはこの <code>dist/</code> を公開します。</p>
+<h2 id="azure-portalで作成する場合">Azure Portalで作成する場合</h2>
+<p>1. Azure Portalで <code>Static Web App</code> を作成します。 2. Planは、まずレビュー用途なら <code>Free</code> で構いません。 3. Deployment sourceはGitHubを選択します。 4. Build Detailsは <code>Custom</code> を選択します。 5. 以下を指定します。</p>
+<pre><code>App location: /
+Api location: 空欄
+Output location: dist
+Build command: npm run build:site</code></pre>
+<p>6. GitHub Actionsのsecretに <code>AZURE_STATIC_WEB_APPS_API_TOKEN</code> が登録されていることを確認します。 7. <code>main</code> ブランチへpushすると自動デプロイされます。手動で実行したい場合はGitHub Actionsの <code>workflow_dispatch</code> から実行できます。</p>
+<h2 id="公開後の確認">公開後の確認</h2>
+<p>公開URLで以下を確認します。</p>
+<ul><li><code>/</code> を開くとReact版モックが表示される</li><li>左メニューで「既存データ取り込み」「届出作成」「マスタ管理」へ遷移できる</li><li>届出作成の入力フィールドに入力できる</li><li>マスタ管理の一覧と入力フィールドを確認できる</li><li><code>/team-site.html</code> からマニュアルや設計書へ移動できる</li></ul>
+<h2 id="注意">注意</h2>
+<p>現時点のモックはブラウザ上で入力できますが、入力値は永続保存されません。レビュー参加者が同時に同じデータを編集・保存する用途にする場合は、Dataverse、SharePoint List、Azure Functionsなどの保存先が別途必要です。</p>
+<p>外部メンバーに限定公開したい場合は、Azure Static Web Appsの認証・ロール、またはStandardプランのネットワーク制御を検討します。</p>
+<h2 id="参考">参考</h2>
+<ul><li>Microsoft Learn: Build configuration for Azure Static Web Apps</li><li>Microsoft Learn: Configure Azure Static Web Apps</li></ul></article>
+      </main>
+    </div>
+  </body>
+</html>

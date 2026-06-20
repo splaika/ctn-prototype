@@ -1,0 +1,931 @@
+<?xml version="1.0" encoding="utf-8"?>
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+	<!-- 厚生労働省　治験届の電子媒体に記入する電子ファイルに適用するXML SchemaによるXML文書構造定義　
+
+　　令和２年９月１日以降に提出する治験計画届書については、以下のXML Schemaに基づき作成すること。
+　　なお、令和４年９月１日までの間は従前の例により届け出て差し支えない。
+
+　　最新の版番号：　3.0.0
+　　発行年月日：　　令和２年８月３１日
+　　発行者：　　　　厚生労働省 医薬・生活衛生局　医薬品審査管理課
+　　
+　　変更履歴：
+　　 2.0版　　平成２０年８月１５日 - 従来のSGML規則による文書をXML規則によるものに変更した。
+　　 3.0.0版　令和２年８月３１日 - 令和元年薬機法改正に伴う届出項目の変更に対応。
+
+-->
+	<xsd:element name="CLINTRIALPLANNOTE">
+		<!-- 治験の計画等の届出 -->
+		<xsd:complexType>
+			<xsd:sequence>
+				<xsd:element name="VARIABLELABEL" type="xsd:string"/>
+				<xsd:element name="INFOFORMVERSION" type="ATTR_UPDATE_TYPE"/>
+				<!-- 様式等のバージョン情報 -->
+				<xsd:element name="COMMONINFOCLINTRIALPLANNOTE" type="COMMONINFOCLINTRIALPLANNOTE_TYPE"/>
+				<!-- 治験届出共通事項 -->
+				<xsd:element name="INFONOTE" type="INFONOTE_TYPE"/>
+				<!-- 主たる被験薬に関する届出事項 -->
+				<xsd:element name="INFOCOMBINATION" type="INFOCOMBINATION_TYPE" minOccurs="0" maxOccurs="1"/>
+				<!-- 治験使用薬、治験使用機器相当、治験使用製品相当（主たる被験薬を除く。）の情報 -->
+				<xsd:element name="INFOMEDICALINSTITUT" type="INFOMEDICALINSTITUT_TYPE" minOccurs="0" maxOccurs="1"/>
+				<!-- 実施医療機関情報 -->
+				<xsd:element name="INFOREFCLINTRIALPLANNOTER" type="INFOREFCLINTRIALPLANNOTER_TYPE" minOccurs="0" maxOccurs="1"/>
+				<!-- 参照する治験届出情報 -->
+			</xsd:sequence>
+		</xsd:complexType>
+	</xsd:element>
+	<!-- 治験届出共通事項 -->
+	<xsd:complexType name="COMMONINFOCLINTRIALPLANNOTE_TYPE">
+		<xsd:sequence>
+			<xsd:element name="VARIABLELABEL" type="xsd:string"/>
+			<xsd:element name="TESTSUBSTANCEIDCODE" type="ATTR_UPDATE_TYPE"/>
+			<!-- 主たる被験薬の治験成分記号 -->
+			<xsd:element name="TYPECLINTRIALS" type="ATTR_UPDATE_TYPE"/>
+			<!-- 治験の種類 -->
+			<xsd:element name="RECEPTNUMINITNOTE" type="ATTR_UPDATE_TYPE"/>
+			<!-- 主たる被験薬の初回届出受付番号 -->
+			<xsd:element name="INITNOTEDATE" type="ATTR_UPDATE_TYPE"/>
+			<!-- 主たる被験薬の初回届出年月日 -->
+			<xsd:element name="SERIALNOTENUM" type="ATTR_UPDATE_TYPE" minOccurs="0" maxOccurs="1"/>
+			<!-- 主たる被験薬の届出回数 -->
+			<xsd:element name="RECEPTNUMCLINTRIALPLANNOTE" type="ATTR_UPDATE_TYPE" minOccurs="0" maxOccurs="1"/>
+			<!-- 当該治験計画届出受付番号 -->
+			<xsd:element name="CLINTRIALPLANNOTEDATE" type="ATTR_UPDATE_TYPE" minOccurs="0" maxOccurs="1"/>
+			<!-- 当該治験計画届出年月日 -->
+		</xsd:sequence>
+	</xsd:complexType>
+	<!-- 主たる被験薬に関する届出事項 -->
+	<xsd:complexType name="INFONOTE_TYPE">
+		<xsd:sequence>
+			<xsd:element name="VARIABLELABEL" type="xsd:string"/>
+			<xsd:element name="NOTEDATE" type="ATTR_UPDATE_TYPE"/>
+			<!-- 届出年月日 -->
+			<xsd:element name="CLASSNOTE" type="ATTR_UPDATE_TYPE"/>
+			<!-- 届出分類 -->
+			<xsd:element name="TIMESCHANGE" type="ATTR_UPDATE_TYPE" minOccurs="0" maxOccurs="1"/>
+			<!-- 変更回数 -->
+			<xsd:element name="CATEGORYNOTE" type="ATTR_UPDATE_TYPE"/>
+			<!-- 届出区分 -->
+			<xsd:element name="CATEGTESTPRODUCTSUBJ30DAYREVIEW" type="ATTR_UPDATE_NOVALUE_TYPE" minOccurs="0" maxOccurs="1"/>
+			<!-- 主たる被験薬の30日調査対応被験薬区分 -->
+			<xsd:element name="INFOPREMATURETERMINATION" type="INFOPREMATURETERMINATION_TYPE"/>
+			<!-- 中止情報 -->
+			<xsd:element name="INFONAMEADDRESSMANUFACTPLANT" type="INFONAMEADDRESSMANUFACTPLANT_TYPE" minOccurs="0" maxOccurs="1"/>
+			<!-- 主たる被験薬の製造所又は営業所（治験薬提供者）の名称及び所在地 -->
+			<xsd:element name="INFOINGREDIENTQUANTITY" type="INFOINGREDIENTQUANTITY_TYPE" minOccurs="0" maxOccurs="1"/>
+			<!-- 主たる被験薬の成分及び分量情報 -->
+			<xsd:element name="MANUFACTMETHOD" type="ATTR_UPDATE_TYPE" minOccurs="0" maxOccurs="1"/>
+			<!-- 主たる被験薬の製造方法 -->
+			<xsd:element name="INFOINTENDINDICATIONSEFFECTS" type="INFOINTENDINDICATIONSEFFECTS_TYPE" minOccurs="0" maxOccurs="1"/>
+			<!-- 主たる被験薬の予定される効能又は効果情報 -->
+			<xsd:element name="INFOINTENDDOSAGEADMIN" type="INFOINTENDDOSAGEADMIN_TYPE" minOccurs="0" maxOccurs="1"/>
+			<!-- 主たる被験薬の予定される用法及び用量情報 -->
+			<xsd:element name="SUMMARYPROTOCOL" minOccurs="0" maxOccurs="1">
+				<!-- 治験計画の概要 -->
+				<xsd:complexType>
+					<xsd:sequence>
+						<xsd:element name="VARIABLELABEL" type="xsd:string"/>
+						<xsd:element name="PROTOCOLNUM" type="ATTR_UPDATE_TYPE"/>
+						<!-- 実施計画書識別記号 -->
+						<xsd:element name="PHASECLINTRIAL" type="ATTR_UPDATE_TYPE"/>
+						<!-- 開発の相 -->
+						<xsd:element name="TYPECLINTRIAL" type="ATTR_UPDATE_TYPE"/>
+						<!-- 試験の種類 -->
+						<xsd:element name="TRIALOBJECTIVES" type="ATTR_UPDATE_TYPE"/>
+						<!-- 目的 -->
+						<xsd:element name="INFOPLANNUMSUBJ" type="INFOPLANNUMSUBJ_TYPE"/>
+						<!-- 予定被験者数情報 -->
+						<xsd:element name="TARGETDISEASE" type="ATTR_UPDATE_TYPE"/>
+						<!-- 主たる被験薬の対象疾患 -->
+						<xsd:element name="INFODOSAGEADMIN" type="INFODOSAGEADMIN_TYPE"/>
+						<!-- 主たる被験薬の用法及び用量情報 -->
+						<xsd:element name="WHOLEDURATIONCLINTRIAL" type="WHOLEDURATIONCLINTRIAL_TYPE"/>
+						<!-- 実施期間 -->
+						<xsd:element name="REASONONEROUS" type="ATTR_UPDATE_TYPE"/>
+						<!-- 有償の理由等 -->
+						<xsd:element name="CHARGEOUTPERSONCLINTRIAL" type="CHARGEOUTPERSONCLINTRIAL_TYPE"/>
+						<!-- 治験の費用負担者に関する情報 -->
+						<xsd:element name="INFOCOORDINVESTIGATOR" type="INFOCOORDINVESTIGATOR_TYPE"/>
+						<!-- 治験調整医師又は治験調整委員会構成医師に関する情報 -->
+						<xsd:element name="INFOCRO" type="INFOCRO_TYPE"/>
+						<!-- 治験の依頼（準備）及び管理に関する業務の全部又は一部を受託する者（開発業務受託機関（ＣＲＯ））の氏名、住所及び委託する業務の範囲 -->
+					</xsd:sequence>
+				</xsd:complexType>
+			</xsd:element>
+			<xsd:element name="INFOOTHERS_PRIMARY" minOccurs="0" maxOccurs="1">
+				<!-- 主たる被験薬のその他の情報 -->
+				<xsd:complexType>
+					<xsd:sequence>
+						<xsd:element name="VARIABLELABEL" type="xsd:string"/>
+						<xsd:element name="INFOCLINTRIALWITHDRUGCARTAGENA" type="INFOCLINTRIALWITHDRUGCARTAGENA_TYPE"/>
+						<!-- カルタヘナ法の対象となる薬物を用いる治験 -->
+						<xsd:element name="INFOCLINTRIALWITHBIOLOGICALPROD" type="INFOCLINTRIALWITHBIOLOGICALPROD_TYPE"/>
+						<!-- 生物由来製品に指定が見込まれる薬物を用いる治験 -->
+						<xsd:element name="INFORESEARCHFORCODX" type="INFORESEARCHFORCODX_TYPE"/>
+						<!-- 対応するコンパニオン診断薬等の開発 -->
+						<xsd:element name="INFOCLINTRIALFORCOMBINATIONPROD" type="INFOCLINTRIALFORCOMBINATIONPROD_TYPE"/>
+						<!-- コンビネーション製品に関する治験 -->
+						<xsd:element name="OTHERCOMMENTS_PRIMARY" type="ATTR_UPDATE_TYPE" minOccurs="0" maxOccurs="1"/>
+						<!-- その他 -->
+					</xsd:sequence>
+				</xsd:complexType>
+			</xsd:element>
+			<xsd:element name="INFOOTHERS_PROTOCOL" minOccurs="0" maxOccurs="1">
+				<!-- 当該届出に関するその他の情報 -->
+				<xsd:complexType>
+					<xsd:sequence>
+						<xsd:element name="VARIABLELABEL" type="xsd:string"/>
+						<xsd:element name="INFOEXPANDEDACCESSPROG" type="INFOEXPANDEDACCESSPROG_TYPE"/>
+						<!-- 臨床試験の位置付け -->
+						<xsd:element name="INFOGLOBALCLINTRIAL" type="INFOGLOBALCLINTRIAL_TYPE"/>
+						<!-- 国際共同治験 -->
+						<xsd:element name="INFOCLINTRIALINCLUDINGGENETEST" type="INFOCLINTRIALINCLUDINGGENETEST_TYPE"/>
+						<!-- ゲノム検査等を含む治験 -->
+						<xsd:element name="INFOPRODUSINGMDCLINTRIAL" type="INFOPRODUSINGMDCLINTRIAL_TYPE"/>
+						<!-- マイクロドーズ臨床試験を利用した開発品目 -->
+						<xsd:element name="INFOCOMBEQUIPMENT" type="INFOCOMBEQUIPMENT_TYPE"/>
+						<!-- 当該届出に関する治験に併用する機械器具等の記載 -->
+						<xsd:element name="OTHERCOMMENTS_PROTOCOL" type="ATTR_UPDATE_TYPE" minOccurs="0" maxOccurs="1"/>
+						<!-- その他 -->
+					</xsd:sequence>
+				</xsd:complexType>
+			</xsd:element>
+			<xsd:element name="REMARKS" type="REMARKS_TYPE"/>
+			<!-- 備考 -->
+			<xsd:element name="DOCATTACHEDNOTE" type="DOCATTACHEDNOTE_TYPE"/>
+			<!-- 届書添付資料 -->
+			<xsd:element name="INFOPERSONFILLNOTE" type="INFOPERSONFILLNOTE_TYPE"/>
+			<!-- 治験届出者に関する情報 -->
+			<xsd:element name="INFOFOREIGNMANUFACTURER" type="INFOFOREIGNMANUFACTURER_TYPE" minOccurs="0" maxOccurs="1"/>
+			<!-- 海外依頼者、外国製造業者に関する情報 -->
+		</xsd:sequence>
+	</xsd:complexType>
+	<!-- 治験使用薬、治験使用機器相当、治験使用製品相当（主たる被験薬を除く。）の情報 -->
+	<xsd:complexType name="INFOCOMBINATION_TYPE">
+		<xsd:sequence>
+			<xsd:element name="VARIABLELABEL" type="xsd:string"/>
+			<xsd:sequence minOccurs="0" maxOccurs="unbounded">
+				<xsd:element name="SERIALNO1" type="ATTR_ADD_TYPE"/>
+				<!-- 順序番号 -->
+				<xsd:element name="COMB_PRODUCTCATEGORY" type="ATTR_UPDATE_TYPE"/>
+				<!-- 医薬品／医療機器／再生医療等製品の別 -->
+				<xsd:element name="INFOCOMBINATIONID">
+					<!-- 治験使用薬、治験使用機器相当、治験使用製品相当の記号・名称等 -->
+					<xsd:complexType>
+						<xsd:sequence>
+							<xsd:element name="VARIABLELABEL" type="xsd:string"/>
+							<xsd:element name="COMBINATION_ID" type="ATTR_UPDATE_TYPE"/>
+							<!-- 記号・名称等 -->
+							<xsd:element name="TYPECOMBINATION_ID" type="ATTR_UPDATE_TYPE"/>
+							<!-- 記号・名称等の種類 -->
+							<xsd:element name="DETAIL" type="ATTR_UPDATE_TYPE" minOccurs="0" maxOccurs="1"/>
+							<!-- その他の場合の詳述 -->
+						</xsd:sequence>
+					</xsd:complexType>
+				</xsd:element>
+				<xsd:element name="INFOCOMBINATIONCATEGORY">
+					<!-- 治験使用薬、治験使用機器相当、治験使用製品相当区分情報 -->
+					<xsd:complexType>
+						<xsd:sequence>
+							<xsd:element name="VARIABLELABEL" type="xsd:string"/>
+							<xsd:element name="COMBINATIONCATEGORY" type="ATTR_UPDATE_TYPE"/>
+							<!-- 被験薬／対照薬／併用薬／レスキュー薬などの区別 -->
+							<xsd:element name="OTHERCOMBINATIONCATEGORY" type="ATTR_UPDATE_TYPE" minOccurs="0" maxOccurs="1"/>
+							<!-- その他の場合の治験使用薬、治験使用機器相当、治験使用製品相当の別 -->
+						</xsd:sequence>
+					</xsd:complexType>
+				</xsd:element>
+				<xsd:element name="COMB_APPLICATIONSTATUS" type="ATTR_UPDATE_TYPE"/>
+				<!-- 国内における承認状況 -->
+				<xsd:element name="COMB_INFONOTE">
+					<!-- 治験使用薬、治験使用機器相当、治験使用製品相当（主たる被験薬を除く。）の届出事項 -->
+					<xsd:complexType>
+						<xsd:sequence>
+							<xsd:element name="VARIABLELABEL" type="xsd:string"/>
+							<xsd:element name="COMB_CATEGTESTPRODUCTSUBJ30DAYREVIEW" type="ATTR_UPDATE_NOVALUE_TYPE" minOccurs="0" maxOccurs="1"/>
+							<!-- 30日調査対応被験薬区分 -->
+							<xsd:element name="COMB_INFONAMEADDRESSMANUFACTPLANT" type="COMB_INFONAMEADDRESSMANUFACTPLANT_TYPE" minOccurs="0" maxOccurs="1"/>
+							<!-- 製造所又は営業所（治験薬提供者）の名称及び所在地 -->
+							<xsd:element name="COMB_INFOINGREDIENTQUANTITY" type="COMB_INFOINGREDIENTQUANTITY_TYPE" minOccurs="0" maxOccurs="1"/>
+							<!-- 成分及び分量情報 -->
+							<xsd:element name="COMB_MANUFACTMETHOD" type="ATTR_UPDATE_TYPE" minOccurs="0" maxOccurs="1"/>
+							<!-- 製造方法 -->
+							<xsd:element name="COMB_INFOINTENDINDICATIONSEFFECTS" type="COMB_INFOINTENDINDICATIONSEFFECTS_TYPE" minOccurs="0" maxOccurs="1"/>
+							<!-- 予定される効能又は効果情報 -->
+							<xsd:element name="COMB_INFOINTENDDOSAGEADMIN" type="COMB_INFOINTENDDOSAGEADMIN_TYPE" minOccurs="0" maxOccurs="1"/>
+							<!-- 予定される用法及び用量情報 -->
+							<xsd:element name="COMB_SUMMARYPROTOCOL" minOccurs="0" maxOccurs="1">
+								<!-- 治験計画の概要 -->
+								<xsd:complexType>
+									<xsd:sequence>
+										<xsd:element name="VARIABLELABEL" type="xsd:string"/>
+										<xsd:element name="COMB_TARGETDISEASE" type="ATTR_UPDATE_TYPE"/>
+										<!-- 対象疾患 -->
+										<xsd:element name="COMB_INFODOSAGEADMIN" type="COMB_INFODOSAGEADMIN_TYPE"/>
+										<!-- 用法及び用量情報 -->
+									</xsd:sequence>
+								</xsd:complexType>
+							</xsd:element>
+							<xsd:element name="COMB_OTHERCOMMENTS" minOccurs="0" maxOccurs="1">
+								<!-- その他の情報 -->
+								<xsd:complexType>
+									<xsd:sequence>
+										<xsd:element name="VARIABLELABEL" type="xsd:string"/>
+										<xsd:element name="COMB_INFOCLINTRIALWITHDRUGCARTAGENA" type="INFOCLINTRIALWITHDRUGCARTAGENA_TYPE"/>
+										<!-- カルタヘナ法の対象となる薬物を用いる治験 -->
+										<xsd:element name="COMB_INFOCLINTRIALWITHBIOLOGICALPROD" type="INFOCLINTRIALWITHBIOLOGICALPROD_TYPE"/>
+										<!-- 生物由来製品に指定が見込まれる薬物を用いる治験 -->
+										<xsd:element name="COMB_INFORESEARCHFORCODX" type="INFORESEARCHFORCODX_TYPE"/>
+										<!-- 対応するコンパニオン診断薬等の開発 -->
+										<xsd:element name="COMB_INFOCLINTRIALFORCOMBINATIONPROD" type="INFOCLINTRIALFORCOMBINATIONPROD_TYPE"/>
+										<!-- コンビネーション製品に関する治験 -->
+										<xsd:element name="OTHERCOMMENTS" type="ATTR_UPDATE_TYPE" minOccurs="0" maxOccurs="1"/>
+										<!-- その他 -->
+									</xsd:sequence>
+								</xsd:complexType>
+							</xsd:element>
+							<xsd:element name="COMB_INFOFOREIGNMANUFACTURER" type="COMB_INFOFOREIGNMANUFACTURER_TYPE" minOccurs="0" maxOccurs="1"/>
+							<!-- 海外依頼者、外国製造業者に関する情報 -->
+							<xsd:element name="COMB_REMARKS" type="ATTR_UPDATE_TYPE" minOccurs="0" maxOccurs="1"/>
+							<!-- その他備考 -->
+							<xsd:element name="COMB_PRESENCEADRREPORT" type="ATTR_UPDATE_TYPE"/>
+							<!-- 副作用報告の有無 -->
+						</xsd:sequence>
+					</xsd:complexType>
+				</xsd:element>
+			</xsd:sequence>
+		</xsd:sequence>
+	</xsd:complexType>
+	<!-- 実施医療機関情報 -->
+	<xsd:complexType name="INFOMEDICALINSTITUT_TYPE">
+		<xsd:sequence>
+			<xsd:element name="VARIABLELABEL" type="xsd:string"/>
+			<xsd:element name="INFOEACHMEDICALINSTITUT" type="INFOEACHMEDICALINSTITUT_TYPE"/>
+			<!-- 実施医療機関ごとの事項 -->
+			<xsd:element name="FOOTNOTE" type="ATTR_UPDATE_TYPE"/>
+			<!-- 脚注 -->
+		</xsd:sequence>
+	</xsd:complexType>
+	<!-- 参照する治験届出情報 -->
+	<xsd:complexType name="INFOREFCLINTRIALPLANNOTER_TYPE">
+		<xsd:sequence>
+			<xsd:element name="VARIABLELABEL" type="xsd:string"/>
+			<xsd:sequence minOccurs="0" maxOccurs="unbounded">
+				<xsd:element name="SERIALNO1" type="ATTR_ADD_TYPE"/>
+				<!-- 順序番号 -->
+				<xsd:element name="REF_PRODUCTCATEGORY" type="ATTR_UPDATE_TYPE"/>
+				<!-- 医薬品／医療機器／再生医療等製品の別 -->
+				<xsd:element name="REF_INFOTESTSUBSTANCEIDCODE" type="ATTR_UPDATE_TYPE"/>
+				<!-- 治験成分記号又は治験識別記号 -->
+				<xsd:element name="REF_SERIALNOTENUM" type="ATTR_UPDATE_TYPE"/>
+				<!-- 届出回数 -->
+				<xsd:element name="TYPEREFFERENCE" type="ATTR_UPDATE_TYPE"/>
+				<!-- 参照の区分 -->
+				<xsd:element name="CONTENTS" type="ATTR_UPDATE_TYPE"/>
+				<!-- 参照の詳細 -->
+			</xsd:sequence>
+		</xsd:sequence>
+	</xsd:complexType>
+	<!-- 中止情報 -->
+	<xsd:complexType name="INFOPREMATURETERMINATION_TYPE">
+		<xsd:sequence>
+			<xsd:element name="VARIABLELABEL" type="xsd:string"/>
+			<xsd:element name="TERMINATIONDATE" type="ATTR_UPDATE_TYPE"/>
+			<!-- 中止日年月日 -->
+			<xsd:element name="REASONTERMINATION" type="ATTR_UPDATE_TYPE"/>
+			<!-- 中止理由 -->
+			<xsd:element name="POSTTERMINATIONMEASURE" type="ATTR_UPDATE_TYPE" minOccurs="0" maxOccurs="1"/>
+			<!-- その後の対応状況 -->
+		</xsd:sequence>
+	</xsd:complexType>
+	<!-- 主たる被験薬の製造所又は営業所（治験薬提供者）の名称及び所在地 -->
+	<xsd:complexType name="INFONAMEADDRESSMANUFACTPLANT_TYPE">
+		<xsd:sequence>
+			<xsd:element name="VARIABLELABEL" type="xsd:string"/>
+			<xsd:sequence minOccurs="1" maxOccurs="unbounded">
+				<xsd:element name="SERIALNO1" type="ATTR_ADD_TYPE"/>
+				<!-- 順序番号 -->
+				<xsd:element name="SPONSOR_NAME" type="ATTR_UPDATE_TYPE"/>
+				<!-- 名称 -->
+				<xsd:element name="SPONSOR_ADDRESS1" type="ATTR_UPDATE_TYPE"/>
+				<!-- 所在地１ -->
+				<xsd:element name="SPONSOR_ADDRESS2" type="ATTR_UPDATE_TYPE"/>
+				<!-- 所在地２ -->
+				<xsd:element name="MANUFACTURERIMPORTERCODE" type="ATTR_UPDATE_TYPE"/>
+				<!-- 業者コード -->
+			</xsd:sequence>
+		</xsd:sequence>
+	</xsd:complexType>
+	<!-- 主たる被験薬の成分及び分量情報 -->
+	<xsd:complexType name="INFOINGREDIENTQUANTITY_TYPE">
+		<xsd:sequence>
+			<xsd:element name="VARIABLELABEL" type="xsd:string"/>
+			<xsd:element name="INGREDIENTSQUANTITIES" type="ATTR_UPDATE_TYPE"/>
+			<!-- 成分及び分量 -->
+			<xsd:element name="INFODOSAGEFORMCODE" type="INFODOSAGEFORMCODE_TYPE"/>
+			<!-- 剤形コード情報 -->
+		</xsd:sequence>
+	</xsd:complexType>
+	<!-- 主たる被験薬の予定される効能又は効果情報 -->
+	<xsd:complexType name="INFOINTENDINDICATIONSEFFECTS_TYPE">
+		<xsd:sequence>
+			<xsd:element name="VARIABLELABEL" type="xsd:string"/>
+			<xsd:element name="INTENDINDICATIONSEFFECTS" type="ATTR_UPDATE_TYPE"/>
+			<!-- 予定される効能又は効果 -->
+			<xsd:element name="EFFICACYCLASSCODENUMBER" type="ATTR_UPDATE_TYPE"/>
+			<!-- 薬効分類番号 -->
+		</xsd:sequence>
+	</xsd:complexType>
+	<!-- 主たる被験薬の予定される用法及び用量情報 -->
+	<xsd:complexType name="INFOINTENDDOSAGEADMIN_TYPE">
+		<xsd:sequence>
+			<xsd:element name="VARIABLELABEL" type="xsd:string"/>
+			<xsd:element name="INTENDDOSAGEADMIN" type="ATTR_UPDATE_TYPE"/>
+			<!-- 予定される用法及び用量 -->
+			<xsd:element name="INFOADMINROUTECODE" type="INFOADMINROUTECODE_TYPE"/>
+			<!-- 投与経路コード情報 -->
+		</xsd:sequence>
+	</xsd:complexType>
+	<!--剤形コード情報 -->
+	<xsd:complexType name="INFODOSAGEFORMCODE_TYPE">
+		<xsd:sequence>
+			<xsd:element name="VARIABLELABEL" type="xsd:string"/>
+			<xsd:sequence minOccurs="1" maxOccurs="unbounded">
+				<xsd:element name="SERIALNO1" type="ATTR_ADD_TYPE"/>
+				<!-- 順序番号 -->
+				<xsd:element name="DOSAGEFORMCODE" type="ATTR_UPDATE_TYPE"/>
+				<!-- 剤形コード -->
+			</xsd:sequence>
+		</xsd:sequence>
+	</xsd:complexType>
+	<!-- 投与経路コード情報 -->
+	<xsd:complexType name="INFOADMINROUTECODE_TYPE">
+		<xsd:sequence>
+			<xsd:element name="VARIABLELABEL" type="xsd:string"/>
+			<xsd:sequence minOccurs="1" maxOccurs="unbounded">
+				<xsd:element name="SERIALNO1" type="ATTR_ADD_TYPE"/>
+				<!-- 順序番号 -->
+				<xsd:element name="ADMINROUTECODE" type="ATTR_UPDATE_TYPE"/>
+				<!-- 投与経路コード -->
+			</xsd:sequence>
+		</xsd:sequence>
+	</xsd:complexType>
+	<!-- 予定被験者数情報 -->
+	<xsd:complexType name="INFOPLANNUMSUBJ_TYPE">
+		<xsd:sequence>
+			<xsd:element name="VARIABLELABEL" type="xsd:string"/>
+			<xsd:element name="PLANNUMSUBJTESTPRODUCT" type="ATTR_UPDATE_TYPE"/>
+			<!-- 予定被験者数（被験薬） -->
+			<xsd:element name="PLANNUMSUBJECTSTOTAL" type="ATTR_UPDATE_TYPE"/>
+			<!-- 予定被験者数（合計）-->
+		</xsd:sequence>
+	</xsd:complexType>
+	<!-- 主たる被験薬の用法及び用量情報 -->
+	<xsd:complexType name="INFODOSAGEADMIN_TYPE">
+		<xsd:sequence>
+			<xsd:element name="VARIABLELABEL" type="xsd:string"/>
+			<xsd:element name="DOSAGEADMIN" type="ATTR_UPDATE_TYPE"/>
+			<!-- 用法及び用量 -->
+			<xsd:element name="INFOADMINROUTECODE" type="INFOADMINROUTECODE_TYPE"/>
+			<!-- 投与経路コード情報 -->
+		</xsd:sequence>
+	</xsd:complexType>
+	<!-- 実施期間 -->
+	<xsd:complexType name="WHOLEDURATIONCLINTRIAL_TYPE">
+		<xsd:sequence>
+			<xsd:element name="VARIABLELABEL" type="xsd:string"/>
+			<xsd:element name="STARTDATECLINTRIAL" type="ATTR_UPDATE_TYPE"/>
+			<!-- 開始日年月日 -->
+			<xsd:element name="ENDDATECLINTRIAL" type="ATTR_UPDATE_TYPE"/>
+			<!-- 終了日年月日 -->
+		</xsd:sequence>
+	</xsd:complexType>
+	<!-- カルタヘナ法の対象となる薬物を用いる治験 -->
+	<xsd:complexType name="INFOCLINTRIALWITHDRUGCARTAGENA_TYPE">
+		<xsd:sequence>
+			<xsd:element name="VARIABLELABEL" type="xsd:string"/>
+			<xsd:element name="TYPECLINTRIALWITHDRUGCARTAGENA" type="ATTR_UPDATE_TYPE"/>
+			<!-- 該当の有無等 -->
+			<xsd:element name="DETAIL" type="ATTR_UPDATE_TYPE" minOccurs="0" maxOccurs="1"/>
+			<!-- 該当する場合の詳述 -->
+		</xsd:sequence>
+	</xsd:complexType>
+	<!-- 生物由来製品に指定が見込まれる薬物を用いる治験 -->
+	<xsd:complexType name="INFOCLINTRIALWITHBIOLOGICALPROD_TYPE">
+		<xsd:sequence>
+			<xsd:element name="VARIABLELABEL" type="xsd:string"/>
+			<xsd:element name="TYPEBIOLOGICALPROD" type="ATTR_UPDATE_TYPE"/>
+			<!-- 該当の有無等 -->
+		</xsd:sequence>
+	</xsd:complexType>
+	<!-- 対応するコンパニオン診断薬等の開発 -->
+	<xsd:complexType name="INFORESEARCHFORCODX_TYPE">
+		<xsd:sequence>
+			<xsd:element name="VARIABLELABEL" type="xsd:string"/>
+			<xsd:element name="APPLICABLEORNOT" type="ATTR_UPDATE_TYPE"/>
+			<!-- 該当の有無 -->
+		</xsd:sequence>
+	</xsd:complexType>
+	<!-- コンビネーション製品に関する治験 -->
+	<xsd:complexType name="INFOCLINTRIALFORCOMBINATIONPROD_TYPE">
+		<xsd:sequence>
+			<xsd:element name="VARIABLELABEL" type="xsd:string"/>
+			<xsd:element name="APPLICABLEORNOT" type="ATTR_UPDATE_TYPE"/>
+			<!-- 該当の有無 -->
+		</xsd:sequence>
+	</xsd:complexType>
+	<!-- 臨床試験の位置付け -->
+	<xsd:complexType name="INFOEXPANDEDACCESSPROG_TYPE">
+		<xsd:sequence>
+			<xsd:element name="VARIABLELABEL" type="xsd:string"/>
+			<xsd:element name="TYPEEXPANDEDACCESSPROG" type="ATTR_UPDATE_TYPE"/>
+			<!-- 該当の有無等 -->
+		</xsd:sequence>
+	</xsd:complexType>
+	<!-- 国際共同治験 -->
+	<xsd:complexType name="INFOGLOBALCLINTRIAL_TYPE">
+		<xsd:sequence>
+			<xsd:element name="VARIABLELABEL" type="xsd:string"/>
+			<xsd:element name="APPLICABLEORNOT" type="ATTR_UPDATE_TYPE"/>
+			<!-- 該当の有無等 -->
+			<xsd:element name="CONTENTS" type="ATTR_UPDATE_TYPE" minOccurs="0" maxOccurs="1"/>
+			<!-- 内容 -->
+		</xsd:sequence>
+	</xsd:complexType>
+	<!-- ゲノム検査等を含む治験 -->
+	<xsd:complexType name="INFOCLINTRIALINCLUDINGGENETEST_TYPE">
+		<xsd:sequence>
+			<xsd:element name="VARIABLELABEL" type="xsd:string"/>
+			<xsd:element name="APPLICABLEORNOT" type="ATTR_UPDATE_TYPE"/>
+			<!-- 該当の有無等 -->
+		</xsd:sequence>
+	</xsd:complexType>
+	<!-- マイクロドーズ臨床試験を利用した開発品目 -->
+	<xsd:complexType name="INFOPRODUSINGMDCLINTRIAL_TYPE">
+		<xsd:sequence>
+			<xsd:element name="VARIABLELABEL" type="xsd:string"/>
+			<xsd:element name="APPLICABLEORNOT" type="ATTR_UPDATE_TYPE"/>
+			<!-- 該当の有無等 -->
+		</xsd:sequence>
+	</xsd:complexType>
+	<!-- 当該届出に関する治験に併用する機械器具等の記載 -->
+	<xsd:complexType name="INFOCOMBEQUIPMENT_TYPE">
+		<xsd:sequence>
+			<xsd:element name="VARIABLELABEL" type="xsd:string"/>
+			<xsd:element name="APPLICABLEORNOT" type="ATTR_UPDATE_TYPE"/>
+			<!-- 該当の有無 -->
+			<xsd:sequence minOccurs="0" maxOccurs="unbounded">
+				<xsd:element name="SERIALNO1" type="ATTR_ADD_TYPE"/>
+				<!-- 順序番号 -->
+				<xsd:element name="CONTENTS" type="ATTR_UPDATE_TYPE"/>
+				<!-- 内容 -->
+			</xsd:sequence>
+		</xsd:sequence>
+	</xsd:complexType>
+	<!-- 備考 -->
+	<xsd:complexType name="REMARKS_TYPE">
+		<xsd:sequence>
+			<xsd:element name="VARIABLELABEL" type="xsd:string"/>
+			<xsd:sequence minOccurs="1" maxOccurs="unbounded">
+				<xsd:element name="SERIALNO1" type="ATTR_ADD_TYPE"/>
+				<!-- 順序番号 -->
+				<xsd:element name="DETAIL" type="ATTR_UPDATE_TYPE"/>
+				<!-- 内容 -->
+			</xsd:sequence>
+		</xsd:sequence>
+	</xsd:complexType>
+	<!-- 届書添付資料 -->
+	<xsd:complexType name="DOCATTACHEDNOTE_TYPE">
+		<xsd:sequence>
+			<xsd:element name="VARIABLELABEL" type="xsd:string"/>
+			<xsd:element name="INFONAMEDOCUMENTS" type="INFONAMEDOCUMENTS_TYPE"/>
+			<!-- 資料名情報 -->
+			<xsd:element name="REMARK" type="ATTR_UPDATE_TYPE"/>
+			<!-- 備考 -->
+		</xsd:sequence>
+	</xsd:complexType>
+	<!-- 資料名情報 -->
+	<xsd:complexType name="INFONAMEDOCUMENTS_TYPE">
+		<xsd:sequence>
+			<xsd:element name="VARIABLELABEL" type="xsd:string"/>
+			<xsd:sequence minOccurs="1" maxOccurs="unbounded">
+				<xsd:element name="SERIALNO1" type="ATTR_ADD_TYPE"/>
+				<!-- 順序番号 -->
+				<xsd:element name="NAMEDOC" type="ATTR_UPDATE_TYPE"/>
+				<!-- 資料名 -->
+			</xsd:sequence>
+		</xsd:sequence>
+	</xsd:complexType>
+	<!-- 治験の費用負担者に関する情報 -->
+	<xsd:complexType name="CHARGEOUTPERSONCLINTRIAL_TYPE">
+		<xsd:sequence>
+			<xsd:element name="VARIABLELABEL" type="xsd:string"/>
+			<xsd:sequence minOccurs="1" maxOccurs="unbounded">
+				<xsd:element name="SERIALNO1" type="ATTR_ADD_TYPE"/>
+				<!-- 順序番号 -->
+				<xsd:element name="CHARGEOUTPERSONNAME" type="ATTR_UPDATE_TYPE"/>
+				<!-- 費用負担者氏名 -->
+				<xsd:element name="VALIDITYREASONS" type="ATTR_UPDATE_TYPE"/>
+				<!-- 妥当性 -->
+			</xsd:sequence>
+		</xsd:sequence>
+		<xsd:attribute ref="NOVALUE" use="optional"/>
+	</xsd:complexType>
+	<!-- 治験調整医師又は治験調整委員会構成医師に関する情報 -->
+	<xsd:complexType name="INFOCOORDINVESTIGATOR_TYPE">
+		<xsd:sequence>
+			<xsd:element name="VARIABLELABEL" type="xsd:string"/>
+			<xsd:sequence minOccurs="1" maxOccurs="unbounded">
+				<xsd:element name="SERIALNO1" type="ATTR_ADD_TYPE"/>
+				<!-- 順序番号 -->
+				<xsd:element name="KEYINVEST_NAME" type="ATTR_UPDATE_TYPE"/>
+				<!-- 治験調整医師の氏名 -->
+				<xsd:element name="NAMEMEDICALINSTITUT" type="ATTR_UPDATE_TYPE"/>
+				<!-- 治験調整医師の所属機関 -->
+				<xsd:element name="KEYINVEST_AFFILIATION" type="ATTR_UPDATE_TYPE"/>
+				<!-- 治験調整医師の所属 -->
+			</xsd:sequence>
+		</xsd:sequence>
+		<xsd:attribute ref="NOVALUE" use="optional"/>
+	</xsd:complexType>
+	<!-- 治験の依頼（準備）及び管理に関する業務の全部又は一部を受託する者（開発業務受託機関（ＣＲＯ））の氏名、住所及び委託する業務の範囲 -->
+	<xsd:complexType name="INFOCRO_TYPE">
+		<xsd:sequence>
+			<xsd:element name="VARIABLELABEL" type="xsd:string"/>
+			<xsd:sequence minOccurs="1" maxOccurs="unbounded">
+				<xsd:element name="SERIALNO1" type="ATTR_ADD_TYPE"/>
+				<!-- 順序番号 -->
+				<xsd:element name="CRO_NAME" type="ATTR_UPDATE_TYPE"/>
+				<!-- 氏名 -->
+				<xsd:element name="CRO_ADDRESS1" type="ATTR_UPDATE_TYPE"/>
+				<!-- 住所１ -->
+				<xsd:element name="CRO_ADDRESS2" type="ATTR_UPDATE_TYPE"/>
+				<!-- 住所２ -->
+				<xsd:element name="CRO_SERVICE" type="ATTR_UPDATE_TYPE"/>
+				<!-- 委託する業務の範囲 -->
+			</xsd:sequence>
+		</xsd:sequence>
+		<xsd:attribute ref="NOVALUE" use="optional"/>
+	</xsd:complexType>
+	<!-- 治験届出者に関する情報 -->
+	<xsd:complexType name="INFOPERSONFILLNOTE_TYPE">
+		<xsd:sequence>
+			<xsd:element name="VARIABLELABEL" type="xsd:string"/>
+			<xsd:sequence minOccurs="1" maxOccurs="unbounded">
+				<xsd:element name="SERIALNO1" type="ATTR_ADD_TYPE"/>
+				<!-- 順序番号 -->
+				<xsd:element name="CLASSPERSONFILLNOTE" type="ATTR_UPDATE_TYPE"/>
+				<!-- 治験届出者の種別 -->
+				<xsd:element name="APPLICAT_NAME" type="ATTR_UPDATE_TYPE"/>
+				<!-- 届出者の名称 -->
+				<xsd:element name="APPLICAT_REP_NAME" type="ATTR_UPDATE_TYPE"/>
+				<!-- 届出者の(代表者の)氏名 -->
+				<xsd:element name="APPLICAT_ADDRESS1" type="ATTR_UPDATE_TYPE"/>
+				<!-- 所在地１ -->
+				<xsd:element name="APPLICAT_ADDRESS2" type="ATTR_UPDATE_TYPE"/>
+				<!-- 所在地２ -->
+				<xsd:element name="MANUFACTURERIMPORTERCODE" type="ATTR_UPDATE_TYPE"/>
+				<!-- 業者コード -->
+				<xsd:element name="INFOPERSONASSIGNNOTE">
+					<!-- 届出担当者の情報 -->
+					<xsd:complexType>
+						<xsd:sequence>
+							<xsd:element name="VARIABLELABEL" type="xsd:string"/>
+							<xsd:element name="APPLICAT_PERSON_NAME" type="ATTR_UPDATE_TYPE"/>
+							<!-- 担当者の氏名 -->
+							<xsd:element name="APPLICAT_PERSON_TITLE" type="ATTR_UPDATE_TYPE"/>
+							<!-- 担当者の所属 -->
+							<xsd:element name="APPLICAT_TELNUM" type="ATTR_UPDATE_TYPE"/>
+							<!-- 電話番号 -->
+							<xsd:element name="FAXNUMBER" type="ATTR_UPDATE_TYPE"/>
+							<!-- ＦＡＸ番号又はメールアドレス -->
+						</xsd:sequence>
+					</xsd:complexType>
+				</xsd:element>
+			</xsd:sequence>
+		</xsd:sequence>
+	</xsd:complexType>
+	<!-- 海外依頼者、外国製造業者に関する情報 -->
+	<xsd:complexType name="INFOFOREIGNMANUFACTURER_TYPE">
+		<xsd:sequence>
+			<xsd:element name="VARIABLELABEL" type="xsd:string"/>
+			<xsd:sequence minOccurs="1" maxOccurs="unbounded">
+				<xsd:element name="SERIALNO1" type="ATTR_ADD_TYPE"/>
+				<!-- 順序番号 -->
+				<xsd:element name="FOREIGN_SPONSOR_NAME" type="ATTR_UPDATE_TYPE"/>
+				<!-- 海外依頼者、外国製造業者の名称（邦文） -->
+				<xsd:element name="FOREIGN_SPONSOR_REP_NAME" type="ATTR_UPDATE_TYPE"/>
+				<!-- 海外依頼者、外国製造業者の(代表者の)氏名（邦文） -->
+				<xsd:element name="FOREIGN_SPONSOR_ADDRESS1" type="ATTR_UPDATE_TYPE"/>
+				<!-- 所在地１（邦文） -->
+				<xsd:element name="FOREIGN_SPONSOR_ADDRESS2" type="ATTR_UPDATE_TYPE"/>
+				<!-- 所在地２（邦文） -->
+				<xsd:element name="FOREIGN_NAME_FRGNLNG" type="ATTR_UPDATE_TYPE"/>
+				<!-- 海外依頼者、外国製造業者の名称（外国文） -->
+				<xsd:element name="FOREIGN_SPOMSPR_REP_NAME_FRGNLNG" type="ATTR_UPDATE_TYPE"/>
+				<!-- 海外依頼者、外国製造業者の(代表者の)氏名（外国文） -->
+				<xsd:element name="FOREIGN_ADDRESS1_FRGNLNG" type="ATTR_UPDATE_TYPE"/>
+				<!-- 所在地１（外国文） -->
+				<xsd:element name="FOREIGN_ADDRESS2_FRGNLNG" type="ATTR_UPDATE_TYPE"/>
+				<!-- 所在地２（外国文） -->
+			</xsd:sequence>
+		</xsd:sequence>
+		<xsd:attribute ref="NOVALUE" use="optional"/>
+	</xsd:complexType>
+	<!-- 製造所又は営業所（治験薬提供者）の名称及び所在地 -->
+	<xsd:complexType name="COMB_INFONAMEADDRESSMANUFACTPLANT_TYPE">
+		<xsd:sequence>
+			<xsd:element name="VARIABLELABEL" type="xsd:string"/>
+			<xsd:sequence minOccurs="1" maxOccurs="unbounded">
+				<xsd:element name="SERIALNO2" type="ATTR_ADD_TYPE"/>
+				<!-- 順序番号 -->
+				<xsd:element name="COMB_SPONSOR_NAME" type="ATTR_UPDATE_TYPE"/>
+				<!-- 名称 -->
+				<xsd:element name="COMB_SPONSOR_ADDRESS1" type="ATTR_UPDATE_TYPE"/>
+				<!-- 所在地１ -->
+				<xsd:element name="COMB_SPONSOR_ADDRESS2" type="ATTR_UPDATE_TYPE"/>
+				<!-- 所在地２ -->
+				<xsd:element name="COMB_MANUFACTURERIMPORTERCODE" type="ATTR_UPDATE_TYPE"/>
+				<!-- 業者コード -->
+			</xsd:sequence>
+		</xsd:sequence>
+	</xsd:complexType>
+	<!-- 成分及び分量情報 -->
+	<xsd:complexType name="COMB_INFOINGREDIENTQUANTITY_TYPE">
+		<xsd:sequence>
+			<xsd:element name="VARIABLELABEL" type="xsd:string"/>
+			<xsd:element name="COMB_INGREDIENTSQUANTITIES" type="ATTR_UPDATE_TYPE"/>
+			<!-- 成分及び分量 -->
+			<xsd:element name="COMB_INFODOSAGEFORMCODE" type="COMB_INFODOSAGEFORMCODE_TYPE"/>
+			<!-- 剤形コード情報 -->
+		</xsd:sequence>
+	</xsd:complexType>
+	<!-- 予定される効能又は効果情報 -->
+	<xsd:complexType name="COMB_INFOINTENDINDICATIONSEFFECTS_TYPE">
+		<xsd:sequence>
+			<xsd:element name="VARIABLELABEL" type="xsd:string"/>
+			<xsd:element name="COMB_INTENDINDICATIONSEFFECTS" type="ATTR_UPDATE_TYPE"/>
+			<!-- 予定される効能又は効果 -->
+			<xsd:element name="COMB_EFFICACYCLASSCODENUMBER" type="ATTR_UPDATE_TYPE"/>
+			<!-- 薬効分類番号 -->
+		</xsd:sequence>
+	</xsd:complexType>
+	<!-- 予定される用法及び用量情報 -->
+	<xsd:complexType name="COMB_INFOINTENDDOSAGEADMIN_TYPE">
+		<xsd:sequence>
+			<xsd:element name="VARIABLELABEL" type="xsd:string"/>
+			<xsd:element name="COMB_INTENDDOSAGEADMIN" type="ATTR_UPDATE_TYPE"/>
+			<!-- 予定される用法及び用量 -->
+			<xsd:element name="COMB_INFOADMINROUTECODE" type="COMB_INFOADMINROUTECODE_TYPE"/>
+			<!-- 投与経路コード情報 -->
+		</xsd:sequence>
+	</xsd:complexType>
+	<!--剤形コード情報 -->
+	<xsd:complexType name="COMB_INFODOSAGEFORMCODE_TYPE">
+		<xsd:sequence>
+			<xsd:element name="VARIABLELABEL" type="xsd:string"/>
+			<xsd:sequence minOccurs="1" maxOccurs="unbounded">
+				<xsd:element name="SERIALNO2" type="ATTR_ADD_TYPE"/>
+				<!-- 順序番号 -->
+				<xsd:element name="COMB_DOSAGEFORMCODE" type="ATTR_UPDATE_TYPE"/>
+				<!-- 剤形コード -->
+			</xsd:sequence>
+		</xsd:sequence>
+	</xsd:complexType>
+	<!-- 投与経路コード情報 -->
+	<xsd:complexType name="COMB_INFOADMINROUTECODE_TYPE">
+		<xsd:sequence>
+			<xsd:element name="VARIABLELABEL" type="xsd:string"/>
+			<xsd:sequence minOccurs="1" maxOccurs="unbounded">
+				<xsd:element name="SERIALNO2" type="ATTR_ADD_TYPE"/>
+				<!-- 順序番号 -->
+				<xsd:element name="COMB_ADMINROUTECODE" type="ATTR_UPDATE_TYPE"/>
+				<!-- 投与経路コード -->
+			</xsd:sequence>
+		</xsd:sequence>
+	</xsd:complexType>
+	<!-- 用法及び用量情報 -->
+	<xsd:complexType name="COMB_INFODOSAGEADMIN_TYPE">
+		<xsd:sequence>
+			<xsd:element name="VARIABLELABEL" type="xsd:string"/>
+			<xsd:element name="COMB_DOSAGEADMIN" type="ATTR_UPDATE_TYPE"/>
+			<!-- 用法及び用量 -->
+			<xsd:element name="COMB_INFOADMINROUTECODE" type="COMB_INFOADMINROUTECODE_TYPE"/>
+			<!-- 投与経路コード情報 -->
+		</xsd:sequence>
+	</xsd:complexType>
+	<!-- 海外依頼者、外国製造業者に関する情報 -->
+	<xsd:complexType name="COMB_INFOFOREIGNMANUFACTURER_TYPE">
+		<xsd:sequence>
+			<xsd:element name="VARIABLELABEL" type="xsd:string"/>
+			<xsd:sequence minOccurs="1" maxOccurs="unbounded">
+				<xsd:element name="SERIALNO2" type="ATTR_ADD_TYPE"/>
+				<!-- 順序番号 -->
+				<xsd:element name="COMB_FOREIGN_SPONSOR_NAME" type="ATTR_UPDATE_TYPE"/>
+				<!-- 海外依頼者、外国製造業者の名称（邦文） -->
+				<xsd:element name="COMB_FOREIGN_SPONSOR_REP_NAME" type="ATTR_UPDATE_TYPE"/>
+				<!-- 海外依頼者、外国製造業者の(代表者の)氏名（邦文） -->
+				<xsd:element name="COMB_FOREIGN_SPONSOR_ADDRESS1" type="ATTR_UPDATE_TYPE"/>
+				<!-- 所在地１（邦文） -->
+				<xsd:element name="COMB_FOREIGN_SPONSOR_ADDRESS2" type="ATTR_UPDATE_TYPE"/>
+				<!-- 所在地２（邦文） -->
+				<xsd:element name="COMB_FOREIGN_NAME_FRGNLNG" type="ATTR_UPDATE_TYPE"/>
+				<!-- 海外依頼者、外国製造業者の名称（外国文） -->
+				<xsd:element name="COMB_FOREIGN_SPOMSPR_REP_NAME_FRGNLNG" type="ATTR_UPDATE_TYPE"/>
+				<!-- 海外依頼者、外国製造業者の(代表者の)氏名（外国文） -->
+				<xsd:element name="COMB_FOREIGN_ADDRESS1_FRGNLNG" type="ATTR_UPDATE_TYPE"/>
+				<!-- 所在地１（外国文） -->
+				<xsd:element name="COMB_FOREIGN_ADDRESS2_FRGNLNG" type="ATTR_UPDATE_TYPE"/>
+				<!-- 所在地２（外国文） -->
+			</xsd:sequence>
+		</xsd:sequence>
+		<xsd:attribute ref="NOVALUE" use="optional"/>
+	</xsd:complexType>
+	<!-- 実施医療機関ごとの事項 -->
+	<xsd:complexType name="INFOEACHMEDICALINSTITUT_TYPE">
+		<xsd:sequence>
+			<xsd:element name="VARIABLELABEL" type="xsd:string"/>
+			<xsd:sequence minOccurs="1" maxOccurs="unbounded">
+				<xsd:element name="SERIALNO1" type="ATTR_ADD_TYPE"/>
+				<!-- 順序番号 -->
+				<xsd:element name="INSTITUTE_NAME" type="ATTR_UPDATE_TYPE"/>
+				<!-- 実施医療機関の名称 -->
+				<xsd:element name="DEPARTMENT" type="ATTR_UPDATE_TYPE"/>
+				<!-- 実施診療科 -->
+				<xsd:element name="INSTITUTE_ADDRESS1" type="ATTR_UPDATE_TYPE"/>
+				<!-- 所在地１ -->
+				<xsd:element name="INSTITUTE_ADDRESS2" type="ATTR_UPDATE_TYPE"/>
+				<!-- 所在地２ -->
+				<xsd:element name="INSTITUTE_TELNUM" type="ATTR_UPDATE_TYPE"/>
+				<!-- 電話番号 -->
+				<xsd:element name="INFOINVESTIGATOR" type="INFOINVESTIGATOR_TYPE"/>
+				<!-- 治験責任医師に関する情報 -->
+				<xsd:element name="INFOSUBINVESTIGATOR" type="INFOSUBINVESTIGATOR_TYPE"/>
+				<!-- 治験分担医師に関する情報 -->
+				<xsd:element name="INFOQUANTITIESINVESTPRODUCT" type="INFOQUANTITIESINVESTPRODUCT_TYPE"/>
+				<!-- 治験使用薬、治験使用機器相当、治験使用製品相当数量情報 -->
+				<xsd:element name="PLANNUMSUBJMEDICALINSTUTUT" type="ATTR_UPDATE_TYPE"/>
+				<!-- 実施医療機関予定被験者数 -->
+				<xsd:element name="NUMSUBJENROLLINSTITUTION" type="ATTR_UPDATE_TYPE"/>
+				<!-- 実施医療機関被験者数 -->
+				<xsd:element name="INFOSMOINMEDINST" type="INFOSMOINMEDINST_TYPE"/>
+				<!-- 治験の実施に関する業務の一部を実施医療機関から受託する者（治験施設支援機関（ＳＭＯ）等）の氏名、住所及び委託する業務の範囲 -->
+				<xsd:element name="INFOIRB" type="INFOIRB_TYPE"/>
+				<!-- 治験審査委員会に関する情報 -->
+				<xsd:element name="OTHERS" type="ATTR_UPDATE_TYPE"/>
+				<!-- その他 -->
+			</xsd:sequence>
+		</xsd:sequence>
+	</xsd:complexType>
+	<!-- 治験責任医師に関する情報 -->
+	<xsd:complexType name="INFOINVESTIGATOR_TYPE">
+		<xsd:sequence>
+			<xsd:element name="VARIABLELABEL" type="xsd:string"/>
+			<xsd:sequence minOccurs="1" maxOccurs="unbounded">
+				<xsd:element name="SERIALNO2" type="ATTR_ADD_TYPE"/>
+				<!-- 順序番号 -->
+				<xsd:element name="CHIEFINVEST_NAME" type="ATTR_UPDATE_TYPE"/>
+				<!-- 治験責任医師の氏名 -->
+				<xsd:element name="NUMMEDICALSCHOOL" type="ATTR_UPDATE_TYPE"/>
+				<!-- 大学番号 -->
+				<xsd:element name="GRADUATYEARMEDICALSCHOOL" type="ATTR_UPDATE_TYPE"/>
+				<!-- 卒業年 -->
+				<xsd:element name="CHIEFINVEST_PRONOUNCE" type="ATTR_UPDATE_TYPE"/>
+				<!-- 氏名よみかな -->
+			</xsd:sequence>
+		</xsd:sequence>
+	</xsd:complexType>
+	<!-- 治験分担医師に関する情報 -->
+	<xsd:complexType name="INFOSUBINVESTIGATOR_TYPE">
+		<xsd:sequence>
+			<xsd:element name="VARIABLELABEL" type="xsd:string"/>
+			<xsd:sequence minOccurs="1" maxOccurs="unbounded">
+				<xsd:element name="SERIALNO2" type="ATTR_ADD_TYPE"/>
+				<!-- 順序番号 -->
+				<xsd:element name="INVESTIGATER_NAME" type="ATTR_UPDATE_TYPE"/>
+				<!-- 治験分担医師の氏名 -->
+				<xsd:element name="INVEST_PRONOUNCE" type="ATTR_UPDATE_TYPE"/>
+				<!-- 氏名よみかな -->
+			</xsd:sequence>
+		</xsd:sequence>
+	</xsd:complexType>
+	<!-- 治験使用薬、治験使用機器相当、治験使用製品相当数量情報 -->
+	<xsd:complexType name="INFOQUANTITIESINVESTPRODUCT_TYPE">
+		<xsd:sequence>
+			<xsd:element name="VARIABLELABEL" type="xsd:string"/>
+			<xsd:sequence minOccurs="1" maxOccurs="unbounded">
+				<xsd:element name="SERIALNO2" type="ATTR_ADD_TYPE"/>
+				<!-- 順序番号 -->
+				<xsd:element name="NAMEINVESTPRODUCT" type="ATTR_UPDATE_TYPE"/>
+				<!-- 治験使用薬、治験使用機器相当、治験使用製品相当の名称 -->
+				<xsd:element name="QUANTITIESPLANNED" type="ATTR_UPDATE_TYPE"/>
+				<!-- 予定交付（入手）数量 -->
+				<xsd:element name="QUANTITIESSUPPLIED" type="ATTR_UPDATE_TYPE"/>
+				<!-- 交付数量 -->
+				<xsd:element name="QUANTITIESUSED" type="ATTR_UPDATE_TYPE"/>
+				<!-- 使用数量 -->
+				<xsd:element name="QUANTITIESWITHDRAWN" type="ATTR_UPDATE_TYPE"/>
+				<!-- 回収数量 -->
+				<xsd:element name="QUANTITIESABROGATED" type="ATTR_UPDATE_TYPE"/>
+				<!-- 廃棄数量 -->
+			</xsd:sequence>
+		</xsd:sequence>
+	</xsd:complexType>
+	<!-- 治験の実施に関する業務の一部を実施医療機関から受託する者（治験施設支援機関（ＳＭＯ）等）の氏名、住所及び委託する業務の範囲 -->
+	<xsd:complexType name="INFOSMOINMEDINST_TYPE">
+		<xsd:sequence>
+			<xsd:element name="VARIABLELABEL" type="xsd:string"/>
+			<xsd:sequence minOccurs="1" maxOccurs="unbounded">
+				<xsd:element name="SERIALNO2" type="ATTR_ADD_TYPE"/>
+				<!-- 順序番号 -->
+				<xsd:element name="SMO_NAME" type="ATTR_UPDATE_TYPE"/>
+				<!-- 氏名 -->
+				<xsd:element name="SMO_ADDRESS1" type="ATTR_UPDATE_TYPE"/>
+				<!-- 住所１ -->
+				<xsd:element name="SMO_ADDRESS2" type="ATTR_UPDATE_TYPE"/>
+				<!-- 住所２ -->
+				<xsd:element name="SMO_SERVICE" type="ATTR_UPDATE_TYPE"/>
+				<!-- 委託する業務の範囲 -->
+			</xsd:sequence>
+		</xsd:sequence>
+		<xsd:attribute ref="NOVALUE" use="optional"/>
+	</xsd:complexType>
+	<!-- 治験審査委員会に関する情報 -->
+	<xsd:complexType name="INFOIRB_TYPE">
+		<xsd:sequence>
+			<xsd:element name="VARIABLELABEL" type="xsd:string"/>
+			<xsd:sequence minOccurs="1" maxOccurs="unbounded">
+				<xsd:element name="SERIALNO2" type="ATTR_ADD_TYPE"/>
+				<!-- 順序番号 -->
+				<xsd:element name="TYPEIRB" type="ATTR_UPDATE_TYPE"/>
+				<!-- 院内・外部の区分 -->
+				<xsd:element name="IRB_OWNER_NAME" type="ATTR_UPDATE_TYPE"/>
+				<!-- 治験審査委員会の設置者の名称 -->
+				<xsd:element name="IRB_ADDRESS1" type="ATTR_UPDATE_TYPE"/>
+				<!-- 所在地１ -->
+				<xsd:element name="IRB_ADDRESS2" type="ATTR_UPDATE_TYPE"/>
+				<!-- 所在地２ -->
+			</xsd:sequence>
+		</xsd:sequence>
+		<xsd:attribute ref="NOVALUE" use="optional"/>
+	</xsd:complexType>
+	<!-- 項目 -->
+	<xsd:complexType name="ATTR_UPDATE_TYPE" mixed="true">
+		<xsd:sequence>
+			<xsd:element name="VARIABLELABEL" type="xsd:string"/>
+			<xsd:element name="CHANGEDATE" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+			<xsd:element name="CHANGEREASON" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+		</xsd:sequence>
+		<xsd:attribute name="STATUS" use="optional">
+			<xsd:simpleType>
+				<xsd:restriction base="xsd:string">
+					<xsd:enumeration value="UPDATE"/>
+					<xsd:enumeration value="NONE"/>
+				</xsd:restriction>
+			</xsd:simpleType>
+		</xsd:attribute>
+	</xsd:complexType>
+	<!-- 項目（順序番号用） -->
+	<xsd:complexType name="ATTR_ADD_TYPE" mixed="true">
+		<xsd:sequence>
+			<xsd:element name="VARIABLELABEL" type="xsd:string"/>
+			<xsd:element name="CHANGEDATE" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+			<xsd:element name="CHANGEREASON" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+		</xsd:sequence>
+		<xsd:attribute name="STATUS" use="optional">
+			<xsd:simpleType>
+				<xsd:restriction base="xsd:string">
+					<xsd:enumeration value="NONE"/>
+					<xsd:enumeration value="APPEND"/>
+					<xsd:enumeration value="DELETE"/>
+				</xsd:restriction>
+			</xsd:simpleType>
+		</xsd:attribute>
+	</xsd:complexType>
+	<!-- 項目 NOVALUE属性付き -->
+	<xsd:complexType name="ATTR_UPDATE_NOVALUE_TYPE" mixed="true">
+		<xsd:sequence>
+			<xsd:element name="VARIABLELABEL" type="xsd:string"/>
+			<xsd:element name="CHANGEDATE" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+			<xsd:element name="CHANGEREASON" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+		</xsd:sequence>
+		<xsd:attribute name="STATUS" use="optional">
+			<xsd:simpleType>
+				<xsd:restriction base="xsd:string">
+					<xsd:enumeration value="NONE"/>
+					<xsd:enumeration value="UPDATE"/>
+				</xsd:restriction>
+			</xsd:simpleType>
+		</xsd:attribute>
+		<xsd:attribute ref="NOVALUE" use="optional"/>
+	</xsd:complexType>
+	<!-- NOVALUE属性 -->
+	<xsd:attribute name="NOVALUE">
+		<xsd:simpleType>
+			<xsd:restriction base="xsd:string">
+				<xsd:enumeration value="FALSE"/>
+				<xsd:enumeration value="TRUE"/>
+			</xsd:restriction>
+		</xsd:simpleType>
+	</xsd:attribute>
+</xsd:schema>

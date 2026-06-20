@@ -1,0 +1,769 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>CTN Modern UI Proposal</title>
+    <style>
+      :root {
+        color-scheme: light;
+        font-family: "Segoe UI", "Yu Gothic UI", Meiryo, sans-serif;
+        --bg: #f5f7f8;
+        --surface: #ffffff;
+        --line: #dfe6e8;
+        --text: #1d2b31;
+        --muted: #66777e;
+        --brand: #0f4c5c;
+        --brand-2: #197278;
+        --accent: #f2c94c;
+        --danger: #b94124;
+        --warn: #8a6410;
+        --ok: #1d6b45;
+        --radius: 8px;
+      }
+
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--text);
+      }
+
+      button, input, select, textarea {
+        font: inherit;
+      }
+
+      button {
+        cursor: pointer;
+      }
+
+      .app {
+        min-height: 100vh;
+        display: grid;
+        grid-template-rows: auto 1fr;
+      }
+
+      .top-shell {
+        position: sticky;
+        top: 0;
+        z-index: 10;
+        background: rgba(255, 255, 255, .94);
+        border-bottom: 1px solid var(--line);
+        backdrop-filter: blur(12px);
+      }
+
+      .topbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 20px;
+        min-height: 64px;
+        padding: 0 24px;
+      }
+
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        min-width: 260px;
+      }
+
+      .brand-mark {
+        display: grid;
+        place-items: center;
+        width: 38px;
+        height: 38px;
+        border-radius: var(--radius);
+        background: var(--brand);
+        color: #fff;
+        font-weight: 800;
+      }
+
+      .brand strong,
+      .brand small {
+        display: block;
+      }
+
+      .brand small,
+      .context-bar,
+      .section-head p,
+      .kpi span,
+      td small,
+      .field small,
+      .pipeline-card small {
+        color: var(--muted);
+      }
+
+      .global-nav {
+        display: flex;
+        gap: 6px;
+        padding: 6px;
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        background: #f8fafb;
+      }
+
+      .global-nav button {
+        min-height: 34px;
+        padding: 0 14px;
+        border: 0;
+        border-radius: 999px;
+        background: transparent;
+        color: #40535a;
+        font-weight: 700;
+      }
+
+      .global-nav button.active {
+        background: var(--brand);
+        color: #fff;
+      }
+
+      .top-actions {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .search {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        min-width: 260px;
+        min-height: 38px;
+        padding: 0 12px;
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+        background: #fff;
+      }
+
+      .search input {
+        width: 100%;
+        border: 0;
+        outline: 0;
+      }
+
+      .ghost-button,
+      .primary-button {
+        min-height: 38px;
+        padding: 0 12px;
+        border-radius: var(--radius);
+        border: 1px solid var(--line);
+        background: #fff;
+        color: var(--text);
+        font-weight: 700;
+      }
+
+      .primary-button {
+        border-color: var(--brand);
+        background: var(--brand);
+        color: #fff;
+      }
+
+      .context-bar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 10px 24px;
+        border-top: 1px solid #edf1f2;
+        font-size: 13px;
+      }
+
+      .context-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 5px 10px;
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        background: #fff;
+        color: var(--text);
+        font-weight: 700;
+      }
+
+      .layout {
+        display: grid;
+        grid-template-columns: 248px minmax(720px, 1fr);
+        gap: 22px;
+        padding: 24px;
+      }
+
+      .input-nav {
+        position: sticky;
+        top: 116px;
+        align-self: start;
+        display: grid;
+        gap: 6px;
+        padding: 10px;
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+        background: var(--surface);
+      }
+
+      .input-nav.hidden {
+        display: none;
+      }
+
+      .input-nav h2 {
+        margin: 6px 8px 8px;
+        font-size: 13px;
+        color: var(--muted);
+      }
+
+      .input-nav button {
+        width: 100%;
+        min-height: 38px;
+        padding: 8px 10px;
+        border: 0;
+        border-radius: 7px;
+        background: transparent;
+        color: #40535a;
+        text-align: left;
+        font-weight: 700;
+      }
+
+      .input-nav button.active,
+      .input-nav button:hover {
+        background: #eef6f6;
+        color: var(--brand);
+      }
+
+      .workspace {
+        min-width: 0;
+      }
+
+      .workspace.full {
+        grid-column: 1 / -1;
+      }
+
+      .view {
+        display: none;
+      }
+
+      .view.active {
+        display: grid;
+        gap: 18px;
+      }
+
+      .section-head {
+        display: flex;
+        justify-content: space-between;
+        gap: 20px;
+        align-items: flex-start;
+      }
+
+      h1, h2, h3, p {
+        margin: 0;
+      }
+
+      h1 {
+        font-size: 28px;
+        letter-spacing: 0;
+      }
+
+      h2 {
+        font-size: 19px;
+        letter-spacing: 0;
+      }
+
+      h3 {
+        font-size: 15px;
+        letter-spacing: 0;
+      }
+
+      .kpi-grid,
+      .master-grid {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(160px, 1fr));
+        gap: 12px;
+      }
+
+      .kpi,
+      .panel,
+      .master-card,
+      .pipeline-card,
+      .field {
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+        background: var(--surface);
+      }
+
+      .kpi {
+        padding: 16px;
+      }
+
+      .kpi strong {
+        display: block;
+        margin-top: 8px;
+        font-size: 28px;
+      }
+
+      .kpi.danger {
+        border-color: #f0b9aa;
+        background: #fff7f4;
+      }
+
+      .panel {
+        padding: 18px;
+      }
+
+      .panel-head {
+        display: flex;
+        justify-content: space-between;
+        gap: 18px;
+        align-items: flex-start;
+        margin-bottom: 14px;
+      }
+
+      .note {
+        padding: 12px 14px;
+        border: 1px solid #cfe1e4;
+        border-radius: var(--radius);
+        background: #f7fbfb;
+        color: #40535a;
+      }
+
+      .note strong {
+        color: var(--text);
+      }
+
+      .master-grid {
+        grid-template-columns: repeat(3, minmax(180px, 1fr));
+      }
+
+      .master-card {
+        padding: 14px;
+      }
+
+      .master-card strong {
+        display: block;
+        margin: 6px 0;
+        font-size: 24px;
+      }
+
+      .master-card.danger {
+        border-color: #f0b9aa;
+        background: #fff7f4;
+      }
+
+      .master-card.warn {
+        border-color: #ead58d;
+        background: #fffdf2;
+      }
+
+      .table-wrap {
+        overflow: auto;
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+      }
+
+      table {
+        width: 100%;
+        min-width: 940px;
+        border-collapse: collapse;
+      }
+
+      th, td {
+        padding: 11px 12px;
+        border-bottom: 1px solid #eaf0f1;
+        text-align: left;
+        white-space: nowrap;
+      }
+
+      th {
+        background: #f8fafb;
+        color: #53666d;
+        font-size: 12px;
+      }
+
+      tr:last-child td {
+        border-bottom: 0;
+      }
+
+      .status {
+        display: inline-flex;
+        min-height: 24px;
+        align-items: center;
+        padding: 0 8px;
+        border-radius: 999px;
+        font-size: 12px;
+        font-weight: 800;
+      }
+
+      .status.ok { background: #e8f6ee; color: var(--ok); }
+      .status.warn { background: #fff8dc; color: var(--warn); }
+      .status.danger { background: #fff0eb; color: var(--danger); }
+      .status.info { background: #edf6ff; color: #225b91; }
+
+      .link {
+        border: 0;
+        padding: 0;
+        background: transparent;
+        color: var(--brand-2);
+        font-weight: 800;
+        text-decoration: underline;
+        text-underline-offset: 3px;
+      }
+
+      .pipeline {
+        display: grid;
+        grid-template-columns: repeat(6, minmax(130px, 1fr));
+        gap: 10px;
+      }
+
+      .pipeline-card {
+        display: grid;
+        gap: 8px;
+        padding: 14px;
+      }
+
+      .step-no {
+        display: grid;
+        place-items: center;
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        background: var(--brand);
+        color: #fff;
+        font-weight: 800;
+      }
+
+      .form-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(260px, 1fr));
+        gap: 12px;
+      }
+
+      .field {
+        display: grid;
+        gap: 7px;
+        padding: 12px;
+      }
+
+      .field.wide {
+        grid-column: 1 / -1;
+      }
+
+      .field label {
+        display: flex;
+        justify-content: space-between;
+        gap: 10px;
+        font-weight: 800;
+      }
+
+      .field input,
+      .field select,
+      .field textarea {
+        width: 100%;
+        min-height: 38px;
+        padding: 8px 10px;
+        border: 1px solid #cbd8dc;
+        border-radius: 7px;
+        background: #fff;
+      }
+
+      .field textarea {
+        min-height: 96px;
+        resize: vertical;
+      }
+
+      .form-footer {
+        position: sticky;
+        bottom: 0;
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        align-items: center;
+        margin-top: 18px;
+        padding: 12px 0 0;
+        background: linear-gradient(180deg, rgba(245,247,248,0), var(--bg) 28%);
+      }
+
+      .muted {
+        color: var(--muted);
+      }
+
+      @media (max-width: 1120px) {
+        .topbar,
+        .context-bar,
+        .section-head,
+        .panel-head {
+          display: grid;
+        }
+
+        .layout {
+          grid-template-columns: 1fr;
+        }
+
+        .input-nav {
+          position: static;
+        }
+
+        .kpi-grid,
+        .master-grid,
+        .pipeline,
+        .form-grid {
+          grid-template-columns: 1fr;
+        }
+
+        .search {
+          min-width: 0;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="app">
+      <header class="top-shell">
+        <div class="topbar">
+          <div class="brand">
+            <div class="brand-mark">CTN</div>
+            <div>
+              <strong>治験届管理</strong>
+              <small>Portfolio / Master / Import / Entry</small>
+            </div>
+          </div>
+
+          <nav class="global-nav" aria-label="主要機能">
+            <button class="active" data-view="dashboard">ダッシュボード</button>
+            <button data-view="master">マスタ管理</button>
+            <button data-view="import">既存PDF取込</button>
+            <button data-view="entry">届出入力</button>
+            <button data-view="output">出力・履歴</button>
+          </nav>
+
+          <div class="top-actions">
+            <label class="search">
+              <span>検索</span>
+              <input placeholder="製品、受付番号、医師名" />
+            </label>
+            <button class="ghost-button">通知</button>
+            <button class="primary-button">変更届を起票</button>
+          </div>
+        </div>
+
+        <div class="context-bar">
+          <div>
+            <span class="context-pill">選択中: CTN-03 試験薬 C / JPN-CTN-2026-03</span>
+            <span class="context-pill">変更届 #11 draft</span>
+            <span class="context-pill">担当: 田中 / 承認: 医学レビュー</span>
+          </div>
+          <div>PDF/XML出力は承認後のみ有効</div>
+        </div>
+      </header>
+
+      <div class="layout">
+        <aside class="input-nav hidden" id="inputNav">
+          <h2>届出入力メニュー</h2>
+          <button class="active">届出概要</button>
+          <button>治験計画</button>
+          <button>被験薬・治験使用薬</button>
+          <button>費用負担者</button>
+          <button>治験調整医師</button>
+          <button>CRO</button>
+          <button>医療機関情報</button>
+          <button>施設別SMO・IRB</button>
+          <button>その他情報</button>
+          <button>添付資料・備考</button>
+          <button>届出者・海外依頼者</button>
+          <button>医師情報</button>
+          <button>参照届出</button>
+          <button>外字・表記</button>
+        </aside>
+
+        <main class="workspace full" id="workspace">
+          <section class="view active" data-view-panel="dashboard">
+            <div class="section-head">
+              <div>
+                <h1>ダッシュボード</h1>
+                <p>複数製品、変更届、マスタ変更、期限候補を横断して確認します。</p>
+              </div>
+              <button class="primary-button">期限リマインダー設定</button>
+            </div>
+
+            <div class="kpi-grid">
+              <article class="kpi"><span>管理中の初回届</span><strong>20</strong></article>
+              <article class="kpi"><span>変更届累計</span><strong>240</strong></article>
+              <article class="kpi"><span>進行中ドラフト</span><strong>39</strong></article>
+              <article class="kpi danger"><span>期限注意</span><strong>8</strong></article>
+            </div>
+
+            <div class="note">
+              <strong>次期限候補:</strong>
+              マスタ変更イベントをもとに算出した候補日です。変更項目が確定した後、6か月/12か月などのルールを適用して正式な届出期限にします。
+            </div>
+
+            <section class="panel">
+              <div class="panel-head">
+                <div>
+                  <h2>マスタ変更から発生する届出候補</h2>
+                  <p>常時更新されるマスタを起点に、変更届が必要になりそうな件数を表示します。</p>
+                </div>
+                <button class="ghost-button">マスタ管理へ</button>
+              </div>
+              <div class="master-grid">
+                <article class="master-card danger"><span>医師マスタ</span><strong>8件</strong><p>分担医師追加・氏名変更</p><small>6か月/12か月</small></article>
+                <article class="master-card warn"><span>治験使用薬マスタ</span><strong>5件</strong><p>数量、剤形、投与経路</p><small>変更内容確定後</small></article>
+                <article class="master-card warn"><span>医療機関マスタ</span><strong>4件</strong><p>施設追加、責任医師</p><small>6か月候補</small></article>
+                <article class="master-card"><span>IRB・SMOマスタ</span><strong>3件</strong><p>IRB名称、SMO委託先</p><small>届出要否判定</small></article>
+                <article class="master-card"><span>添付資料マスタ</span><strong>6件</strong><p>版更新、根拠資料</p><small>変更届紐付け</small></article>
+                <article class="master-card"><span>届出者マスタ</span><strong>2件</strong><p>担当者、所在地</p><small>変更発生日基準</small></article>
+              </div>
+            </section>
+
+            <section class="panel">
+              <div class="panel-head">
+                <div>
+                  <h2>届出ポートフォリオ</h2>
+                  <p>製品をクリックすると、その届出の入力画面へ遷移します。</p>
+                </div>
+              </div>
+              <div class="table-wrap">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>製品</th><th>治験識別記号</th><th>初回受付</th><th>変更届</th><th>担当</th><th>承認者</th><th>次期限候補</th><th>状態</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr><td><button class="link" data-view="entry">CTN-03 試験薬 C</button></td><td>JPN-CTN-2026-03</td><td>2026-1003</td><td>11回 / Draft 2</td><td>田中</td><td>医学レビュー</td><td>2026-06-12</td><td><span class="status danger">期限注意</span></td></tr>
+                    <tr><td><button class="link" data-view="entry">CTN-08 試験薬 H</button></td><td>JPN-CTN-2026-08</td><td>2026-1008</td><td>13回 / Draft 1</td><td>高橋</td><td>QA</td><td>2026-08-26</td><td><span class="status warn">レビュー中</span></td></tr>
+                    <tr><td><button class="link" data-view="entry">CTN-12 試験薬 D</button></td><td>JPN-CTN-2026-12</td><td>2026-1012</td><td>10回 / Draft 3</td><td>佐藤</td><td>薬事レビューA</td><td>2026-07-05</td><td><span class="status info">入力中</span></td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </section>
+          </section>
+
+          <section class="view" data-view-panel="master">
+            <div class="section-head">
+              <div>
+                <h1>マスタ管理</h1>
+                <p>マスタの現在値ではなく、変更イベントを届出候補へ変換して管理します。</p>
+              </div>
+              <button class="primary-button">マスタ変更を登録</button>
+            </div>
+            <section class="panel">
+              <div class="table-wrap">
+                <table>
+                  <thead>
+                    <tr><th>マスタ</th><th>主な変更</th><th>届出要否</th><th>期限候補</th><th>紐付く届出</th><th>根拠資料</th><th>外字</th></tr>
+                  </thead>
+                  <tbody>
+                    <tr><td>医師マスタ</td><td>分担医師追加、氏名変更</td><td><span class="status danger">要判定</span></td><td>6か月/12か月</td><td>CTN-03 変更届#11</td><td>SharePoint/Doctors</td><td>説明資料対象</td></tr>
+                    <tr><td>治験使用薬マスタ</td><td>投与経路コード、剤形</td><td><span class="status warn">確認中</span></td><td>変更内容確定後</td><td>CTN-05 変更届#12</td><td>SharePoint/Product</td><td>対象外</td></tr>
+                    <tr><td>添付資料マスタ</td><td>Protocol v3 差替え</td><td><span class="status info">紐付け管理</span></td><td>版確定時</td><td>CTN-17 変更届#14</td><td>SharePoint/Attachments</td><td>対象外</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </section>
+          </section>
+
+          <section class="view" data-view-panel="import">
+            <div class="section-head">
+              <div>
+                <h1>既存PDF取込</h1>
+                <p>Azure Functions / OCR / Power Apps確認 / Dataverse反映の進捗を見せる専用UXです。</p>
+              </div>
+              <button class="primary-button">PDFを取り込む</button>
+            </div>
+            <div class="pipeline">
+              <article class="pipeline-card"><span class="step-no">1</span><strong>PDF原本保存</strong><small>SharePoint Source PDFs</small></article>
+              <article class="pipeline-card"><span class="step-no">2</span><strong>OCR抽出</strong><small>Azure Functions</small></article>
+              <article class="pipeline-card"><span class="step-no">3</span><strong>XSD項目へマッピング</strong><small>抽出候補を生成</small></article>
+              <article class="pipeline-card"><span class="step-no">4</span><strong>人手確認</strong><small>Power Appsで確認</small></article>
+              <article class="pipeline-card"><span class="step-no">5</span><strong>確定版DB化</strong><small>Dataverse反映</small></article>
+              <article class="pipeline-card"><span class="step-no">6</span><strong>変更届作成</strong><small>新規draft生成</small></article>
+            </div>
+            <section class="panel">
+              <div class="table-wrap">
+                <table>
+                  <thead><tr><th>PDFファイル</th><th>状態</th><th>取込版</th><th>抽出信頼度</th><th>マッピング</th><th>次アクション</th></tr></thead>
+                  <tbody>
+                    <tr><td>000236407.pdf</td><td><span class="status warn">確認待ち</span></td><td>v1.0 imported</td><td>72%</td><td>48/63</td><td>抽出候補を確認</td></tr>
+                    <tr><td>000270151.pdf</td><td><span class="status ok">取込済み</span></td><td>v1.1 confirmed</td><td>86%</td><td>59/63</td><td>変更届を作成可能</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </section>
+          </section>
+
+          <section class="view" data-view-panel="entry">
+            <div class="section-head">
+              <div>
+                <h1>届出入力</h1>
+                <p>選択中の届出に対して、左メニューから入力項目を切り替えます。</p>
+              </div>
+            </div>
+            <section class="panel">
+              <div class="panel-head">
+                <div>
+                  <h2>届出概要</h2>
+                  <p>入力フォームはカードを並べすぎず、セクション単位で読みやすくします。</p>
+                </div>
+              </div>
+              <div class="form-grid">
+                <div class="field"><label>治験識別記号<span>必須</span></label><input value="JPN-CTN-2026-03" /></div>
+                <div class="field"><label>届出種別<span>必須</span></label><select><option>治験計画変更届</option></select></div>
+                <div class="field"><label>届出回数<span>必須</span></label><input value="11" /></div>
+                <div class="field"><label>初回届受付番号<span>必須</span></label><input value="2026-1003" /></div>
+                <div class="field"><label>変更区分</label><select><option>医師・医療機関変更</option></select></div>
+                <div class="field"><label>次期限候補</label><input value="2026-06-12" /></div>
+                <div class="field wide"><label>変更理由</label><textarea>分担医師追加、氏名変更、根拠資料差替えに伴う変更届。</textarea></div>
+              </div>
+              <div class="form-footer">
+                <span class="muted">保存は入力フォーム下部に固定し、レビュー・承認は別機能に分離します。</span>
+                <button class="primary-button">情報を保存</button>
+              </div>
+            </section>
+          </section>
+
+          <section class="view" data-view-panel="output">
+            <div class="section-head">
+              <div>
+                <h1>出力・履歴</h1>
+                <p>承認後のPDF確認、XML/PDF出力、監査ログをまとめます。</p>
+              </div>
+              <button class="primary-button">承認済みを出力</button>
+            </div>
+            <section class="panel">
+              <div class="table-wrap">
+                <table>
+                  <thead><tr><th>日時</th><th>操作</th><th>対象</th><th>実施者</th><th>結果</th></tr></thead>
+                  <tbody>
+                    <tr><td>2026-06-03 09:10</td><td>変更届起票</td><td>CTN-03 #11</td><td>田中</td><td><span class="status ok">成功</span></td></tr>
+                    <tr><td>2026-06-03 11:22</td><td>外字置換確認</td><td>渡邊→渡辺</td><td>医学レビュー</td><td><span class="status warn">説明資料対象</span></td></tr>
+                    <tr><td>2026-06-03 15:40</td><td>PDFプレビュー</td><td>CTN-03 #11</td><td>承認者</td><td><span class="status info">承認待ち</span></td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </section>
+          </section>
+        </main>
+      </div>
+    </div>
+
+    <script>
+      const navButtons = document.querySelectorAll("[data-view]");
+      const panels = document.querySelectorAll("[data-view-panel]");
+      const inputNav = document.getElementById("inputNav");
+      const workspace = document.getElementById("workspace");
+
+      function showView(view) {
+        navButtons.forEach((button) => {
+          button.classList.toggle("active", button.dataset.view === view);
+        });
+        panels.forEach((panel) => {
+          panel.classList.toggle("active", panel.dataset.viewPanel === view);
+        });
+        const inputMode = view === "entry";
+        inputNav.classList.toggle("hidden", !inputMode);
+        workspace.classList.toggle("full", !inputMode);
+      }
+
+      navButtons.forEach((button) => {
+        button.addEventListener("click", () => showView(button.dataset.view));
+      });
+    </script>
+  </body>
+</html>

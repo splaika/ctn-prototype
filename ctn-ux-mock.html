@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>治験届管理 - 共有用静的モック</title>
+<style>
+  :root{--bg:#f4f6f7;--ink:#1c2a30;--sub:#65777f;--line:#dce6e9;--teal:#123f43;--teal2:#176154;--mint:#eef8f5;--amber:#fff9e6;--red:#fff3ef;--blue:#e9f4ff;font-family:"Segoe UI","Yu Gothic UI",Meiryo,sans-serif}
+  *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-size:14px}h1,h2,h3,p{margin:0}a{color:inherit}
+  .shell{display:grid;grid-template-columns:280px minmax(820px,1fr);min-height:100vh}
+  .nav{position:sticky;top:0;height:100vh;overflow:auto;padding:18px 14px;background:var(--teal);color:#f6fbfb}
+  .brand{display:flex;gap:12px;align-items:center;margin-bottom:18px}.logo{display:grid;place-items:center;width:42px;height:42px;border-radius:8px;background:#f2c94c;color:var(--teal);font-weight:800}.brand strong,.brand small{display:block}.brand small{color:#c8d8da}
+  .group{margin:16px 0}.group p{margin:0 8px 6px;color:#b7cccf;font-size:11px;font-weight:800}.group a{display:flex;min-height:39px;align-items:center;padding:8px 10px;border-radius:7px;text-decoration:none;color:#f4fbfb}.group a:hover{background:rgba(255,255,255,.16)}
+  .workspace{min-width:0;padding:24px}.screen{display:none}.screen.default{display:block}.workspace:has(.screen:target) .screen.default{display:none}.screen:target{display:block}
+  .top{display:flex;justify-content:space-between;gap:20px;align-items:flex-start;padding-bottom:20px;border-bottom:1px solid var(--line)}.top small,.muted{color:var(--sub)}h1{font-size:30px;letter-spacing:0}h2{font-size:20px;letter-spacing:0}h3{font-size:15px}
+  .btn{display:inline-flex;align-items:center;justify-content:center;min-height:38px;padding:0 12px;border:1px solid #cbd8dc;border-radius:7px;background:#fff;font-weight:800;text-decoration:none}.btn.primary{background:var(--teal);border-color:var(--teal);color:#fff}
+  .panel{margin-top:18px;padding:18px;border:1px solid var(--line);border-radius:8px;background:#fff}.title{display:grid;gap:6px;margin-bottom:14px}.tag{display:inline-block;width:max-content;padding:3px 8px;border-radius:5px;background:#dff2ed;color:#146454;font-size:12px;font-weight:800}
+  .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}.grid.two{grid-template-columns:repeat(2,1fr)}.card{display:grid;gap:6px;padding:14px;border:1px solid #dfe8ea;border-radius:8px;background:#fbfcfc}.card strong{font-size:24px}.danger{background:var(--red);border-color:#efb8ad;color:#9d351c}.watch{background:var(--amber);border-color:#e5cf83;color:#7b5b00}.pill{display:inline-flex;align-items:center;min-height:24px;padding:0 8px;border-radius:999px;background:var(--mint);color:#146454;font-size:12px;font-weight:800}
+  .flow{display:flex;gap:9px;flex-wrap:wrap}.flow div{flex:1;min-width:130px;display:grid;gap:7px;padding:13px;border:1px solid #dfe8ea;border-radius:8px;background:#fbfcfc}.flow span{display:grid;place-items:center;width:25px;height:25px;border-radius:50%;background:var(--teal);color:#fff;font-size:12px;font-weight:800}
+  .table{overflow:auto;border:1px solid #e1e9eb;border-radius:8px}table{width:100%;min-width:760px;border-collapse:collapse}th,td{padding:11px 12px;border-bottom:1px solid #e7eef0;text-align:left;vertical-align:middle;white-space:nowrap}th{background:#f6f8f9;color:#52676f;font-size:12px}tr:last-child td{border-bottom:0}
+  .layout3{display:grid;grid-template-columns:230px minmax(420px,1fr) 330px;gap:16px;align-items:start}.box{padding:16px;border:1px solid var(--line);border-radius:8px;background:#fff}.chapter,.master-menu{display:grid;gap:7px}.chapter a,.master-menu a{display:grid;gap:3px;padding:10px;border:1px solid #e0e8ea;border-radius:7px;background:#fbfcfc;text-decoration:none}.chapter a.sel,.master-menu a.sel{border-color:var(--teal);background:var(--mint);box-shadow:inset 3px 0 0 var(--teal)}.chapter small,.master-menu small{color:var(--sub)}
+  .fields{display:grid;grid-template-columns:repeat(2,minmax(220px,1fr));gap:12px}.field{display:grid;gap:7px}.field.wide{grid-column:1/-1}.field span{font-weight:800}.field input,.field select,.field textarea{width:100%;min-height:38px;padding:10px;border:1px solid #cbd8dc;border-radius:7px;background:#fff}.field textarea{min-height:78px}
+  .tabs{display:flex;gap:4px;margin-bottom:12px}.tabs span{flex:1;display:grid;place-items:center;min-height:30px;border-radius:6px;background:var(--teal);color:#fff;font-size:12px;font-weight:800}.mini{display:grid;gap:10px;padding:12px;border:1px solid #dfe8ea;border-radius:8px;background:#fbfcfc;margin-bottom:14px}.mini ul{margin:0;padding-left:18px;color:#52676f}
+  .source,.pdf{min-height:300px;padding:18px;border:1px solid #d8e1e4;border-radius:6px;background:#fff;line-height:2}.mark{margin:6px -4px;padding:2px 4px;background:var(--blue);border-left:3px solid #176154}.note{padding:10px;border-radius:6px;background:var(--amber);color:#7b5b00}
+  .master-layout{display:grid;grid-template-columns:280px minmax(0,1fr);gap:16px;align-items:start}.master-work{display:grid;gap:16px}.actions{display:flex;justify-content:flex-end;gap:8px;margin-top:16px}
+  @media(max-width:1040px){.shell,.layout3,.master-layout{grid-template-columns:1fr}.nav{position:static;height:auto}.grid,.grid.two,.fields{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="shell">
+  <aside class="nav">
+    <div class="brand"><div class="logo">CTN</div><div><strong>治験届管理</strong><small>共有用静的モック</small></div></div>
+    <div class="group"><p>ワークスペース</p><a href="#dashboard">ダッシュボード</a><a href="#import">既存データ取り込み</a><a href="#submission">届出作成</a><a href="#review">レビュー・承認</a><a href="#output">出力・提出準備</a></div>
+    <div class="group"><p>マスタ管理</p><a href="#masters">マスタ管理</a></div>
+    <div class="group"><p>システム管理</p><a href="#system">システム管理</a><a href="#audit">履歴・監査</a></div>
+  </aside>
+
+  <main class="workspace">
+    <section id="dashboard" class="screen default">
+      <div class="top"><div><small>Workspace</small><h1>ダッシュボード</h1><p class="muted">期限候補、レビュー待ち、取込未確認、外字確認、出力エラーを横断します。</p></div><a class="btn primary" href="#submission">届出を作成</a></div>
+      <div class="panel grid"><div class="card danger"><span>期限注意</span><strong>5</strong><small>マスタ変更から算出</small></div><div class="card watch"><span>レビュー待ち</span><strong>8</strong><small>一次/薬事/QA</small></div><div class="card"><span>取込未確認</span><strong>3</strong><small>PDF抽出候補</small></div></div>
+      <div class="panel"><div class="title"><span class="tag">Priority Queue</span><h2>今対応すべき届出・確認事項</h2></div><div class="table"><table><thead><tr><th>タスク</th><th>対象試験</th><th>発生元</th><th>起算日</th><th>期限候補</th><th>担当</th><th>状態</th></tr></thead><tbody><tr><td>分担医師追加の変更届候補</td><td>CTN-03 試験薬C</td><td>医師マスタ変更</td><td>2025-12-12</td><td>2026-06-12</td><td>田中</td><td><span class="pill danger">期限注意</span></td></tr><tr><td>PDF取込値の確認</td><td>CTN-08 試験薬H</td><td>既存PDF</td><td>2026-06-18</td><td>2026-06-25</td><td>佐藤</td><td><span class="pill watch">取込確認</span></td></tr></tbody></table></div></div>
+      <div class="panel"><div class="title"><span class="tag">Data Flow</span><h2>データの流れ</h2></div><div class="flow"><div><span>1</span><strong>PDF/XML/手入力</strong></div><div><span>2</span><strong>抽出候補</strong></div><div><span>3</span><strong>マスタ照合</strong></div><div><span>4</span><strong>届出ドラフト</strong></div><div><span>5</span><strong>レビュー・承認</strong></div><div><span>6</span><strong>PDF/XML出力</strong></div></div></div>
+    </section>
+
+    <section id="import" class="screen">
+      <div class="top"><div><small>Import</small><h1>既存データ取り込み</h1><p class="muted">PDFは最終成果物ではなく、抽出値の根拠確認用の原本として扱います。</p></div><a class="btn primary" href="#submission">ドラフトへ反映</a></div>
+      <div class="panel grid two"><div><div class="title"><span class="tag">Import Review</span><h2>抽出候補</h2></div><div class="table"><table><thead><tr><th>抽出項目</th><th>抽出値</th><th>出典</th><th>信頼度</th><th>マッピング</th><th>マスタ照合</th></tr></thead><tbody><tr><td>治験成分記号</td><td>EI-A-001</td><td>p.1</td><td>高</td><td>TESTSUBSTANCEIDCODE</td><td>一致</td></tr><tr><td>分担医師</td><td>渡邊 花子</td><td>p.5</td><td>中</td><td>subInvestigators.name</td><td>外字候補</td></tr></tbody></table></div></div><div><h3>原本・出典確認</h3><div class="source"><p><strong>000270151.pdf p.5</strong></p><p>治験責任医師の氏名: 責任 一郎</p><p class="mark">治験分担医師の氏名: 渡邊 花子</p><p>実施医療機関: ○○大学医学部附属病院 第一内科</p><p class="note">最終PDFプレビューではなく、抽出根拠の確認ビューです。</p></div></div></div>
+    </section>
+
+    <section id="submission" class="screen">
+      <div class="top"><div><small>Authoring</small><h1>届出作成</h1><p class="muted">入力途中はPDFではなく、入力値、必須チェック、マスタ参照、差分、外字を確認します。</p></div><a class="btn primary" href="#review">レビューへ進む</a></div>
+      <div class="layout3 panel">
+        <div class="box chapter"><h2>章メニュー</h2><a class="sel" href="#submission"><span>主たる被験薬</span><small>確認中 / 1件</small></a><a href="#submission"><span>治験計画の概要</span><small>入力中 / 2件</small></a><a href="#submission"><span>医師情報</span><small>要確認 / 2件</small></a><a href="#submission"><span>添付資料・参照届出</span><small>入力中 / 2件</small></a></div>
+        <div class="box"><div class="title"><span class="tag">Submission Fields</span><h2>主たる被験薬</h2></div><div class="fields"><label class="field"><span>届出分類</span><select><option>治験計画変更届</option></select><small>PDF章見出しに反映</small></label><label class="field"><span>30日調査対応被験薬区分</span><input value="新有効成分"><small>コード選択</small></label><label class="field"><span>製造所又は営業所の名称</span><input value="製薬協製薬株式会社 製剤研究所"><small>製造所マスタ参照</small></label><label class="field"><span>業者コード</span><input value="123456099"><small>9桁チェック</small></label><label class="field wide"><span>成分及び分量</span><textarea>1錠中にEI-A-001として10mg、20mg又は30mg含有する。</textarea><small>PDF p.1から取込 / 前回差分なし</small></label></div><div class="actions"><span class="btn">前の章</span><span class="btn primary">次の章へ</span></div></div>
+        <div class="box"><div class="tabs"><span>チェック</span><span>差分</span><span>外字</span><span>マスタ参照</span></div><div class="mini"><h3>チェック結果</h3><ul><li>条件付き必須項目は届出種別に応じて判定</li><li>添付資料・外字・XSDは出力前に再チェック</li></ul></div><div class="mini"><h3>差分サマリ</h3><div class="table"><table><thead><tr><th>種別</th><th>項目</th><th>判定</th></tr></thead><tbody><tr><td>追加</td><td>分担医師</td><td>期限候補</td></tr><tr><td>表記</td><td>渡邊</td><td>外字確認</td></tr></tbody></table></div></div></div>
+      </div>
+    </section>
+
+    <section id="masters" class="screen">
+      <div class="top"><div><small>Master Data</small><h1>マスタ管理</h1><p class="muted">複数エンティティの一覧と入力フォームを確認します。</p></div><span class="btn primary">マスタを保存</span></div>
+      <div class="master-layout panel">
+        <div class="master-menu"><h2>マスタ種別</h2><a class="sel" href="#masters"><span>医師マスタ</span><small>責任医師・分担医師を管理</small></a><a href="#masters"><span>医療機関マスタ</span><small>施設・診療科・所在地</small></a><a href="#masters"><span>治験使用薬マスタ</span><small>薬剤区分・コード・数量単位</small></a><a href="#masters"><span>CRO / SMO / IRB</span><small>組織・委託範囲・IRB</small></a><a href="#masters"><span>添付資料マスタ</span><small>資料名・版・承認状態</small></a></div>
+        <div class="master-work"><div class="box"><div class="title"><span class="tag">Master Records</span><h2>医師マスタ 一覧</h2></div><div class="table"><table><thead><tr><th>ID</th><th>名称</th><th>補足</th><th>状態</th><th>最終更新</th><th>操作</th></tr></thead><tbody><tr><td>DR-014</td><td>髙橋 健</td><td>東京中央病院</td><td>外字承認済み</td><td>2026-06-18</td><td>編集中</td></tr><tr><td>DR-022</td><td>渡邊 花子</td><td>大阪北医療センター</td><td>説明資料候補</td><td>2026-06-17</td><td>編集</td></tr></tbody></table></div></div><div class="box"><div class="title"><span class="tag">Master Form</span><h2>髙橋 健 の入力内容</h2></div><div class="fields"><label class="field"><span>医師ID</span><input value="DR-014"></label><label class="field"><span>原表記氏名</span><input value="髙橋 健"></label><label class="field"><span>届出用表記</span><input value="高橋 健"></label><label class="field"><span>大学番号</span><input value="830"></label><label class="field"><span>卒業年</span><input value="1998"></label><label class="field"><span>外字扱い</span><select><option>置換承認済み</option></select></label></div></div></div>
+      </div>
+    </section>
+
+    <section id="review" class="screen">
+      <div class="top"><div><small>Workflow</small><h1>レビュー・承認</h1><p class="muted">差分、外字、添付不足、XSD警告、コメント、差戻し理由を確認します。</p></div><a class="btn primary" href="#output">承認して出力へ</a></div>
+      <div class="panel"><div class="flow"><div><span>1</span><strong>下書き</strong></div><div><span>2</span><strong>入力完了</strong></div><div><span>3</span><strong>一次レビュー</strong></div><div><span>4</span><strong>薬事確認</strong></div><div><span>5</span><strong>承認待ち</strong></div><div><span>6</span><strong>出力準備</strong></div></div></div>
+      <div class="panel grid two"><div><h2>承認後に確認する固定版PDF</h2><p class="muted">入力途中ではPDFを常設せず、承認された版だけを固定版として確認します。</p></div><div class="pdf"><p><strong>治験計画変更届書</strong></p><p>届出年月日 20260619</p><p class="mark">主たる被験薬 EI-A-001</p><p>治験責任医師 治験 一郎</p></div></div>
+    </section>
+
+    <section id="output" class="screen">
+      <div class="top"><div><small>Output</small><h1>出力・提出準備</h1><p class="muted">承認済みデータからPDF、XML、添付資料、ファイル名、提出パッケージを確認します。</p></div><span class="btn primary">提出パッケージ作成</span></div>
+      <div class="panel grid two"><div><div class="grid two"><div class="card"><span>PDF生成</span><strong>完了</strong><small>章構成確認済み</small></div><div class="card watch"><span>XML生成</span><strong>警告あり</strong><small>投与経路コード確認待ち</small></div><div class="card danger"><span>XSD検証</span><strong>エラー1件</strong><small>必須項目未入力</small></div><div class="card watch"><span>添付資料</span><strong>不足1件</strong><small>外字説明資料未承認</small></div></div></div><div><h3>PDF最終確認</h3><div class="pdf"><p><strong>治験計画変更届書</strong></p><p>届出年月日 20260619</p><p class="mark">主たる被験薬 EI-A-001</p><p class="mark">分担医師 高橋 健（外字置換）</p><p>添付資料 治験実施計画書 v3.0</p></div></div></div>
+    </section>
+
+    <section id="system" class="screen">
+      <div class="top"><div><small>System Rules</small><h1>システム管理</h1><p class="muted">XSD、コード、外字、期限、通知、権限、出力設定を管理します。</p></div></div>
+      <div class="panel grid"><div class="card"><strong>XSD項目・出力マッピング</strong><small>画面項目とXML要素、PDF表示位置を対応</small></div><div class="card"><strong>コード・選択肢</strong><small>剤形、投与経路、届出区分</small></div><div class="card"><strong>外字・表記ゆれ</strong><small>原表記、届出用表記、説明資料要否</small></div><div class="card"><strong>通知・期限ルール</strong><small>90/60/30/14/7日前、超過時</small></div><div class="card"><strong>権限・ロール</strong><small>担当者、レビュー、承認者、管理者</small></div><div class="card"><strong>出力テンプレート</strong><small>PDF/XML、命名規則、提出パッケージ</small></div></div>
+    </section>
+
+    <section id="audit" class="screen">
+      <div class="top"><div><small>Audit</small><h1>履歴・監査</h1><p class="muted">取り込み、マスタ照合、置換、レビュー、承認、出力の監査ログです。</p></div></div>
+      <div class="panel"><div class="table"><table><thead><tr><th>日時</th><th>操作</th><th>対象</th><th>実施者</th><th>根拠</th></tr></thead><tbody><tr><td>2026-06-19 09:10</td><td>PDF抽出候補を採用</td><td>治験成分記号</td><td>田中</td><td>000270151.pdf p.1</td></tr><tr><td>2026-06-19 10:22</td><td>外字置換を承認</td><td>髙橋 健 -> 高橋 健</td><td>医学レビュー</td><td>外字ルール G-004</td></tr></tbody></table></div></div>
+    </section>
+  </main>
+</div>
+</body>
+</html>

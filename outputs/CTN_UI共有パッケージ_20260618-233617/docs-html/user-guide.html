@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ユーザーガイド | CTN設計書</title>
+    <link rel="stylesheet" href="assets/docs.css" />
+  </head>
+  <body>
+    <div class="shell">
+      <aside class="sidebar">
+        <a class="brand" href="index.html"><span>CTN</span><strong>設計書ビューア</strong></a>
+        <nav><a href="architecture-overview.html">CTN作成支援システム 設計概要</a><a href="sharepoint-design.html">SharePoint設計書</a><a href="dataverse-design.html">Dataverse設計書</a><a href="workflow-reminder-design.html">ワークフロー・リマインダー設計書</a><a href="pdf-import-design.html">既存PDF取込・DB化設計書</a><a href="gaiji-handling-design.html">外字対応設計書</a><a href="react-microsoft-implementation.html">方針</a><a class="active" href="user-guide.html">ユーザーガイド</a><a href="admin-guide.html">管理者ガイド</a></nav>
+      </aside>
+      <main class="document">
+        <div class="doc-meta">
+          <a href="index.html">設計書一覧</a>
+          <span>user-guide.md</span>
+        </div>
+        <header class="doc-header">
+          <h1>ユーザーガイド</h1>
+          <p>Markdown設計書をブラウザで読みやすい形式に変換したHTMLです。</p>
+        </header>
+        <details class="toc" open><summary>このページの目次</summary><a class="level-1" href="#ユーザーガイド">ユーザーガイド</a><a class="level-2" href="#1-ダッシュボードを見る">1. ダッシュボードを見る</a><a class="level-2" href="#2-既存pdfを取り込む">2. 既存PDFを取り込む</a><a class="level-2" href="#3-変更届を作る">3. 変更届を作る</a><a class="level-2" href="#4-期限リマインダーを確認する">4. 期限リマインダーを確認する</a><a class="level-2" href="#5-外字を確認する">5. 外字を確認する</a><a class="level-2" href="#6-承認して出力する">6. 承認して出力する</a></details>
+        <article class="content"><h1 id="ユーザーガイド">ユーザーガイド</h1>
+<h2 id="1-ダッシュボードを見る">1. ダッシュボードを見る</h2>
+<p>1. 左メニューで <code>ダッシュボード</code> を開く。 2. 製品別ステータスで、初回届、変更届回数、進行中ドラフト、次回期限を見る。 3. 期限管理・通知予定で、6か月/12か月期限が近い変更を確認する。 4. レビュー中、承認待ち、期限注意の届出を優先して処理する。</p>
+<h2 id="2-既存pdfを取り込む">2. 既存PDFを取り込む</h2>
+<p>1. <code>既存PDF取込</code> を開く。 2. PDFをアップロードする。 3. 取込ジョブの状態を確認する。 4. 抽出候補を確認する。 5. 誤認識や未抽出項目を修正する。 6. 確認完了後、確定版DB化する。</p>
+<h2 id="3-変更届を作る">3. 変更届を作る</h2>
+<p>1. ダッシュボードまたは取込済み版から対象製品を選ぶ。 2. 最新の確定版から新しい変更届ドラフトを作成する。 3. 届出概要で届出種別、届出区分、届出回数を確認する。 4. 必要な入力メニューで変更内容を入力する。 5. 医師異動は <code>医師情報</code> で追加、削除、氏名変更をイベント行として入力する。 6. 治験使用薬は順序番号を確認し、詰め直さない。</p>
+<h2 id="4-期限リマインダーを確認する">4. 期限リマインダーを確認する</h2>
+<p>1. ダッシュボードの <code>期限管理・通知予定</code> を見る。 2. 実変更日、期限日、残日数を確認する。 3. 担当者は期限前に変更届ドラフトを起票する。 4. 承認者は通知を受けたらレビュー/承認を進める。</p>
+<h2 id="5-外字を確認する">5. 外字を確認する</h2>
+<p>1. <code>外字・表記</code> を開く。 2. 原表記と届出用表記を確認する。 3. 置換が妥当であれば確認済みにする。 4. 不適切な場合は届出用表記を修正する。 5. 未確認の外字が残っている場合、正式出力には進めない。</p>
+<h2 id="6-承認して出力する">6. 承認して出力する</h2>
+<p>1. ダッシュボードで対象届出を確認する。 2. レビュー担当が入力、外字、添付資料、順序番号を確認する。 3. 承認者が電子署名付きで承認する。 4. 承認後にPDFイメージを確認する。 5. 問題なければXML/PDFを出力する。 6. 出力物はSharePoint <code>Generated Outputs</code> に保存される。</p></article>
+      </main>
+    </div>
+  </body>
+</html>

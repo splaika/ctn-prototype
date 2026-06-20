@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>外字対応設計書 | CTN設計書</title>
+    <link rel="stylesheet" href="assets/docs.css" />
+  </head>
+  <body>
+    <div class="shell">
+      <aside class="sidebar">
+        <a class="brand" href="index.html"><span>CTN</span><strong>設計書ビューア</strong></a>
+        <nav><a href="architecture-overview.html">CTN作成支援システム 設計概要</a><a href="sharepoint-design.html">SharePoint設計書</a><a href="dataverse-design.html">Dataverse設計書</a><a href="workflow-reminder-design.html">ワークフロー・リマインダー設計書</a><a href="pdf-import-design.html">既存PDF取込・DB化設計書</a><a class="active" href="gaiji-handling-design.html">外字対応設計書</a><a href="react-microsoft-implementation.html">方針</a><a href="user-guide.html">ユーザーガイド</a><a href="admin-guide.html">管理者ガイド</a><a href="azure-static-web-apps-deploy.html">Azure Static Web Apps 公開手順</a></nav>
+      </aside>
+      <main class="document">
+        <div class="doc-meta">
+          <a href="index.html">設計書一覧</a>
+          <span>gaiji-handling-design.md</span>
+        </div>
+        <header class="doc-header">
+          <h1>外字対応設計書</h1>
+          <p>Markdown設計書をブラウザで読みやすい形式に変換したHTMLです。</p>
+        </header>
+        <details class="toc" open><summary>このページの目次</summary><a class="level-1" href="#外字対応設計書">外字対応設計書</a><a class="level-2" href="#基本方針">基本方針</a><a class="level-2" href="#二段構え">二段構え</a><a class="level-2" href="#対象">対象</a><a class="level-2" href="#gaiji-mappings">gaiji_mappings</a><a class="level-2" href="#チェックロジック">チェックロジック</a><a class="level-2" href="#実装候補">実装候補</a><a class="level-2" href="#禁止事項">禁止事項</a></details>
+        <article class="content"><h1 id="外字対応設計書">外字対応設計書</h1>
+<h2 id="基本方針">基本方針</h2>
+<p>外字は自動置換のみで確定しない。原表記と届出用表記を分け、人が確認した置換記録を残す。</p>
+<h2 id="二段構え">二段構え</h2>
+<div class="table-wrap"><table><thead><tr><th>表記</th><th>説明</th></tr></thead><tbody><tr><td>原表記</td><td>入力またはPDF取込で得た元の表記。原本性のため保持する</td></tr><tr><td>届出用表記</td><td>PMDA届出用にJIS範囲などへ正規化した表記</td></tr></tbody></table></div>
+<h2 id="対象">対象</h2>
+<ul><li>医師名</li><li>医療機関名</li><li>代表者名</li><li>届出者名</li><li>CRO/SMO名</li><li>海外依頼者名</li><li>住所</li><li>添付資料名</li></ul>
+<h2 id="gaiji-mappings">gaiji_mappings</h2>
+<div class="table-wrap"><table><thead><tr><th>列</th><th>説明</th></tr></thead><tbody><tr><td><code>source_table</code></td><td>対象テーブル</td></tr><tr><td><code>source_record_id</code></td><td>対象レコード</td></tr><tr><td><code>source_column</code></td><td>対象列</td></tr><tr><td><code>original_text</code></td><td>原表記</td></tr><tr><td><code>submission_text</code></td><td>届出用表記</td></tr><tr><td><code>detected_character</code></td><td>検出文字</td></tr><tr><td><code>code_point</code></td><td>Unicodeコードポイント</td></tr><tr><td><code>detection_type</code></td><td>旧字、機種依存、IVS、PUA、範囲外など</td></tr><tr><td><code>replacement_reason</code></td><td>置換理由</td></tr><tr><td><code>confirmed_by</code></td><td>確認者</td></tr><tr><td><code>confirmed_at</code></td><td>確認日時</td></tr><tr><td><code>attachment_document_id</code></td><td>外字説明資料</td></tr></tbody></table></div>
+<h2 id="チェックロジック">チェックロジック</h2>
+<p>1. 入力またはPDF取込時にUnicode文字を検査する。 2. 社内外字辞書と標準縮退マップで候補を提示する。 3. 届出用表記を自動候補として入れる。 4. ユーザーが確認または修正する。 5. 確認済みにならない限り、承認または出力に進めない。 6. 承認後、外字置換説明資料を生成する。</p>
+<h2 id="実装候補">実装候補</h2>
+<ul><li>Power Apps標準フォームで原表記/届出用表記を表示</li><li>PCFで外字ハイライト、候補提示、コードポイント表示</li><li>サーバー側プラグインで最終検証</li><li>Azure Functionsで外字説明資料生成</li></ul>
+<h2 id="禁止事項">禁止事項</h2>
+<ul><li>原表記を上書きして消すこと</li><li>未確認の置換でXML/PDFを正式出力すること</li><li>PCFだけに検証を依存すること</li></ul></article>
+      </main>
+    </div>
+  </body>
+</html>
