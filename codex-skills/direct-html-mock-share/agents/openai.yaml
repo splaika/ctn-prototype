@@ -1,4 +1,0 @@
-interface:
-  display_name: "Direct HTML Mock Share"
-  short_description: "Export React/Vite mocks as one direct-share HTML file."
-  default_prompt: "React/ViteモックをZIPではなく単一HTMLのCTN_UX_Mock_DIRECT.htmlとして出力してください。"
