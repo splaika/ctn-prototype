@@ -163,7 +163,7 @@
 
     <section id="s3">
       <h2>3. Power Automate フロー仕様</h2>
-      <div class="goal"><span class="ic">要点</span><p>経験者向けに<b>仕様のみ</b>（作り方は割愛）。<b>社内承認は5段階で確定</b>（担当→一次レビュー→薬事確認→承認→提出）。<b>提出期限（PMDA審査30日/14日・変更届期限）はシステム管理対象外</b>＝作成→承認→提出の状態管理に専念。承認は長時間化に備え Dataverse永続化＋2フロー構成、承認前は提出不可を強制。</p></div>
+      <div class="goal"><span class="ic">要点</span><p>経験者向けに<b>仕様のみ</b>（作り方は割愛）。<b>社内承認は5段階で確定</b>（担当→一次レビュー→薬事確認→承認→提出）。<b>PMDA審査の30日/14日は対象外</b>（提出後クロック）だが、<b>変更届の提出期限は管理する</b>（事象→起算→期限候補→通知）。承認は長時間化に備え Dataverse永続化＋2フロー構成、承認前は提出不可を強制。</p></div>
 
       <h3>状態モデル（ctn_notification.状態）</h3>
       <div class="flow"><span>下書き</span><span class="arr">→</span><span>入力完了</span><span class="arr">→</span><span>一次レビュー</span><span class="arr">→</span><span>薬事確認</span><span class="arr">→</span><span>承認待ち</span><span class="arr">→</span><span>承認済み</span><span class="arr">→</span><span>出力準備</span><span class="arr">→</span><span>提出済み</span></div>
@@ -172,12 +172,12 @@
         <thead><tr><th>フロー</th><th>トリガー</th><th>処理概要</th></tr></thead>
         <tbody>
           <tr><td>A. 届起票</td><td>手動／シリーズから</td><td>届出種別を選択し下書き作成。種別は <code>CLASSNOTE</code> に設定。変更/終了/中止は最新届のデータを引き継いで複製（§6マトリクスの「継承」列）。</td></tr>
-          <tr><td>B. 変更届候補生成</td><td>Dataverse: マスタ行の更新</td><td>差分検出→該当項目を <code>ctn_changeitem</code> 化（STATUS=UPDATE＋変更日・理由）→ 変更届ドラフトを起票し担当へ通知。<b>提出期限は計算しない</b>（スコープ外）。3.8固定項目は除外。</td></tr>
+          <tr><td>B. 変更届候補生成</td><td>Dataverse: マスタ行の更新</td><td>差分検出→該当項目を <code>ctn_changeitem</code> 化（STATUS=UPDATE＋変更日・理由）→ 変更届ドラフトを起票→<b>提出期限を起算・算出しダッシュボード/通知</b>（起算日・期限ルールはシステム管理に保持）。3.8固定項目は除外。</td></tr>
           <tr><td>C. レビュー・承認</td><td>状態遷移／承認応答</td><td>承認(v2)＋Dataverse永続化の2フロー。職務分離（起案者≠承認者）を強制。電子署名を記録に紐付け。</td></tr>
           <tr><td>D. 提出準備</td><td>状態=出力準備</td><td>XML生成Functionを呼ぶ（§4）→XSD検証→エラーを画面の項目別に表示／添付不足チェック→提出パッケージ化（PDF＋XML＋添付＋命名規則）。</td></tr>
         </tbody>
       </table></div>
-      <div class="warn"><b>期限のスコープ:</b> PMDA審査の30日/14日は<b>提出後の当局クロックでありシステム管理外</b>（提出で完了）。変更届の提出期限も今回は管理しない。なお <code>CATEGTESTPRODUCTSUBJ30DAYREVIEW</code>（30日調査対象区分）は<b>届出区分の項目値判定</b>であって、フローの期限ゲートではない。</div>
+      <div class="warn"><b>期限のスコープ:</b> PMDA審査の30日/14日は<b>提出後の当局クロックでありシステム管理外</b>（提出で完了）。一方、<b>変更届の提出期限は管理する</b>（事象から起算→期限候補→ダッシュボード通知。起算日・期限ルールはシステム管理レイヤーに保持し、提出期限・起算日は内部管理列としてXSD項目外に持つ）。なお <code>CATEGTESTPRODUCTSUBJ30DAYREVIEW</code>（30日調査対象区分）は<b>届出区分の項目値判定</b>であって、フローの期限ゲートではない。</div>
       <div class="note"><b>HITL→HOTL:</b> 初期は全項目HITL（人が確認）。XML整形・XSD検証・コード引き・継承(NONE)の値繰越など決定的処理から順にHOTL（自動）へ。低信頼抽出・新規マスタ登録・STATUS/変更理由の妥当性はHITL維持。</div>
     </section>
 
