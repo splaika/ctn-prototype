@@ -1,0 +1,2521 @@
+{
+  "meta": {
+    "title": "届出種別 × 項目 使用マトリクス（たたき台）",
+    "source": "治験届の XML ファイル作成の手引き 第4版：4.1〜4.6/5.2（項目定義）, 4.7（開発中止届の抜粋）, 3.8（STATUS=NONE固定）, 別添1/2（出力イメージ）より構成",
+    "legend": {
+      "記入": "その届で値を入力する（種別固有または新規）",
+      "継承": "前回届の値を引き継ぎ STATUS=NONE で保持",
+      "△": "該当する場合のみ使用（参照届出など）",
+      "—": "通常使用しない",
+      "00*": "開発中止届は届出回数不要（\"00\"）"
+    },
+    "rules": [
+      "届出の種別は STATUS ではなく「届出分類(CLASSNOTE)」で指定する。",
+      "3.8 固定NONE項目（中止情報・数量実績・被験者数実績・届出分類等）は内容が変わっても STATUS=NONE のまま記入。",
+      "終了/中止届で「変更も同時に届け出る」項目だけ STATUS=UPDATE/APPEND/DELETE＋変更日・理由を付ける。",
+      "開発中止届は引き継ぎではなく抜粋フォーマット（成分記号・初回受付番号・初回届出年月日・中止情報・備考・添付・届出者）。"
+    ],
+    "note": "本マトリクスは手引き本文の規則に基づく推定を含むたたき台。確定は別添1/2の各種別出力イメージと公式XSDで突合のこと。",
+    "types": [
+      "計画届",
+      "変更届",
+      "終了届",
+      "中止届",
+      "開中届"
+    ],
+    "element_count": 138
+  },
+  "items": [
+    {
+      "element": "RECEPTNUMINITNOTE",
+      "label": "主たる被験薬の初回届出受付番号",
+      "section": "4.1",
+      "statuses": [
+        "NONE"
+      ],
+      "seq_type": "",
+      "fixed_none": false,
+      "usage": {
+        "計画届": "記入",
+        "変更届": "継承",
+        "終了届": "継承",
+        "中止届": "継承",
+        "開中届": "記入"
+      },
+      "note": ""
+    },
+    {
+      "element": "PLANNUMSUBJTESTPRODUCT",
+      "label": "予定被験者数（被験薬）",
+      "section": "4.1",
+      "statuses": [
+        "NONE",
+        "UPDATE"
+      ],
+      "seq_type": "",
+      "fixed_none": false,
+      "usage": {
+        "計画届": "記入",
+        "変更届": "継承",
+        "終了届": "継承",
+        "中止届": "継承",
+        "開中届": "—"
+      },
+      "note": ""
+    },
+    {
+      "element": "INFOFORMVERSION",
+      "label": "様式等のバージョン情報",
+      "section": "4.1",
+      "statuses": [
+        "NONE"
+      ],
+      "seq_type": "",
+      "fixed_none": false,
+      "usage": {
+        "計画届": "記入",
+        "変更届": "継承",
+        "終了届": "継承",
+        "中止届": "継承",
+        "開中届": "記入"
+      },
+      "note": ""
+    },
+    {
+      "element": "TESTSUBSTANCEIDCODE",
+      "label": "主たる被験薬の治験成分記号",
+      "section": "4.2",
+      "statuses": [
+        "NONE"
+      ],
+      "seq_type": "",
+      "fixed_none": false,
+      "usage": {
+        "計画届": "記入",
+        "変更届": "継承",
+        "終了届": "継承",
+        "中止届": "継承",
+        "開中届": "記入"
+      },
+      "note": ""
+    },
+    {
+      "element": "TYPECLINTRIALS",
+      "label": "治験の種類",
+      "section": "4.2",
+      "statuses": [
+        "NONE"
+      ],
+      "seq_type": "",
+      "fixed_none": false,
+      "usage": {
+        "計画届": "記入",
+        "変更届": "継承",
+        "終了届": "継承",
+        "中止届": "継承",
+        "開中届": "記入"
+      },
+      "note": ""
+    },
+    {
+      "element": "INITNOTEDATE",
+      "label": "主たる被験薬の初回届出年月日",
+      "section": "4.2",
+      "statuses": [
+        "NONE"
+      ],
+      "seq_type": "",
+      "fixed_none": false,
+      "usage": {
+        "計画届": "記入",
+        "変更届": "継承",
+        "終了届": "継承",
+        "中止届": "継承",
+        "開中届": "記入"
+      },
+      "note": ""
+    },
+    {
+      "element": "SERIALNOTENUM",
+      "label": "主たる被験薬の届出回数",
+      "section": "4.2",
+      "statuses": [
+        "NONE"
+      ],
+      "seq_type": "",
+      "fixed_none": false,
+      "usage": {
+        "計画届": "記入",
+        "変更届": "記入",
+        "終了届": "継承",
+        "中止届": "継承",
+        "開中届": "00*"
+      },
+      "note": "開発中止は届出回数不要（\"00\"）"
+    },
+    {
+      "element": "RECEPTNUMCLINTRIALPLANNOTE",
+      "label": "当該治験計画届出受付番号",
+      "section": "4.2",
+      "statuses": [
+        "NONE"
+      ],
+      "seq_type": "",
+      "fixed_none": false,
+      "usage": {
+        "計画届": "—",
+        "変更届": "記入",
+        "終了届": "記入",
+        "中止届": "記入",
+        "開中届": "—"
+      },
+      "note": "初回計画届では未付番。開発中止は初回受付番号側を使用"
+    },
+    {
+      "element": "CLINTRIALPLANNOTEDATE",
+      "label": "当該治験計画届出年月日",
+      "section": "4.2",
+      "statuses": [
+        "NONE"
+      ],
+      "seq_type": "",
+      "fixed_none": false,
+      "usage": {
+        "計画届": "—",
+        "変更届": "記入",
+        "終了届": "記入",
+        "中止届": "記入",
+        "開中届": "—"
+      },
+      "note": "初回計画届では未付番。開発中止は初回受付番号側を使用"
+    },
+    {
+      "element": "NOTEDATE",
+      "label": "届出年月日",
+      "section": "4.3",
+      "statuses": [
+        "NONE"
+      ],
+      "seq_type": "",
+      "fixed_none": true,
+      "usage": {
+        "計画届": "記入",
+        "変更届": "継承",
+        "終了届": "継承",
+        "中止届": "継承",
+        "開中届": "記入"
+      },
+      "note": ""
+    },
+    {
+      "element": "CLASSNOTE",
+      "label": "届出分類",
+      "section": "4.3",
+      "statuses": [
+        "NONE"
+      ],
+      "seq_type": "",
+      "fixed_none": true,
+      "usage": {
+        "計画届": "記入",
+        "変更届": "継承",
+        "終了届": "継承",
+        "中止届": "継承",
+        "開中届": "記入"
+      },
+      "note": ""
+    },
+    {
+      "element": "TIMESCHANGE",
+      "label": "変更回数",
+      "section": "4.3",
+      "statuses": [
+        "NONE"
+      ],
+      "seq_type": "",
+      "fixed_none": true,
+      "usage": {
+        "計画届": "記入",
+        "変更届": "継承",
+        "終了届": "継承",
+        "中止届": "継承",
+        "開中届": "—"
+      },
+      "note": ""
+    },
+    {
+      "element": "CATEGORYNOTE",
+      "label": "届出区分",
+      "section": "4.3",
+      "statuses": [
+        "NONE"
+      ],
+      "seq_type": "",
+      "fixed_none": false,
+      "usage": {
+        "計画届": "記入",
+        "変更届": "継承",
+        "終了届": "継承",
+        "中止届": "継承",
+        "開中届": "記入"
+      },
+      "note": ""
+    },
+    {
+      "element": "TERMINATIONDATE",
+      "label": "中止日年月日",
+      "section": "4.3",
+      "statuses": [
+        "NONE"
+      ],
+      "seq_type": "",
+      "fixed_none": true,
+      "usage": {
+        "計画届": "—",
+        "変更届": "—",
+        "終了届": "—",
+        "中止届": "記入",
+        "開中届": "記入"
+      },
+      "note": ""
+    },
+    {
+      "element": "REASONTERMINATION",
+      "label": "中止理由",
+      "section": "4.3",
+      "statuses": [
+        "NONE"
+      ],
+      "seq_type": "",
+      "fixed_none": true,
+      "usage": {
+        "計画届": "—",
+        "変更届": "—",
+        "終了届": "—",
+        "中止届": "記入",
+        "開中届": "記入"
+      },
+      "note": ""
+    },
+    {
+      "element": "POSTTERMINATIONMEASURE",
+      "label": "その後の対応状況",
+      "section": "4.3",
+      "statuses": [
+        "NONE"
+      ],
+      "seq_type": "",
+      "fixed_none": true,
+      "usage": {
+        "計画届": "—",
+        "変更届": "—",
+        "終了届": "記入",
+        "中止届": "記入",
+        "開中届": "—"
+      },
+      "note": ""
+    },
+    {
+      "element": "SERIALNO1",
+      "label": "順序番号",
+      "section": "4.3",
+      "statuses": [
+        "NONE",
+        "APPEND",
+        "DELETE"
+      ],
+      "seq_type": "繰り返し採番（親要素で型が決まる）",
+      "fixed_none": false,
+      "usage": {
+        "計画届": "記入",
+        "変更届": "記入",
+        "終了届": "継承",
+        "中止届": "継承",
+        "開中届": "—"
+      },
+      "note": ""
+    },
+    {
+      "element": "SPONSOR_NAME",
+      "label": "(記入例にラベル明示なし)",
+      "section": "4.3",
+      "statuses": [
+        "NONE"
+      ],
+      "seq_type": "",
+      "fixed_none": false,
+      "usage": {
+        "計画届": "記入",
+        "変更届": "継承",
+        "終了届": "継承",
+        "中止届": "継承",
+        "開中届": "—"
+      },
+      "note": ""
+    },
+    {
+      "element": "SPONSOR_ADDRESS1",
+      "label": "所在地 1",
+      "section": "4.3",
+      "statuses": [
+        "NONE"
+      ],
+      "seq_type": "",
+      "fixed_none": false,
+      "usage": {
+        "計画届": "記入",
+        "変更届": "継承",
+        "終了届": "継承",
+        "中止届": "継承",
+        "開中届": "—"
+      },
+      "note": ""
+    },
+    {
+      "element": "SPONSOR_ADDRESS2",
+      "label": "所在地 2",
+      "section": "4.3",
+      "statuses": [
+        "NONE"
+      ],
+      "seq_type": "",
+      "fixed_none": false,
+      "usage": {
+        "計画届": "記入",
+        "変更届": "継承",
+        "終了届": "継承",
+        "中止届": "継承",
+        "開中届": "—"
+      },
+      "note": ""
+    },
+    {
+      "element": "MANUFACTURERIMPORTERCODE",
+      "label": "業者コード",
+      "section": "4.3",
+      "statuses": [
+        "NONE"
+      ],
+      "seq_type": "",
+      "fixed_none": false,
+      "usage": {
+        "計画届": "記入",
+        "変更届": "継承",
+        "終了届": "継承",
+        "中止届": "継承",
+        "開中届": "—"
+      },
+      "note": ""
+    },
+    {
+      "element": "INGREDIENTSQUANTITIES",
+      "label": "成分及び分量",
+      "section": "4.3",
+      "statuses": [
+        "NONE"
+      ],
+      "seq_type": "",
+      "fixed_none": false,
+      "usage": {
+        "計画届": "記入",
+        "変更届": "継承",
+        "終了届": "継承",
+        "中止届": "継承",
+        "開中届": "—"
+      },
+      "note": ""
+    },
+    {
+      "element": "DOSAGEFORMCODE",
+      "label": "剤形コード",
+      "section": "4.3",
+      "statuses": [
+        "NONE"
+      ],
+      "seq_type": "",
+      "fixed_none": false,
+      "usage": {
+        "計画届": "記入",
+        "変更届": "継承",
+        "終了届": "継承",
+        "中止届": "継承",
+        "開中届": "—"
+      },
+      "note": ""
+    },
+    {
+      "element": "MANUFACTMETHOD",
+      "label": "主たる被験薬の製造方法",
+      "section": "4.3",
+      "statuses": [
+        "NONE"
+      ],
+      "seq_type": "",
+      "fixed_none": false,
+      "usage": {
+        "計画届": "記入",
+        "変更届": "継承",
+        "終了届": "継承",
+        "中止届": "継承",
+        "開中届": "—"
+      },
+      "note": ""
+    },
+    {
+      "element": "INTENDINDICATIONSEFFECTS",
+      "label": "予定される効能又は効果",
+      "section": "4.3",
+      "statuses": [
+        "NONE"
+      ],
+      "seq_type": "",
+      "fixed_none": false,
+      "usage": {
+        "計画届": "記入",
+        "変更届": "継承",
+        "終了届": "継承",
+        "中止届": "継承",
+        "開中届": "—"
+      },
+      "note": ""
+    },
+    {
+      "element": "EFFICACYCLASSCODENUMBER",
+      "label": "薬効分類番号",
+      "section": "4.3",
+      "statuses": [
+        "NONE"
+      ],
+      "seq_type": "",
+      "fixed_none": false,
+      "usage": {
+        "計画届": "記入",
+        "変更届": "継承",
+        "終了届": "継承",
+        "中止届": "継承",
+        "開中届": "—"
+      },
+      "note": ""
+    },
+    {
+      "element": "INTENDDOSAGEADMIN",
+      "label": "予定される用法及び用量",
+      "section": "4.3",
+      "statuses": [
+        "NONE"
+      ],
+      "seq_type": "",
+      "fixed_none": false,
+      "usage": {
+        "計画届": "記入",
+        "変更届": "継承",
+        "終了届": "継承",
+        "中止届": "継承",
+        "開中届": "—"
+      },
+      "note": ""
+    },
+    {
+      "element": "ADMINROUTECODE",
+      "label": "投与経路コード",
+      "section": "4.3",
+      "statuses": [
+        "NONE"
+      ],
+      "seq_type": "",
+      "fixed_none": false,
+      "usage": {
+        "計画届": "記入",
+        "変更届": "継承",
+        "終了届": "継承",
+        "中止届": "継承",
+        "開中届": "—"
+      },
+      "note": ""
+    },
+    {
+      "element": "PROTOCOLNUM",
+      "label": "実施計画書識別記号",
+      "section": "4.3",
+      "statuses": [
+        "NONE"
+      ],
+      "seq_type": "",
+      "fixed_none": false,
+      "usage": {
+        "計画届": "記入",
+        "変更届": "継承",
+        "終了届": "継承",
+        "中止届": "継承",
+        "開中届": "—"
+      },
+      "note": ""
+    },
+    {
+      "element": "PHASECLINTRIAL",
+      "label": "開発の相",
+      "section": "4.3",
+      "statuses": [
+        "NONE"
+      ],
+      "seq_type": "",
+      "fixed_none": false,
+      "usage": {
+        "計画届": "記入",
+        "変更届": "継承",
+        "終了届": "継承",
+        "中止届": "継承",
+        "開中届": "—"
+      },
+      "note": ""
+    },
+    {
+      "element": "TYPECLINTRIAL",
+      "label": "試験の種類",
+      "section": "4.3",
+      "statuses": [
+        "NONE"
+      ],
+      "seq_type": "",
+      "fixed_none": false,
+      "usage": {
+        "計画届": "記入",
+        "変更届": "継承",
+        "終了届": "継承",
+        "中止届": "継承",
+        "開中届": "—"
+      },
+      "note": ""
+    },
+    {
+      "element": "TRIALOBJECTIVES",
+      "label": "目的",
+      "section": "4.3",
+      "statuses": [
+        "NONE"
+      ],
+      "seq_type": "",
+      "fixed_none": false,
+      "usage": {
+        "計画届": "記入",
+        "変更届": "継承",
+        "終了届": "継承",
+        "中止届": "継承",
+        "開中届": "—"
+      },
+      "note": ""
+    },
+    {
+      "element": "PLANNUMSUBJECTSTOTAL",
+      "label": "予定被験者数（合計）",
+      "section": "4.3",
+      "statuses": [
+        "NONE",
+        "UPDATE"
+      ],
+      "seq_type": "",
+      "fixed_none": false,
+      "usage": {
+        "計画届": "記入",
+        "変更届": "継承",
+        "終了届": "継承",
+        "中止届": "継承",
+        "開中届": "—"
+      },
+      "note": ""
+    },
+    {
+      "element": "TARGETDISEASE",
+      "label": "主たる被験薬の対象疾患",
+      "section": "4.3",
+      "statuses": [
+        "NONE"
+      ],
+      "seq_type": "",
+      "fixed_none": false,
+      "usage": {
+        "計画届": "記入",
+        "変更届": "継承",
+        "終了届": "継承",
+        "中止届": "継承",
+        "開中届": "—"
+      },
+      "note": ""
+    },
+    {
+      "element": "DOSAGEADMIN",
+      "label": "用法及び用量",
+      "section": "4.3",
+      "statuses": [
+        "NONE"
+      ],
+      "seq_type": "",
+      "fixed_none": false,
+      "usage": {
+        "計画届": "記入",
+        "変更届": "継承",
+        "終了届": "継承",
+        "中止届": "継承",
+        "開中届": "—"
+      },
+      "note": ""
+    },
+    {
+      "element": "STARTDATECLINTRIAL",
+      "label": "開始日年月日",
+      "section": "4.3",
+      "statuses": [
+        "NONE"
+      ],
+      "seq_type": "",
+      "fixed_none": false,
+      "usage": {
+        "計画届": "記入",
+        "変更届": "継承",
+        "終了届": "継承",
+        "中止届": "継承",
+        "開中届": "—"
+      },
+      "note": ""
+    },
+    {
+      "element": "ENDDATECLINTRIAL",
+      "label": "終了日年月日",
+      "section": "4.3",
+      "statuses": [
+        "NONE",
+        "UPDATE"
+      ],
+      "seq_type": "",
+      "fixed_none": false,
+      "usage": {
+        "計画届": "—",
+        "変更届": "継承",
+        "終了届": "記入",
+        "中止届": "—",
+        "開中届": "—"
+      },
+      "note": ""
+    },
+    {
+      "element": "REASONONEROUS",
+      "label": "有償の理由等",
+      "section": "4.3",
+      "statuses": [
+        "NONE"
+      ],
+      "seq_type": "",
+      "fixed_none": false,
+      "usage": {
+        "計画届": "記入",
+        "変更届": "継承",
+        "終了届": "継承",
+        "中止届": "継承",
+        "開中届": "—"
+      },
+      "note": ""
+    },
+    {
+      "element": "CHARGEOUTPERSONNAME",
+      "label": "費用負担者氏名",
+      "section": "4.3",
+      "statuses": [
+        "NONE"
+      ],
+      "seq_type": "",
+      "fixed_none": false,
+      "usage": {
+        "計画届": "記入",
+        "変更届": "継承",
+        "終了届": "継承",
+        "中止届": "継承",
+        "開中届": "—"
+      },
+      "note": ""
+    },
+    {
+      "element": "VALIDITYREASONS",
+      "label": "妥当性",
+      "section": "4.3",
+      "statuses": [
+        "NONE"
+      ],
+      "seq_type": "",
+      "fixed_none": false,
+      "usage": {
+        "計画届": "記入",
+        "変更届": "継承",
+        "終了届": "継承",
+        "中止届": "継承",
+        "開中届": "—"
+      },
+      "note": ""
+    },
+    {
+      "element": "KEYINVEST_NAME",
+      "label": "治験調整医師の氏名",
+      "section": "4.3",
+      "statuses": [
+        "NONE"
+      ],
+      "seq_type": "",
+      "fixed_none": false,
+      "usage": {
+        "計画届": "記入",
+        "変更届": "継承",
+        "終了届": "継承",
+        "中止届": "継承",
+        "開中届": "—"
+      },
+      "note": ""
+    },
+    {
+      "element": "NAMEMEDICALINSTITUT",
+      "label": "治験調整医師の所属機関",
+      "section": "4.3",
+      "statuses": [
+        "NONE"
+      ],
+      "seq_type": "",
+      "fixed_none": false,
+      "usage": {
+        "計画届": "記入",
+        "変更届": "継承",
+        "終了届": "継承",
+        "中止届": "継承",
+        "開中届": "—"
+      },
+      "note": ""
+    },
+    {
+      "element": "KEYINVEST_AFFILIATION",
+      "label": "治験調整医師の所属",
+      "section": "4.3",
+      "statuses": [
+        "NONE"
+      ],
+      "seq_type": "",
+      "fixed_none": false,
+      "usage": {
+        "計画届": "記入",
+        "変更届": "継承",
+        "終了届": "継承",
+        "中止届": "継承",
+        "開中届": "—"
+      },
+      "note": ""
+    },
+    {
+      "element": "CRO_NAME",
+      "label": "氏名",
+      "section": "4.3",
+      "statuses": [
+        "NONE"
+      ],
+      "seq_type": "",
+      "fixed_none": false,
+      "usage": {
+        "計画届": "記入",
+        "変更届": "継承",
+        "終了届": "継承",
+        "中止届": "継承",
+        "開中届": "—"
+      },
+      "note": ""
+    },
+    {
+      "element": "CRO_ADDRESS1",
+      "label": "住所 1",
+      "section": "4.3",
+      "statuses": [
+        "NONE"
+      ],
+      "seq_type": "",
+      "fixed_none": false,
+      "usage": {
+        "計画届": "記入",
+        "変更届": "継承",
+        "終了届": "継承",
+        "中止届": "継承",
+        "開中届": "—"
+      },
+      "note": ""
+    },
+    {
+      "element": "CRO_ADDRESS2",
+      "label": "住所 2",
+      "section": "4.3",
+      "statuses": [
+        "NONE"
+      ],
+      "seq_type": "",
+      "fixed_none": false,
+      "usage": {
+        "計画届": "記入",
+        "変更届": "継承",
+        "終了届": "継承",
+        "中止届": "継承",
+        "開中届": "—"
+      },
+      "note": ""
+    },
+    {
+      "element": "CRO_SERVICES",
+      "label": "委託する業務の範囲",
+      "section": "4.3",
+      "statuses": [
+        "NONE"
+      ],
+      "seq_type": "",
+      "fixed_none": false,
+      "usage": {
+        "計画届": "記入",
+        "変更届": "継承",
+        "終了届": "継承",
+        "中止届": "継承",
+        "開中届": "—"
+      },
+      "note": ""
+    },
+    {
+      "element": "TYPECLINTRIALWITHDRUGCARTAGENA",
+      "label": "該当の有無等",
+      "section": "4.3",
+      "statuses": [
+        "NONE"
+      ],
+      "seq_type": "",
+      "fixed_none": false,
+      "usage": {
+        "計画届": "記入",
+        "変更届": "継承",
+        "終了届": "継承",
+        "中止届": "継承",
+        "開中届": "—"
+      },
+      "note": ""
+    },
+    {
+      "element": "DETAIL",
+      "label": "該当する場合の詳述 / 内容 / その他の場合の詳述",
+      "section": "4.3",
+      "statuses": [
+        "NONE"
+      ],
+      "seq_type": "",
+      "fixed_none": false,
+      "usage": {
+        "計画届": "記入",
+        "変更届": "継承",
+        "終了届": "継承",
+        "中止届": "継承",
+        "開中届": "—"
+      },
+      "note": ""
+    },
+    {
+      "element": "TYPEBIOLOGICALPROD",
+      "label": "該当の有無等",
+      "section": "4.3",
+      "statuses": [
+        "NONE"
+      ],
+      "seq_type": "",
+      "fixed_none": false,
+      "usage": {
+        "計画届": "記入",
+        "変更届": "継承",
+        "終了届": "継承",
+        "中止届": "継承",
+        "開中届": "—"
+      },
+      "note": ""
+    },
+    {
+      "element": "APPLICABLEORNOT",
+      "label": "該当の有無 / 該当の有無等",
+      "section": "4.3",
+      "statuses": [
+        "NONE"
+      ],
+      "seq_type": "",
+      "fixed_none": false,
+      "usage": {
+        "計画届": "記入",
+        "変更届": "継承",
+        "終了届": "継承",
+        "中止届": "継承",
+        "開中届": "—"
+      },
+      "note": ""
+    },
+    {
+      "element": "OTHERCOMMENTS_PRIMARY",
+      "label": "その他",
+      "section": "4.3",
+      "statuses": [
+        "NONE"
+      ],
+      "seq_type": "",
+      "fixed_none": false,
+      "usage": {
+        "計画届": "記入",
+        "変更届": "継承",
+        "終了届": "継承",
+        "中止届": "継承",
+        "開中届": "—"
+      },
+      "note": ""
+    },
+    {
+      "element": "TYPEEXPANDEDACCESSPROG",
+      "label": "該当の有無等",
+      "section": "4.3",
+      "statuses": [
+        "NONE"
+      ],
+      "seq_type": "",
+      "fixed_none": false,
+      "usage": {
+        "計画届": "記入",
+        "変更届": "継承",
+        "終了届": "継承",
+        "中止届": "継承",
+        "開中届": "—"
+      },
+      "note": ""
+    },
+    {
+      "element": "CONTENTS",
+      "label": "内容 / 参照の詳細",
+      "section": "4.3",
+      "statuses": [
+        "NONE"
+      ],
+      "seq_type": "",
+      "fixed_none": false,
+      "usage": {
+        "計画届": "記入",
+        "変更届": "継承",
+        "終了届": "継承",
+        "中止届": "継承",
+        "開中届": "—"
+      },
+      "note": ""
+    },
+    {
+      "element": "NAMEDOC",
+      "label": "資料名",
+      "section": "4.3",
+      "statuses": [
+        "NONE"
+      ],
+      "seq_type": "",
+      "fixed_none": true,
+      "usage": {
+        "計画届": "記入",
+        "変更届": "継承",
+        "終了届": "継承",
+        "中止届": "継承",
+        "開中届": "記入"
+      },
+      "note": ""
+    },
+    {
+      "element": "REMARK",
+      "label": "備考",
+      "section": "4.3",
+      "statuses": [
+        "NONE"
+      ],
+      "seq_type": "",
+      "fixed_none": false,
+      "usage": {
+        "計画届": "記入",
+        "変更届": "継承",
+        "終了届": "継承",
+        "中止届": "継承",
+        "開中届": "記入"
+      },
+      "note": ""
+    },
+    {
+      "element": "CLASSPERSONFILLNOTE",
+      "label": "治験届出者の種別",
+      "section": "4.3",
+      "statuses": [
+        "NONE"
+      ],
+      "seq_type": "",
+      "fixed_none": false,
+      "usage": {
+        "計画届": "記入",
+        "変更届": "継承",
+        "終了届": "継承",
+        "中止届": "継承",
+        "開中届": "記入"
+      },
+      "note": ""
+    },
+    {
+      "element": "APPLICAT_NAME",
+      "label": "担当者の氏名 / 届出者の名称",
+      "section": "4.3",
+      "statuses": [
+        "NONE"
+      ],
+      "seq_type": "",
+      "fixed_none": false,
+      "usage": {
+        "計画届": "記入",
+        "変更届": "継承",
+        "終了届": "継承",
+        "中止届": "継承",
+        "開中届": "記入"
+      },
+      "note": ""
+    },
+    {
+      "element": "APPLICAT_REP_NAME",
+      "label": "届出者の(代表者の)氏名",
+      "section": "4.3",
+      "statuses": [
+        "NONE"
+      ],
+      "seq_type": "",
+      "fixed_none": false,
+      "usage": {
+        "計画届": "記入",
+        "変更届": "継承",
+        "終了届": "継承",
+        "中止届": "継承",
+        "開中届": "記入"
+      },
+      "note": ""
+    },
+    {
+      "element": "APPLICAT_ADDRESS1",
+      "label": "所在地 1",
+      "section": "4.3",
+      "statuses": [
+        "NONE"
+      ],
+      "seq_type": "",
+      "fixed_none": false,
+      "usage": {
+        "計画届": "記入",
+        "変更届": "継承",
+        "終了届": "継承",
+        "中止届": "継承",
+        "開中届": "記入"
+      },
+      "note": ""
+    },
+    {
+      "element": "APPLICAT_ADDRESS2",
+      "label": "所在地 2",
+      "section": "4.3",
+      "statuses": [
+        "NONE"
+      ],
+      "seq_type": "",
+      "fixed_none": false,
+      "usage": {
+        "計画届": "記入",
+        "変更届": "継承",
+        "終了届": "継承",
+        "中止届": "継承",
+        "開中届": "記入"
+      },
+      "note": ""
+    },
+    {
+      "element": "MUNUFACTURERIMPORTERCODE",
+      "label": "業者コード",
+      "section": "4.3",
+      "statuses": [
+        "NONE"
+      ],
+      "seq_type": "",
+      "fixed_none": false,
+      "usage": {
+        "計画届": "記入",
+        "変更届": "継承",
+        "終了届": "継承",
+        "中止届": "継承",
+        "開中届": "記入"
+      },
+      "note": ""
+    },
+    {
+      "element": "APPLICAT_PERSON_NAME",
+      "label": "担当者の氏名",
+      "section": "4.3",
+      "statuses": [
+        "NONE"
+      ],
+      "seq_type": "",
+      "fixed_none": false,
+      "usage": {
+        "計画届": "記入",
+        "変更届": "継承",
+        "終了届": "継承",
+        "中止届": "継承",
+        "開中届": "記入"
+      },
+      "note": ""
+    },
+    {
+      "element": "APPLICAT_PERSON_TITLE",
+      "label": "担当者の所属",
+      "section": "4.3",
+      "statuses": [
+        "NONE"
+      ],
+      "seq_type": "",
+      "fixed_none": false,
+      "usage": {
+        "計画届": "記入",
+        "変更届": "継承",
+        "終了届": "継承",
+        "中止届": "継承",
+        "開中届": "記入"
+      },
+      "note": ""
+    },
+    {
+      "element": "APPLICAT_TELNUM",
+      "label": "電話番号",
+      "section": "4.3",
+      "statuses": [
+        "NONE"
+      ],
+      "seq_type": "",
+      "fixed_none": false,
+      "usage": {
+        "計画届": "記入",
+        "変更届": "継承",
+        "終了届": "継承",
+        "中止届": "継承",
+        "開中届": "記入"
+      },
+      "note": ""
+    },
+    {
+      "element": "FAXNUMBER",
+      "label": "ＦＡＸ番号又はメールアドレス",
+      "section": "4.3",
+      "statuses": [
+        "NONE"
+      ],
+      "seq_type": "",
+      "fixed_none": false,
+      "usage": {
+        "計画届": "記入",
+        "変更届": "継承",
+        "終了届": "継承",
+        "中止届": "継承",
+        "開中届": "記入"
+      },
+      "note": ""
+    },
+    {
+      "element": "FOREIGN_SPONSOR_NAME",
+      "label": "海外依頼者、外国製造業者の名称（邦文）",
+      "section": "4.3",
+      "statuses": [
+        "NONE"
+      ],
+      "seq_type": "",
+      "fixed_none": false,
+      "usage": {
+        "計画届": "記入",
+        "変更届": "継承",
+        "終了届": "継承",
+        "中止届": "継承",
+        "開中届": "—"
+      },
+      "note": ""
+    },
+    {
+      "element": "FOREIGN_SPONSOR_REP_NAME",
+      "label": "海外依頼者、外国製造業者の(代表者の)氏名（邦文）",
+      "section": "4.3",
+      "statuses": [
+        "NONE"
+      ],
+      "seq_type": "",
+      "fixed_none": false,
+      "usage": {
+        "計画届": "記入",
+        "変更届": "継承",
+        "終了届": "継承",
+        "中止届": "継承",
+        "開中届": "—"
+      },
+      "note": ""
+    },
+    {
+      "element": "FOREIGN_SPONSOR_ADDRESS1",
+      "label": "所在地１（邦文）",
+      "section": "4.3",
+      "statuses": [
+        "NONE"
+      ],
+      "seq_type": "",
+      "fixed_none": false,
+      "usage": {
+        "計画届": "記入",
+        "変更届": "継承",
+        "終了届": "継承",
+        "中止届": "継承",
+        "開中届": "—"
+      },
+      "note": ""
+    },
+    {
+      "element": "FOREIGN_SPONSOR_ADDRESS2",
+      "label": "所在地２（邦文）",
+      "section": "4.3",
+      "statuses": [
+        "NONE"
+      ],
+      "seq_type": "",
+      "fixed_none": false,
+      "usage": {
+        "計画届": "記入",
+        "変更届": "継承",
+        "終了届": "継承",
+        "中止届": "継承",
+        "開中届": "—"
+      },
+      "note": ""
+    },
+    {
+      "element": "FOREIGN_NAME_FRGNLNG",
+      "label": "海外依頼者、外国製造業者の名称（外国文）",
+      "section": "4.3",
+      "statuses": [
+        "NONE"
+      ],
+      "seq_type": "",
+      "fixed_none": false,
+      "usage": {
+        "計画届": "記入",
+        "変更届": "継承",
+        "終了届": "継承",
+        "中止届": "継承",
+        "開中届": "—"
+      },
+      "note": ""
+    },
+    {
+      "element": "FOREIGN_SPONSOR_REP_NAME_FRGNLNG",
+      "label": "(記入例にラベル明示なし)",
+      "section": "4.3",
+      "statuses": [
+        "NONE"
+      ],
+      "seq_type": "",
+      "fixed_none": false,
+      "usage": {
+        "計画届": "記入",
+        "変更届": "継承",
+        "終了届": "継承",
+        "中止届": "継承",
+        "開中届": "—"
+      },
+      "note": ""
+    },
+    {
+      "element": "FOREIGN_ADDRESS1_FRGNLNG",
+      "label": "(記入例にラベル明示なし)",
+      "section": "4.3",
+      "statuses": [
+        "NONE"
+      ],
+      "seq_type": "",
+      "fixed_none": false,
+      "usage": {
+        "計画届": "記入",
+        "変更届": "継承",
+        "終了届": "継承",
+        "中止届": "継承",
+        "開中届": "—"
+      },
+      "note": ""
+    },
+    {
+      "element": "FOREIGN_ADDRESS2_FRGNLNG",
+      "label": "所在地 2（外国文）",
+      "section": "4.4",
+      "statuses": [
+        "NONE"
+      ],
+      "seq_type": "",
+      "fixed_none": false,
+      "usage": {
+        "計画届": "記入",
+        "変更届": "継承",
+        "終了届": "継承",
+        "中止届": "継承",
+        "開中届": "—"
+      },
+      "note": ""
+    },
+    {
+      "element": "COMB_PRODUCTCATEGORY",
+      "label": "医薬品／医療機器／再生医療等製品の別",
+      "section": "4.4",
+      "statuses": [
+        "NONE"
+      ],
+      "seq_type": "",
+      "fixed_none": false,
+      "usage": {
+        "計画届": "記入",
+        "変更届": "継承",
+        "終了届": "継承",
+        "中止届": "継承",
+        "開中届": "—"
+      },
+      "note": ""
+    },
+    {
+      "element": "COMBINATION_ID",
+      "label": "記号・名称等",
+      "section": "4.4",
+      "statuses": [
+        "NONE"
+      ],
+      "seq_type": "",
+      "fixed_none": false,
+      "usage": {
+        "計画届": "記入",
+        "変更届": "継承",
+        "終了届": "継承",
+        "中止届": "継承",
+        "開中届": "—"
+      },
+      "note": ""
+    },
+    {
+      "element": "TYPECOMBINATION_ID",
+      "label": "記号・名称等の種類",
+      "section": "4.4",
+      "statuses": [
+        "NONE"
+      ],
+      "seq_type": "",
+      "fixed_none": false,
+      "usage": {
+        "計画届": "記入",
+        "変更届": "継承",
+        "終了届": "継承",
+        "中止届": "継承",
+        "開中届": "—"
+      },
+      "note": ""
+    },
+    {
+      "element": "COMBINATIONCATEGORY",
+      "label": "被験薬／対照薬／併用薬／レスキュー薬などの区別",
+      "section": "4.4",
+      "statuses": [
+        "NONE"
+      ],
+      "seq_type": "",
+      "fixed_none": false,
+      "usage": {
+        "計画届": "記入",
+        "変更届": "継承",
+        "終了届": "継承",
+        "中止届": "継承",
+        "開中届": "—"
+      },
+      "note": ""
+    },
+    {
+      "element": "COMB_APPLICATIONSTATUS",
+      "label": "国内における承認状況",
+      "section": "4.4",
+      "statuses": [
+        "NONE"
+      ],
+      "seq_type": "",
+      "fixed_none": false,
+      "usage": {
+        "計画届": "記入",
+        "変更届": "継承",
+        "終了届": "継承",
+        "中止届": "継承",
+        "開中届": "—"
+      },
+      "note": ""
+    },
+    {
+      "element": "SERIALNO2",
+      "label": "順序番号",
+      "section": "4.4",
+      "statuses": [
+        "NONE",
+        "APPEND",
+        "DELETE"
+      ],
+      "seq_type": "繰り返し採番（親要素で型が決まる）",
+      "fixed_none": false,
+      "usage": {
+        "計画届": "記入",
+        "変更届": "記入",
+        "終了届": "継承",
+        "中止届": "継承",
+        "開中届": "—"
+      },
+      "note": ""
+    },
+    {
+      "element": "COMB_SPONSOR_NAME",
+      "label": "名称",
+      "section": "4.4",
+      "statuses": [
+        "NONE"
+      ],
+      "seq_type": "",
+      "fixed_none": false,
+      "usage": {
+        "計画届": "記入",
+        "変更届": "継承",
+        "終了届": "継承",
+        "中止届": "継承",
+        "開中届": "—"
+      },
+      "note": ""
+    },
+    {
+      "element": "COMB_SPONSOR_ADDRESS1",
+      "label": "(記入例にラベル明示なし)",
+      "section": "4.4",
+      "statuses": [
+        "NONE"
+      ],
+      "seq_type": "",
+      "fixed_none": false,
+      "usage": {
+        "計画届": "記入",
+        "変更届": "継承",
+        "終了届": "継承",
+        "中止届": "継承",
+        "開中届": "—"
+      },
+      "note": ""
+    },
+    {
+      "element": "COMB_SPONSOR_ADDRESS2",
+      "label": "所在地２",
+      "section": "4.4",
+      "statuses": [
+        "NONE"
+      ],
+      "seq_type": "",
+      "fixed_none": false,
+      "usage": {
+        "計画届": "記入",
+        "変更届": "継承",
+        "終了届": "継承",
+        "中止届": "継承",
+        "開中届": "—"
+      },
+      "note": ""
+    },
+    {
+      "element": "COMB_MANUFACTURERIMPORTERCODE",
+      "label": "業者コード",
+      "section": "4.4",
+      "statuses": [
+        "NONE"
+      ],
+      "seq_type": "",
+      "fixed_none": false,
+      "usage": {
+        "計画届": "記入",
+        "変更届": "継承",
+        "終了届": "継承",
+        "中止届": "継承",
+        "開中届": "—"
+      },
+      "note": ""
+    },
+    {
+      "element": "COMB_INGREDIENTSQUANTITIES",
+      "label": "成分及び分量",
+      "section": "4.4",
+      "statuses": [
+        "NONE"
+      ],
+      "seq_type": "",
+      "fixed_none": false,
+      "usage": {
+        "計画届": "記入",
+        "変更届": "継承",
+        "終了届": "継承",
+        "中止届": "継承",
+        "開中届": "—"
+      },
+      "note": ""
+    },
+    {
+      "element": "COMB_DOSAGEFORMCODE",
+      "label": "剤形コード",
+      "section": "4.4",
+      "statuses": [
+        "NONE"
+      ],
+      "seq_type": "",
+      "fixed_none": false,
+      "usage": {
+        "計画届": "記入",
+        "変更届": "継承",
+        "終了届": "継承",
+        "中止届": "継承",
+        "開中届": "—"
+      },
+      "note": ""
+    },
+    {
+      "element": "COMB_MANUFACTMETHOD",
+      "label": "製造方法",
+      "section": "4.4",
+      "statuses": [
+        "NONE"
+      ],
+      "seq_type": "",
+      "fixed_none": false,
+      "usage": {
+        "計画届": "記入",
+        "変更届": "継承",
+        "終了届": "継承",
+        "中止届": "継承",
+        "開中届": "—"
+      },
+      "note": ""
+    },
+    {
+      "element": "COMB_INTENDINDICATIONSEFFECTS",
+      "label": "予定される効能又は効果",
+      "section": "4.4",
+      "statuses": [
+        "NONE"
+      ],
+      "seq_type": "",
+      "fixed_none": false,
+      "usage": {
+        "計画届": "記入",
+        "変更届": "継承",
+        "終了届": "継承",
+        "中止届": "継承",
+        "開中届": "—"
+      },
+      "note": ""
+    },
+    {
+      "element": "COMB_EFFICACYCLASSCODENUMBER",
+      "label": "薬効分類番号",
+      "section": "4.4",
+      "statuses": [
+        "NONE"
+      ],
+      "seq_type": "",
+      "fixed_none": false,
+      "usage": {
+        "計画届": "記入",
+        "変更届": "継承",
+        "終了届": "継承",
+        "中止届": "継承",
+        "開中届": "—"
+      },
+      "note": ""
+    },
+    {
+      "element": "COMB_INTENDDOSAGEADMIN",
+      "label": "予定される用法及び用量",
+      "section": "4.4",
+      "statuses": [
+        "NONE"
+      ],
+      "seq_type": "",
+      "fixed_none": false,
+      "usage": {
+        "計画届": "記入",
+        "変更届": "継承",
+        "終了届": "継承",
+        "中止届": "継承",
+        "開中届": "—"
+      },
+      "note": ""
+    },
+    {
+      "element": "COMB_ADMINROUTECODE",
+      "label": "投与経路コード",
+      "section": "4.4",
+      "statuses": [
+        "NONE"
+      ],
+      "seq_type": "",
+      "fixed_none": false,
+      "usage": {
+        "計画届": "記入",
+        "変更届": "継承",
+        "終了届": "継承",
+        "中止届": "継承",
+        "開中届": "—"
+      },
+      "note": ""
+    },
+    {
+      "element": "COMB_TARGETDISEASE",
+      "label": "対象疾患",
+      "section": "4.4",
+      "statuses": [
+        "NONE"
+      ],
+      "seq_type": "",
+      "fixed_none": false,
+      "usage": {
+        "計画届": "記入",
+        "変更届": "継承",
+        "終了届": "継承",
+        "中止届": "継承",
+        "開中届": "—"
+      },
+      "note": ""
+    },
+    {
+      "element": "COMB_DOSAGEADMIN",
+      "label": "用法及び用量",
+      "section": "4.4",
+      "statuses": [
+        "NONE"
+      ],
+      "seq_type": "",
+      "fixed_none": false,
+      "usage": {
+        "計画届": "記入",
+        "変更届": "継承",
+        "終了届": "継承",
+        "中止届": "継承",
+        "開中届": "—"
+      },
+      "note": ""
+    },
+    {
+      "element": "OTHERCOMMENTS",
+      "label": "その他",
+      "section": "4.4",
+      "statuses": [
+        "NONE"
+      ],
+      "seq_type": "",
+      "fixed_none": false,
+      "usage": {
+        "計画届": "記入",
+        "変更届": "継承",
+        "終了届": "継承",
+        "中止届": "継承",
+        "開中届": "—"
+      },
+      "note": ""
+    },
+    {
+      "element": "COMB_FOREIGN_SPONSOR_NAME",
+      "label": "海外依頼者、外国製造業者の名称（邦文）",
+      "section": "4.4",
+      "statuses": [
+        "NONE"
+      ],
+      "seq_type": "",
+      "fixed_none": false,
+      "usage": {
+        "計画届": "記入",
+        "変更届": "継承",
+        "終了届": "継承",
+        "中止届": "継承",
+        "開中届": "—"
+      },
+      "note": ""
+    },
+    {
+      "element": "COMB_FOREIGN_SPONSOR_REP_NAME",
+      "label": "(記入例にラベル明示なし)",
+      "section": "4.4",
+      "statuses": [
+        "NONE"
+      ],
+      "seq_type": "",
+      "fixed_none": false,
+      "usage": {
+        "計画届": "記入",
+        "変更届": "継承",
+        "終了届": "継承",
+        "中止届": "継承",
+        "開中届": "—"
+      },
+      "note": ""
+    },
+    {
+      "element": "COMB_FOREIGN_SPONSOR_ADDRESS1",
+      "label": "所在地１（邦文）",
+      "section": "4.4",
+      "statuses": [
+        "NONE"
+      ],
+      "seq_type": "",
+      "fixed_none": false,
+      "usage": {
+        "計画届": "記入",
+        "変更届": "継承",
+        "終了届": "継承",
+        "中止届": "継承",
+        "開中届": "—"
+      },
+      "note": ""
+    },
+    {
+      "element": "COMB_FOREIGN_SPONSOR_ADDRESS2",
+      "label": "所在地２（邦文）",
+      "section": "4.4",
+      "statuses": [
+        "NONE"
+      ],
+      "seq_type": "",
+      "fixed_none": false,
+      "usage": {
+        "計画届": "記入",
+        "変更届": "継承",
+        "終了届": "継承",
+        "中止届": "継承",
+        "開中届": "—"
+      },
+      "note": ""
+    },
+    {
+      "element": "COMB_FOREIGN_NAME_FRGNLNG",
+      "label": "海外依頼者、外国製造業者の名称（外国文）",
+      "section": "4.4",
+      "statuses": [
+        "NONE"
+      ],
+      "seq_type": "",
+      "fixed_none": false,
+      "usage": {
+        "計画届": "記入",
+        "変更届": "継承",
+        "終了届": "継承",
+        "中止届": "継承",
+        "開中届": "—"
+      },
+      "note": ""
+    },
+    {
+      "element": "COMB_FOREIGN_SPOMSPR_REP_NAME_FRGNLNG",
+      "label": "(記入例にラベル明示なし)",
+      "section": "4.4",
+      "statuses": [
+        "NONE"
+      ],
+      "seq_type": "",
+      "fixed_none": false,
+      "usage": {
+        "計画届": "記入",
+        "変更届": "継承",
+        "終了届": "継承",
+        "中止届": "継承",
+        "開中届": "—"
+      },
+      "note": ""
+    },
+    {
+      "element": "COMB_FOREIGN_ADDRESS1_FRGNLNG",
+      "label": "所在地１（外国文）",
+      "section": "4.4",
+      "statuses": [
+        "NONE"
+      ],
+      "seq_type": "",
+      "fixed_none": false,
+      "usage": {
+        "計画届": "記入",
+        "変更届": "継承",
+        "終了届": "継承",
+        "中止届": "継承",
+        "開中届": "—"
+      },
+      "note": ""
+    },
+    {
+      "element": "COMB_FOREIGN_ADDRESS2_FRGNLNG",
+      "label": "所在地２（外国文）",
+      "section": "4.4",
+      "statuses": [
+        "NONE"
+      ],
+      "seq_type": "",
+      "fixed_none": false,
+      "usage": {
+        "計画届": "記入",
+        "変更届": "継承",
+        "終了届": "継承",
+        "中止届": "継承",
+        "開中届": "—"
+      },
+      "note": ""
+    },
+    {
+      "element": "COMB_REMARKS",
+      "label": "その他備考",
+      "section": "4.5",
+      "statuses": [
+        "NONE"
+      ],
+      "seq_type": "",
+      "fixed_none": false,
+      "usage": {
+        "計画届": "記入",
+        "変更届": "継承",
+        "終了届": "継承",
+        "中止届": "継承",
+        "開中届": "—"
+      },
+      "note": ""
+    },
+    {
+      "element": "COMB_PRESENCEADRREPORT",
+      "label": "副作用報告の有無",
+      "section": "4.5",
+      "statuses": [
+        "NONE"
+      ],
+      "seq_type": "",
+      "fixed_none": false,
+      "usage": {
+        "計画届": "記入",
+        "変更届": "継承",
+        "終了届": "継承",
+        "中止届": "継承",
+        "開中届": "—"
+      },
+      "note": ""
+    },
+    {
+      "element": "INSTITUTE_NAME",
+      "label": "実施医療機関の名称",
+      "section": "4.5",
+      "statuses": [
+        "NONE"
+      ],
+      "seq_type": "",
+      "fixed_none": false,
+      "usage": {
+        "計画届": "記入",
+        "変更届": "継承",
+        "終了届": "継承",
+        "中止届": "継承",
+        "開中届": "—"
+      },
+      "note": ""
+    },
+    {
+      "element": "DEPARTMENT",
+      "label": "(記入例にラベル明示なし)",
+      "section": "4.5",
+      "statuses": [
+        "NONE"
+      ],
+      "seq_type": "",
+      "fixed_none": false,
+      "usage": {
+        "計画届": "記入",
+        "変更届": "継承",
+        "終了届": "継承",
+        "中止届": "継承",
+        "開中届": "—"
+      },
+      "note": ""
+    },
+    {
+      "element": "INSTITUTE_ADDRESS1",
+      "label": "所在地１",
+      "section": "4.5",
+      "statuses": [
+        "NONE"
+      ],
+      "seq_type": "",
+      "fixed_none": false,
+      "usage": {
+        "計画届": "記入",
+        "変更届": "継承",
+        "終了届": "継承",
+        "中止届": "継承",
+        "開中届": "—"
+      },
+      "note": ""
+    },
+    {
+      "element": "INSTITUTE_ADDRESS2",
+      "label": "所在地２",
+      "section": "4.5",
+      "statuses": [
+        "NONE"
+      ],
+      "seq_type": "",
+      "fixed_none": false,
+      "usage": {
+        "計画届": "記入",
+        "変更届": "継承",
+        "終了届": "継承",
+        "中止届": "継承",
+        "開中届": "—"
+      },
+      "note": ""
+    },
+    {
+      "element": "INSTITUTE_TELNUM",
+      "label": "電話番号",
+      "section": "4.5",
+      "statuses": [
+        "NONE"
+      ],
+      "seq_type": "",
+      "fixed_none": false,
+      "usage": {
+        "計画届": "記入",
+        "変更届": "継承",
+        "終了届": "継承",
+        "中止届": "継承",
+        "開中届": "—"
+      },
+      "note": ""
+    },
+    {
+      "element": "CHIEFINVEST_NAME",
+      "label": "治験責任医師の氏名",
+      "section": "4.5",
+      "statuses": [
+        "NONE"
+      ],
+      "seq_type": "",
+      "fixed_none": false,
+      "usage": {
+        "計画届": "記入",
+        "変更届": "継承",
+        "終了届": "継承",
+        "中止届": "継承",
+        "開中届": "—"
+      },
+      "note": ""
+    },
+    {
+      "element": "NUMMEDICALSCHOOL",
+      "label": "大学番号",
+      "section": "4.5",
+      "statuses": [
+        "NONE"
+      ],
+      "seq_type": "",
+      "fixed_none": false,
+      "usage": {
+        "計画届": "記入",
+        "変更届": "継承",
+        "終了届": "継承",
+        "中止届": "継承",
+        "開中届": "—"
+      },
+      "note": ""
+    },
+    {
+      "element": "GRADUATYEARMEDICALSCHOOL",
+      "label": "(記入例にラベル明示なし)",
+      "section": "4.5",
+      "statuses": [
+        "NONE"
+      ],
+      "seq_type": "",
+      "fixed_none": false,
+      "usage": {
+        "計画届": "記入",
+        "変更届": "継承",
+        "終了届": "継承",
+        "中止届": "継承",
+        "開中届": "—"
+      },
+      "note": ""
+    },
+    {
+      "element": "CHIEFINVEST_PRONOUNCE",
+      "label": "氏名よみかな",
+      "section": "4.5",
+      "statuses": [
+        "NONE"
+      ],
+      "seq_type": "",
+      "fixed_none": false,
+      "usage": {
+        "計画届": "記入",
+        "変更届": "継承",
+        "終了届": "継承",
+        "中止届": "継承",
+        "開中届": "—"
+      },
+      "note": ""
+    },
+    {
+      "element": "INVESTIGATER_NAME",
+      "label": "治験分担医師の氏名",
+      "section": "4.5",
+      "statuses": [
+        "NONE"
+      ],
+      "seq_type": "B:イベント行型（分担医師）",
+      "fixed_none": false,
+      "usage": {
+        "計画届": "記入",
+        "変更届": "継承",
+        "終了届": "継承",
+        "中止届": "継承",
+        "開中届": "—"
+      },
+      "note": ""
+    },
+    {
+      "element": "INVEST_PRONOUNCE",
+      "label": "氏名よみかな",
+      "section": "4.5",
+      "statuses": [
+        "NONE"
+      ],
+      "seq_type": "B:イベント行型（分担医師）",
+      "fixed_none": false,
+      "usage": {
+        "計画届": "記入",
+        "変更届": "継承",
+        "終了届": "継承",
+        "中止届": "継承",
+        "開中届": "—"
+      },
+      "note": ""
+    },
+    {
+      "element": "NAMEINVESTPRODUCT",
+      "label": "(記入例にラベル明示なし)",
+      "section": "4.5",
+      "statuses": [
+        "NONE"
+      ],
+      "seq_type": "A:突合キー型（治験薬・数量）",
+      "fixed_none": false,
+      "usage": {
+        "計画届": "記入",
+        "変更届": "継承",
+        "終了届": "継承",
+        "中止届": "継承",
+        "開中届": "—"
+      },
+      "note": ""
+    },
+    {
+      "element": "QUANTITIESPLANNED",
+      "label": "予定交付（入手）数量",
+      "section": "4.5",
+      "statuses": [
+        "NONE"
+      ],
+      "seq_type": "A:突合キー型（治験薬・数量）",
+      "fixed_none": false,
+      "usage": {
+        "計画届": "記入",
+        "変更届": "継承",
+        "終了届": "継承",
+        "中止届": "継承",
+        "開中届": "—"
+      },
+      "note": ""
+    },
+    {
+      "element": "QUANTITIESSUPPLIED",
+      "label": "交付数量",
+      "section": "4.5",
+      "statuses": [
+        "NONE"
+      ],
+      "seq_type": "A:突合キー型（治験薬・数量）",
+      "fixed_none": true,
+      "usage": {
+        "計画届": "—",
+        "変更届": "—",
+        "終了届": "記入",
+        "中止届": "記入",
+        "開中届": "—"
+      },
+      "note": ""
+    },
+    {
+      "element": "QUANTITIESUSED",
+      "label": "使用数量",
+      "section": "4.5",
+      "statuses": [
+        "NONE"
+      ],
+      "seq_type": "A:突合キー型（治験薬・数量）",
+      "fixed_none": true,
+      "usage": {
+        "計画届": "—",
+        "変更届": "—",
+        "終了届": "記入",
+        "中止届": "記入",
+        "開中届": "—"
+      },
+      "note": ""
+    },
+    {
+      "element": "QUANTITIESWITHDRAWN",
+      "label": "回収数量",
+      "section": "4.5",
+      "statuses": [
+        "NONE"
+      ],
+      "seq_type": "A:突合キー型（治験薬・数量）",
+      "fixed_none": true,
+      "usage": {
+        "計画届": "—",
+        "変更届": "—",
+        "終了届": "記入",
+        "中止届": "記入",
+        "開中届": "—"
+      },
+      "note": ""
+    },
+    {
+      "element": "QUANTITIESABROGATED",
+      "label": "廃棄数量",
+      "section": "4.5",
+      "statuses": [
+        "NONE"
+      ],
+      "seq_type": "A:突合キー型（治験薬・数量）",
+      "fixed_none": true,
+      "usage": {
+        "計画届": "—",
+        "変更届": "—",
+        "終了届": "記入",
+        "中止届": "記入",
+        "開中届": "—"
+      },
+      "note": ""
+    },
+    {
+      "element": "PLANNUMSUBJMEDICALINSTUTUT",
+      "label": "実施医療機関予定被験者数",
+      "section": "4.5",
+      "statuses": [
+        "NONE"
+      ],
+      "seq_type": "",
+      "fixed_none": false,
+      "usage": {
+        "計画届": "記入",
+        "変更届": "継承",
+        "終了届": "継承",
+        "中止届": "継承",
+        "開中届": "—"
+      },
+      "note": ""
+    },
+    {
+      "element": "NUMSUBJENROLLINSTITUTION",
+      "label": "実施医療機関被験者数",
+      "section": "4.5",
+      "statuses": [
+        "NONE"
+      ],
+      "seq_type": "",
+      "fixed_none": true,
+      "usage": {
+        "計画届": "—",
+        "変更届": "—",
+        "終了届": "記入",
+        "中止届": "記入",
+        "開中届": "—"
+      },
+      "note": ""
+    },
+    {
+      "element": "SMO_NAME",
+      "label": "氏名",
+      "section": "4.5",
+      "statuses": [
+        "NONE"
+      ],
+      "seq_type": "",
+      "fixed_none": false,
+      "usage": {
+        "計画届": "記入",
+        "変更届": "継承",
+        "終了届": "継承",
+        "中止届": "継承",
+        "開中届": "—"
+      },
+      "note": ""
+    },
+    {
+      "element": "SMO_ADDRESS1",
+      "label": "住所１",
+      "section": "4.5",
+      "statuses": [
+        "NONE"
+      ],
+      "seq_type": "",
+      "fixed_none": false,
+      "usage": {
+        "計画届": "記入",
+        "変更届": "継承",
+        "終了届": "継承",
+        "中止届": "継承",
+        "開中届": "—"
+      },
+      "note": ""
+    },
+    {
+      "element": "SMO_ADDRESS2",
+      "label": "住所２",
+      "section": "4.5",
+      "statuses": [
+        "NONE"
+      ],
+      "seq_type": "",
+      "fixed_none": false,
+      "usage": {
+        "計画届": "記入",
+        "変更届": "継承",
+        "終了届": "継承",
+        "中止届": "継承",
+        "開中届": "—"
+      },
+      "note": ""
+    },
+    {
+      "element": "SMO_SERVICE",
+      "label": "委託する業務の範囲",
+      "section": "4.5",
+      "statuses": [
+        "NONE"
+      ],
+      "seq_type": "",
+      "fixed_none": false,
+      "usage": {
+        "計画届": "記入",
+        "変更届": "継承",
+        "終了届": "継承",
+        "中止届": "継承",
+        "開中届": "—"
+      },
+      "note": ""
+    },
+    {
+      "element": "TYPEIRB",
+      "label": "院内・外部の区分",
+      "section": "4.5",
+      "statuses": [
+        "NONE"
+      ],
+      "seq_type": "",
+      "fixed_none": false,
+      "usage": {
+        "計画届": "記入",
+        "変更届": "継承",
+        "終了届": "継承",
+        "中止届": "継承",
+        "開中届": "—"
+      },
+      "note": ""
+    },
+    {
+      "element": "IRB_OWNER_NAME",
+      "label": "治験審査委員会の設置者の名称",
+      "section": "4.5",
+      "statuses": [
+        "NONE"
+      ],
+      "seq_type": "",
+      "fixed_none": false,
+      "usage": {
+        "計画届": "記入",
+        "変更届": "継承",
+        "終了届": "継承",
+        "中止届": "継承",
+        "開中届": "—"
+      },
+      "note": ""
+    },
+    {
+      "element": "IRB_ADDRESS1",
+      "label": "所在地１",
+      "section": "4.5",
+      "statuses": [
+        "NONE"
+      ],
+      "seq_type": "",
+      "fixed_none": false,
+      "usage": {
+        "計画届": "記入",
+        "変更届": "継承",
+        "終了届": "継承",
+        "中止届": "継承",
+        "開中届": "—"
+      },
+      "note": ""
+    },
+    {
+      "element": "IRB_ADDRESS2",
+      "label": "所在地２",
+      "section": "4.5",
+      "statuses": [
+        "NONE"
+      ],
+      "seq_type": "",
+      "fixed_none": false,
+      "usage": {
+        "計画届": "記入",
+        "変更届": "継承",
+        "終了届": "継承",
+        "中止届": "継承",
+        "開中届": "—"
+      },
+      "note": ""
+    },
+    {
+      "element": "OTHERS",
+      "label": "その他",
+      "section": "4.5",
+      "statuses": [
+        "NONE"
+      ],
+      "seq_type": "",
+      "fixed_none": false,
+      "usage": {
+        "計画届": "記入",
+        "変更届": "継承",
+        "終了届": "継承",
+        "中止届": "継承",
+        "開中届": "—"
+      },
+      "note": ""
+    },
+    {
+      "element": "FOOTNOTE",
+      "label": "脚注",
+      "section": "4.5",
+      "statuses": [
+        "NONE"
+      ],
+      "seq_type": "",
+      "fixed_none": false,
+      "usage": {
+        "計画届": "記入",
+        "変更届": "継承",
+        "終了届": "継承",
+        "中止届": "継承",
+        "開中届": "—"
+      },
+      "note": ""
+    },
+    {
+      "element": "REF_PRODUCTCATEGORY",
+      "label": "医薬品／医療機器／再生医療等製品の別",
+      "section": "4.6",
+      "statuses": [
+        "NONE"
+      ],
+      "seq_type": "",
+      "fixed_none": false,
+      "usage": {
+        "計画届": "△",
+        "変更届": "△",
+        "終了届": "△",
+        "中止届": "△",
+        "開中届": "—"
+      },
+      "note": ""
+    },
+    {
+      "element": "REF_INFOTESTSUBSTANCEIDCODE",
+      "label": "治験成分記号又は治験識別記号",
+      "section": "4.6",
+      "statuses": [
+        "NONE"
+      ],
+      "seq_type": "",
+      "fixed_none": false,
+      "usage": {
+        "計画届": "△",
+        "変更届": "△",
+        "終了届": "△",
+        "中止届": "△",
+        "開中届": "—"
+      },
+      "note": ""
+    },
+    {
+      "element": "REF_SERIALNOTENUM",
+      "label": "届出回数",
+      "section": "4.6",
+      "statuses": [
+        "NONE"
+      ],
+      "seq_type": "",
+      "fixed_none": false,
+      "usage": {
+        "計画届": "△",
+        "変更届": "△",
+        "終了届": "△",
+        "中止届": "△",
+        "開中届": "—"
+      },
+      "note": ""
+    },
+    {
+      "element": "TYPEREFFERENCE",
+      "label": "参照の区分",
+      "section": "4.6",
+      "statuses": [
+        "NONE"
+      ],
+      "seq_type": "",
+      "fixed_none": false,
+      "usage": {
+        "計画届": "△",
+        "変更届": "△",
+        "終了届": "△",
+        "中止届": "△",
+        "開中届": "—"
+      },
+      "note": ""
+    },
+    {
+      "element": "NAME",
+      "label": "実施医療機関の名称 / 責任医師の氏名 / 分担医師の氏名",
+      "section": "5.2",
+      "statuses": [
+        "NONE"
+      ],
+      "seq_type": "",
+      "fixed_none": false,
+      "usage": {
+        "計画届": "記入",
+        "変更届": "記入",
+        "終了届": "継承",
+        "中止届": "継承",
+        "開中届": "—"
+      },
+      "note": ""
+    }
+  ]
+}
