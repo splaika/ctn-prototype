@@ -1,0 +1,2139 @@
+{
+  "meta": {
+    "title": "治験届 XSD マッピング表（たたき台）",
+    "source": "治験届の XML ファイル作成の手引き 第4版（日本製薬工業協会, 2021/02）第4・5章より自動抽出",
+    "root_element": "CLINTRIALPLANNOTE",
+    "schema": "iykckn_all_v3_0_0.xsd（noNamespaceSchemaLocation）／従前様式は xml_schema.xsd",
+    "encoding": "UTF-8",
+    "common_children": [
+      "VARIABLELABEL（必須・値より前に記載）",
+      "CHANGEDATE（変更時）",
+      "CHANGEREASON（変更時）"
+    ],
+    "status_values": {
+      "NONE": "変更なし／変更対象外（最新値を保持）",
+      "UPDATE": "変更（CHANGEDATE/REASON必須）",
+      "APPEND": "追加（繰り返し要素の新規行）",
+      "DELETE": "削除（履歴として残す）"
+    },
+    "seq_number_types": {
+      "A:突合キー型": "治験薬の数量。計画届で付番→終了/中止届まで同番号を継承・不変。削除しても詰め直さない（欠番許容）。",
+      "B:イベント行型": "分担医師の異動。追加/削除/氏名変更を順序番号付き行で表現。届ごとに1から振り直し、人の同一性は不変の医師IDで担保。"
+    },
+    "notes": [
+      "STATUS実体値は NONE/UPDATE/APPEND/DELETE（NEW ではなく APPEND）。",
+      "3.8 該当項目は内容差異があっても STATUS=NONE のまま（変更追跡対象外）。",
+      "このたたき台は手引き本文の記入例ベース。確定はPMDA配布の公式XSD（要素出現順・型・桁・コード値）と突合のこと。"
+    ],
+    "element_count": 138
+  },
+  "items": [
+    {
+      "element": "RECEPTNUMINITNOTE",
+      "label": "主たる被験薬の初回届出受付番号",
+      "sections": [
+        "4.1",
+        "4.2"
+      ],
+      "section_titles": [
+        "4.1 様式等のバージョン情報",
+        "4.2 治験届出共通事項"
+      ],
+      "statuses": [
+        "NONE"
+      ],
+      "repeat_group": "",
+      "seq_type": ""
+    },
+    {
+      "element": "PLANNUMSUBJTESTPRODUCT",
+      "label": "予定被験者数（被験薬）",
+      "sections": [
+        "4.1",
+        "4.3"
+      ],
+      "section_titles": [
+        "4.1 様式等のバージョン情報",
+        "4.3 主たる被験薬に関する届出事項"
+      ],
+      "statuses": [
+        "NONE",
+        "UPDATE"
+      ],
+      "repeat_group": "",
+      "seq_type": ""
+    },
+    {
+      "element": "INFOFORMVERSION",
+      "label": "様式等のバージョン情報",
+      "sections": [
+        "4.1"
+      ],
+      "section_titles": [
+        "4.1 様式等のバージョン情報"
+      ],
+      "statuses": [
+        "NONE"
+      ],
+      "repeat_group": "",
+      "seq_type": ""
+    },
+    {
+      "element": "TESTSUBSTANCEIDCODE",
+      "label": "主たる被験薬の治験成分記号",
+      "sections": [
+        "4.2"
+      ],
+      "section_titles": [
+        "4.2 治験届出共通事項"
+      ],
+      "statuses": [
+        "NONE"
+      ],
+      "repeat_group": "",
+      "seq_type": ""
+    },
+    {
+      "element": "TYPECLINTRIALS",
+      "label": "治験の種類",
+      "sections": [
+        "4.2"
+      ],
+      "section_titles": [
+        "4.2 治験届出共通事項"
+      ],
+      "statuses": [
+        "NONE"
+      ],
+      "repeat_group": "",
+      "seq_type": ""
+    },
+    {
+      "element": "INITNOTEDATE",
+      "label": "主たる被験薬の初回届出年月日",
+      "sections": [
+        "4.2"
+      ],
+      "section_titles": [
+        "4.2 治験届出共通事項"
+      ],
+      "statuses": [
+        "NONE"
+      ],
+      "repeat_group": "",
+      "seq_type": ""
+    },
+    {
+      "element": "SERIALNOTENUM",
+      "label": "主たる被験薬の届出回数",
+      "sections": [
+        "4.2"
+      ],
+      "section_titles": [
+        "4.2 治験届出共通事項"
+      ],
+      "statuses": [
+        "NONE"
+      ],
+      "repeat_group": "",
+      "seq_type": ""
+    },
+    {
+      "element": "RECEPTNUMCLINTRIALPLANNOTE",
+      "label": "当該治験計画届出受付番号",
+      "sections": [
+        "4.2"
+      ],
+      "section_titles": [
+        "4.2 治験届出共通事項"
+      ],
+      "statuses": [
+        "NONE"
+      ],
+      "repeat_group": "",
+      "seq_type": ""
+    },
+    {
+      "element": "CLINTRIALPLANNOTEDATE",
+      "label": "当該治験計画届出年月日",
+      "sections": [
+        "4.2"
+      ],
+      "section_titles": [
+        "4.2 治験届出共通事項"
+      ],
+      "statuses": [
+        "NONE"
+      ],
+      "repeat_group": "",
+      "seq_type": ""
+    },
+    {
+      "element": "NOTEDATE",
+      "label": "届出年月日",
+      "sections": [
+        "4.3"
+      ],
+      "section_titles": [
+        "4.3 主たる被験薬に関する届出事項"
+      ],
+      "statuses": [
+        "NONE"
+      ],
+      "repeat_group": "",
+      "seq_type": ""
+    },
+    {
+      "element": "CLASSNOTE",
+      "label": "届出分類",
+      "sections": [
+        "4.3"
+      ],
+      "section_titles": [
+        "4.3 主たる被験薬に関する届出事項"
+      ],
+      "statuses": [
+        "NONE"
+      ],
+      "repeat_group": "",
+      "seq_type": ""
+    },
+    {
+      "element": "TIMESCHANGE",
+      "label": "変更回数",
+      "sections": [
+        "4.3"
+      ],
+      "section_titles": [
+        "4.3 主たる被験薬に関する届出事項"
+      ],
+      "statuses": [
+        "NONE"
+      ],
+      "repeat_group": "",
+      "seq_type": ""
+    },
+    {
+      "element": "CATEGORYNOTE",
+      "label": "届出区分",
+      "sections": [
+        "4.3"
+      ],
+      "section_titles": [
+        "4.3 主たる被験薬に関する届出事項"
+      ],
+      "statuses": [
+        "NONE"
+      ],
+      "repeat_group": "",
+      "seq_type": ""
+    },
+    {
+      "element": "TERMINATIONDATE",
+      "label": "中止日年月日",
+      "sections": [
+        "4.3"
+      ],
+      "section_titles": [
+        "4.3 主たる被験薬に関する届出事項"
+      ],
+      "statuses": [
+        "NONE"
+      ],
+      "repeat_group": "",
+      "seq_type": ""
+    },
+    {
+      "element": "REASONTERMINATION",
+      "label": "中止理由",
+      "sections": [
+        "4.3"
+      ],
+      "section_titles": [
+        "4.3 主たる被験薬に関する届出事項"
+      ],
+      "statuses": [
+        "NONE"
+      ],
+      "repeat_group": "",
+      "seq_type": ""
+    },
+    {
+      "element": "POSTTERMINATIONMEASURE",
+      "label": "その後の対応状況",
+      "sections": [
+        "4.3"
+      ],
+      "section_titles": [
+        "4.3 主たる被験薬に関する届出事項"
+      ],
+      "statuses": [
+        "NONE"
+      ],
+      "repeat_group": "",
+      "seq_type": ""
+    },
+    {
+      "element": "SERIALNO1",
+      "label": "順序番号",
+      "sections": [
+        "4.3",
+        "4.4",
+        "4.5",
+        "4.6",
+        "5.2"
+      ],
+      "section_titles": [
+        "4.3 主たる被験薬に関する届出事項",
+        "4.4 治験使用薬等（主たる被験薬を除く）",
+        "4.5 実施医療機関ごとの事項",
+        "4.6 参照する治験届出情報",
+        "5.2 変更届：インスタンスの入力方法"
+      ],
+      "statuses": [
+        "NONE",
+        "APPEND",
+        "DELETE"
+      ],
+      "repeat_group": "",
+      "seq_type": "繰り返し採番（親要素で型が決まる）"
+    },
+    {
+      "element": "SPONSOR_NAME",
+      "label": "(記入例にラベル明示なし)",
+      "sections": [
+        "4.3"
+      ],
+      "section_titles": [
+        "4.3 主たる被験薬に関する届出事項"
+      ],
+      "statuses": [
+        "NONE"
+      ],
+      "repeat_group": "",
+      "seq_type": ""
+    },
+    {
+      "element": "SPONSOR_ADDRESS1",
+      "label": "所在地 1",
+      "sections": [
+        "4.3"
+      ],
+      "section_titles": [
+        "4.3 主たる被験薬に関する届出事項"
+      ],
+      "statuses": [
+        "NONE"
+      ],
+      "repeat_group": "",
+      "seq_type": ""
+    },
+    {
+      "element": "SPONSOR_ADDRESS2",
+      "label": "所在地 2",
+      "sections": [
+        "4.3"
+      ],
+      "section_titles": [
+        "4.3 主たる被験薬に関する届出事項"
+      ],
+      "statuses": [
+        "NONE"
+      ],
+      "repeat_group": "",
+      "seq_type": ""
+    },
+    {
+      "element": "MANUFACTURERIMPORTERCODE",
+      "label": "業者コード",
+      "sections": [
+        "4.3"
+      ],
+      "section_titles": [
+        "4.3 主たる被験薬に関する届出事項"
+      ],
+      "statuses": [
+        "NONE"
+      ],
+      "repeat_group": "",
+      "seq_type": ""
+    },
+    {
+      "element": "INGREDIENTSQUANTITIES",
+      "label": "成分及び分量",
+      "sections": [
+        "4.3"
+      ],
+      "section_titles": [
+        "4.3 主たる被験薬に関する届出事項"
+      ],
+      "statuses": [
+        "NONE"
+      ],
+      "repeat_group": "",
+      "seq_type": ""
+    },
+    {
+      "element": "DOSAGEFORMCODE",
+      "label": "剤形コード",
+      "sections": [
+        "4.3"
+      ],
+      "section_titles": [
+        "4.3 主たる被験薬に関する届出事項"
+      ],
+      "statuses": [
+        "NONE"
+      ],
+      "repeat_group": "",
+      "seq_type": ""
+    },
+    {
+      "element": "MANUFACTMETHOD",
+      "label": "主たる被験薬の製造方法",
+      "sections": [
+        "4.3"
+      ],
+      "section_titles": [
+        "4.3 主たる被験薬に関する届出事項"
+      ],
+      "statuses": [
+        "NONE"
+      ],
+      "repeat_group": "",
+      "seq_type": ""
+    },
+    {
+      "element": "INTENDINDICATIONSEFFECTS",
+      "label": "予定される効能又は効果",
+      "sections": [
+        "4.3"
+      ],
+      "section_titles": [
+        "4.3 主たる被験薬に関する届出事項"
+      ],
+      "statuses": [
+        "NONE"
+      ],
+      "repeat_group": "",
+      "seq_type": ""
+    },
+    {
+      "element": "EFFICACYCLASSCODENUMBER",
+      "label": "薬効分類番号",
+      "sections": [
+        "4.3"
+      ],
+      "section_titles": [
+        "4.3 主たる被験薬に関する届出事項"
+      ],
+      "statuses": [
+        "NONE"
+      ],
+      "repeat_group": "",
+      "seq_type": ""
+    },
+    {
+      "element": "INTENDDOSAGEADMIN",
+      "label": "予定される用法及び用量",
+      "sections": [
+        "4.3"
+      ],
+      "section_titles": [
+        "4.3 主たる被験薬に関する届出事項"
+      ],
+      "statuses": [
+        "NONE"
+      ],
+      "repeat_group": "",
+      "seq_type": ""
+    },
+    {
+      "element": "ADMINROUTECODE",
+      "label": "投与経路コード",
+      "sections": [
+        "4.3"
+      ],
+      "section_titles": [
+        "4.3 主たる被験薬に関する届出事項"
+      ],
+      "statuses": [
+        "NONE"
+      ],
+      "repeat_group": "",
+      "seq_type": ""
+    },
+    {
+      "element": "PROTOCOLNUM",
+      "label": "実施計画書識別記号",
+      "sections": [
+        "4.3"
+      ],
+      "section_titles": [
+        "4.3 主たる被験薬に関する届出事項"
+      ],
+      "statuses": [
+        "NONE"
+      ],
+      "repeat_group": "",
+      "seq_type": ""
+    },
+    {
+      "element": "PHASECLINTRIAL",
+      "label": "開発の相",
+      "sections": [
+        "4.3"
+      ],
+      "section_titles": [
+        "4.3 主たる被験薬に関する届出事項"
+      ],
+      "statuses": [
+        "NONE"
+      ],
+      "repeat_group": "",
+      "seq_type": ""
+    },
+    {
+      "element": "TYPECLINTRIAL",
+      "label": "試験の種類",
+      "sections": [
+        "4.3"
+      ],
+      "section_titles": [
+        "4.3 主たる被験薬に関する届出事項"
+      ],
+      "statuses": [
+        "NONE"
+      ],
+      "repeat_group": "",
+      "seq_type": ""
+    },
+    {
+      "element": "TRIALOBJECTIVES",
+      "label": "目的",
+      "sections": [
+        "4.3"
+      ],
+      "section_titles": [
+        "4.3 主たる被験薬に関する届出事項"
+      ],
+      "statuses": [
+        "NONE"
+      ],
+      "repeat_group": "",
+      "seq_type": ""
+    },
+    {
+      "element": "PLANNUMSUBJECTSTOTAL",
+      "label": "予定被験者数（合計）",
+      "sections": [
+        "4.3"
+      ],
+      "section_titles": [
+        "4.3 主たる被験薬に関する届出事項"
+      ],
+      "statuses": [
+        "NONE",
+        "UPDATE"
+      ],
+      "repeat_group": "",
+      "seq_type": ""
+    },
+    {
+      "element": "TARGETDISEASE",
+      "label": "主たる被験薬の対象疾患",
+      "sections": [
+        "4.3"
+      ],
+      "section_titles": [
+        "4.3 主たる被験薬に関する届出事項"
+      ],
+      "statuses": [
+        "NONE"
+      ],
+      "repeat_group": "",
+      "seq_type": ""
+    },
+    {
+      "element": "DOSAGEADMIN",
+      "label": "用法及び用量",
+      "sections": [
+        "4.3"
+      ],
+      "section_titles": [
+        "4.3 主たる被験薬に関する届出事項"
+      ],
+      "statuses": [
+        "NONE"
+      ],
+      "repeat_group": "",
+      "seq_type": ""
+    },
+    {
+      "element": "STARTDATECLINTRIAL",
+      "label": "開始日年月日",
+      "sections": [
+        "4.3",
+        "5.2"
+      ],
+      "section_titles": [
+        "4.3 主たる被験薬に関する届出事項",
+        "5.2 変更届：インスタンスの入力方法"
+      ],
+      "statuses": [
+        "NONE"
+      ],
+      "repeat_group": "",
+      "seq_type": ""
+    },
+    {
+      "element": "ENDDATECLINTRIAL",
+      "label": "終了日年月日",
+      "sections": [
+        "4.3",
+        "5.2"
+      ],
+      "section_titles": [
+        "4.3 主たる被験薬に関する届出事項",
+        "5.2 変更届：インスタンスの入力方法"
+      ],
+      "statuses": [
+        "NONE",
+        "UPDATE"
+      ],
+      "repeat_group": "",
+      "seq_type": ""
+    },
+    {
+      "element": "REASONONEROUS",
+      "label": "有償の理由等",
+      "sections": [
+        "4.3"
+      ],
+      "section_titles": [
+        "4.3 主たる被験薬に関する届出事項"
+      ],
+      "statuses": [
+        "NONE"
+      ],
+      "repeat_group": "",
+      "seq_type": ""
+    },
+    {
+      "element": "CHARGEOUTPERSONNAME",
+      "label": "費用負担者氏名",
+      "sections": [
+        "4.3"
+      ],
+      "section_titles": [
+        "4.3 主たる被験薬に関する届出事項"
+      ],
+      "statuses": [
+        "NONE"
+      ],
+      "repeat_group": "",
+      "seq_type": ""
+    },
+    {
+      "element": "VALIDITYREASONS",
+      "label": "妥当性",
+      "sections": [
+        "4.3"
+      ],
+      "section_titles": [
+        "4.3 主たる被験薬に関する届出事項"
+      ],
+      "statuses": [
+        "NONE"
+      ],
+      "repeat_group": "",
+      "seq_type": ""
+    },
+    {
+      "element": "KEYINVEST_NAME",
+      "label": "治験調整医師の氏名",
+      "sections": [
+        "4.3"
+      ],
+      "section_titles": [
+        "4.3 主たる被験薬に関する届出事項"
+      ],
+      "statuses": [
+        "NONE"
+      ],
+      "repeat_group": "",
+      "seq_type": ""
+    },
+    {
+      "element": "NAMEMEDICALINSTITUT",
+      "label": "治験調整医師の所属機関",
+      "sections": [
+        "4.3"
+      ],
+      "section_titles": [
+        "4.3 主たる被験薬に関する届出事項"
+      ],
+      "statuses": [
+        "NONE"
+      ],
+      "repeat_group": "",
+      "seq_type": ""
+    },
+    {
+      "element": "KEYINVEST_AFFILIATION",
+      "label": "治験調整医師の所属",
+      "sections": [
+        "4.3"
+      ],
+      "section_titles": [
+        "4.3 主たる被験薬に関する届出事項"
+      ],
+      "statuses": [
+        "NONE"
+      ],
+      "repeat_group": "",
+      "seq_type": ""
+    },
+    {
+      "element": "CRO_NAME",
+      "label": "氏名",
+      "sections": [
+        "4.3"
+      ],
+      "section_titles": [
+        "4.3 主たる被験薬に関する届出事項"
+      ],
+      "statuses": [
+        "NONE"
+      ],
+      "repeat_group": "",
+      "seq_type": ""
+    },
+    {
+      "element": "CRO_ADDRESS1",
+      "label": "住所 1",
+      "sections": [
+        "4.3"
+      ],
+      "section_titles": [
+        "4.3 主たる被験薬に関する届出事項"
+      ],
+      "statuses": [
+        "NONE"
+      ],
+      "repeat_group": "",
+      "seq_type": ""
+    },
+    {
+      "element": "CRO_ADDRESS2",
+      "label": "住所 2",
+      "sections": [
+        "4.3"
+      ],
+      "section_titles": [
+        "4.3 主たる被験薬に関する届出事項"
+      ],
+      "statuses": [
+        "NONE"
+      ],
+      "repeat_group": "",
+      "seq_type": ""
+    },
+    {
+      "element": "CRO_SERVICES",
+      "label": "委託する業務の範囲",
+      "sections": [
+        "4.3"
+      ],
+      "section_titles": [
+        "4.3 主たる被験薬に関する届出事項"
+      ],
+      "statuses": [
+        "NONE"
+      ],
+      "repeat_group": "",
+      "seq_type": ""
+    },
+    {
+      "element": "TYPECLINTRIALWITHDRUGCARTAGENA",
+      "label": "該当の有無等",
+      "sections": [
+        "4.3",
+        "4.4"
+      ],
+      "section_titles": [
+        "4.3 主たる被験薬に関する届出事項",
+        "4.4 治験使用薬等（主たる被験薬を除く）"
+      ],
+      "statuses": [
+        "NONE"
+      ],
+      "repeat_group": "",
+      "seq_type": ""
+    },
+    {
+      "element": "DETAIL",
+      "label": "該当する場合の詳述 / 内容 / その他の場合の詳述",
+      "sections": [
+        "4.3",
+        "4.4"
+      ],
+      "section_titles": [
+        "4.3 主たる被験薬に関する届出事項",
+        "4.4 治験使用薬等（主たる被験薬を除く）"
+      ],
+      "statuses": [
+        "NONE"
+      ],
+      "repeat_group": "",
+      "seq_type": ""
+    },
+    {
+      "element": "TYPEBIOLOGICALPROD",
+      "label": "該当の有無等",
+      "sections": [
+        "4.3",
+        "4.4"
+      ],
+      "section_titles": [
+        "4.3 主たる被験薬に関する届出事項",
+        "4.4 治験使用薬等（主たる被験薬を除く）"
+      ],
+      "statuses": [
+        "NONE"
+      ],
+      "repeat_group": "",
+      "seq_type": ""
+    },
+    {
+      "element": "APPLICABLEORNOT",
+      "label": "該当の有無 / 該当の有無等",
+      "sections": [
+        "4.3",
+        "4.4"
+      ],
+      "section_titles": [
+        "4.3 主たる被験薬に関する届出事項",
+        "4.4 治験使用薬等（主たる被験薬を除く）"
+      ],
+      "statuses": [
+        "NONE"
+      ],
+      "repeat_group": "",
+      "seq_type": ""
+    },
+    {
+      "element": "OTHERCOMMENTS_PRIMARY",
+      "label": "その他",
+      "sections": [
+        "4.3"
+      ],
+      "section_titles": [
+        "4.3 主たる被験薬に関する届出事項"
+      ],
+      "statuses": [
+        "NONE"
+      ],
+      "repeat_group": "",
+      "seq_type": ""
+    },
+    {
+      "element": "TYPEEXPANDEDACCESSPROG",
+      "label": "該当の有無等",
+      "sections": [
+        "4.3"
+      ],
+      "section_titles": [
+        "4.3 主たる被験薬に関する届出事項"
+      ],
+      "statuses": [
+        "NONE"
+      ],
+      "repeat_group": "",
+      "seq_type": ""
+    },
+    {
+      "element": "CONTENTS",
+      "label": "内容 / 参照の詳細",
+      "sections": [
+        "4.3",
+        "4.6"
+      ],
+      "section_titles": [
+        "4.3 主たる被験薬に関する届出事項",
+        "4.6 参照する治験届出情報"
+      ],
+      "statuses": [
+        "NONE"
+      ],
+      "repeat_group": "",
+      "seq_type": ""
+    },
+    {
+      "element": "NAMEDOC",
+      "label": "資料名",
+      "sections": [
+        "4.3"
+      ],
+      "section_titles": [
+        "4.3 主たる被験薬に関する届出事項"
+      ],
+      "statuses": [
+        "NONE"
+      ],
+      "repeat_group": "",
+      "seq_type": ""
+    },
+    {
+      "element": "REMARK",
+      "label": "備考",
+      "sections": [
+        "4.3"
+      ],
+      "section_titles": [
+        "4.3 主たる被験薬に関する届出事項"
+      ],
+      "statuses": [
+        "NONE"
+      ],
+      "repeat_group": "",
+      "seq_type": ""
+    },
+    {
+      "element": "CLASSPERSONFILLNOTE",
+      "label": "治験届出者の種別",
+      "sections": [
+        "4.3"
+      ],
+      "section_titles": [
+        "4.3 主たる被験薬に関する届出事項"
+      ],
+      "statuses": [
+        "NONE"
+      ],
+      "repeat_group": "",
+      "seq_type": ""
+    },
+    {
+      "element": "APPLICAT_NAME",
+      "label": "担当者の氏名 / 届出者の名称",
+      "sections": [
+        "4.3"
+      ],
+      "section_titles": [
+        "4.3 主たる被験薬に関する届出事項"
+      ],
+      "statuses": [
+        "NONE"
+      ],
+      "repeat_group": "",
+      "seq_type": ""
+    },
+    {
+      "element": "APPLICAT_REP_NAME",
+      "label": "届出者の(代表者の)氏名",
+      "sections": [
+        "4.3"
+      ],
+      "section_titles": [
+        "4.3 主たる被験薬に関する届出事項"
+      ],
+      "statuses": [
+        "NONE"
+      ],
+      "repeat_group": "",
+      "seq_type": ""
+    },
+    {
+      "element": "APPLICAT_ADDRESS1",
+      "label": "所在地 1",
+      "sections": [
+        "4.3"
+      ],
+      "section_titles": [
+        "4.3 主たる被験薬に関する届出事項"
+      ],
+      "statuses": [
+        "NONE"
+      ],
+      "repeat_group": "",
+      "seq_type": ""
+    },
+    {
+      "element": "APPLICAT_ADDRESS2",
+      "label": "所在地 2",
+      "sections": [
+        "4.3"
+      ],
+      "section_titles": [
+        "4.3 主たる被験薬に関する届出事項"
+      ],
+      "statuses": [
+        "NONE"
+      ],
+      "repeat_group": "",
+      "seq_type": ""
+    },
+    {
+      "element": "MUNUFACTURERIMPORTERCODE",
+      "label": "業者コード",
+      "sections": [
+        "4.3"
+      ],
+      "section_titles": [
+        "4.3 主たる被験薬に関する届出事項"
+      ],
+      "statuses": [
+        "NONE"
+      ],
+      "repeat_group": "",
+      "seq_type": ""
+    },
+    {
+      "element": "APPLICAT_PERSON_NAME",
+      "label": "担当者の氏名",
+      "sections": [
+        "4.3"
+      ],
+      "section_titles": [
+        "4.3 主たる被験薬に関する届出事項"
+      ],
+      "statuses": [
+        "NONE"
+      ],
+      "repeat_group": "",
+      "seq_type": ""
+    },
+    {
+      "element": "APPLICAT_PERSON_TITLE",
+      "label": "担当者の所属",
+      "sections": [
+        "4.3"
+      ],
+      "section_titles": [
+        "4.3 主たる被験薬に関する届出事項"
+      ],
+      "statuses": [
+        "NONE"
+      ],
+      "repeat_group": "",
+      "seq_type": ""
+    },
+    {
+      "element": "APPLICAT_TELNUM",
+      "label": "電話番号",
+      "sections": [
+        "4.3"
+      ],
+      "section_titles": [
+        "4.3 主たる被験薬に関する届出事項"
+      ],
+      "statuses": [
+        "NONE"
+      ],
+      "repeat_group": "",
+      "seq_type": ""
+    },
+    {
+      "element": "FAXNUMBER",
+      "label": "ＦＡＸ番号又はメールアドレス",
+      "sections": [
+        "4.3"
+      ],
+      "section_titles": [
+        "4.3 主たる被験薬に関する届出事項"
+      ],
+      "statuses": [
+        "NONE"
+      ],
+      "repeat_group": "",
+      "seq_type": ""
+    },
+    {
+      "element": "FOREIGN_SPONSOR_NAME",
+      "label": "海外依頼者、外国製造業者の名称（邦文）",
+      "sections": [
+        "4.3"
+      ],
+      "section_titles": [
+        "4.3 主たる被験薬に関する届出事項"
+      ],
+      "statuses": [
+        "NONE"
+      ],
+      "repeat_group": "",
+      "seq_type": ""
+    },
+    {
+      "element": "FOREIGN_SPONSOR_REP_NAME",
+      "label": "海外依頼者、外国製造業者の(代表者の)氏名（邦文）",
+      "sections": [
+        "4.3"
+      ],
+      "section_titles": [
+        "4.3 主たる被験薬に関する届出事項"
+      ],
+      "statuses": [
+        "NONE"
+      ],
+      "repeat_group": "",
+      "seq_type": ""
+    },
+    {
+      "element": "FOREIGN_SPONSOR_ADDRESS1",
+      "label": "所在地１（邦文）",
+      "sections": [
+        "4.3"
+      ],
+      "section_titles": [
+        "4.3 主たる被験薬に関する届出事項"
+      ],
+      "statuses": [
+        "NONE"
+      ],
+      "repeat_group": "",
+      "seq_type": ""
+    },
+    {
+      "element": "FOREIGN_SPONSOR_ADDRESS2",
+      "label": "所在地２（邦文）",
+      "sections": [
+        "4.3"
+      ],
+      "section_titles": [
+        "4.3 主たる被験薬に関する届出事項"
+      ],
+      "statuses": [
+        "NONE"
+      ],
+      "repeat_group": "",
+      "seq_type": ""
+    },
+    {
+      "element": "FOREIGN_NAME_FRGNLNG",
+      "label": "海外依頼者、外国製造業者の名称（外国文）",
+      "sections": [
+        "4.3"
+      ],
+      "section_titles": [
+        "4.3 主たる被験薬に関する届出事項"
+      ],
+      "statuses": [
+        "NONE"
+      ],
+      "repeat_group": "",
+      "seq_type": ""
+    },
+    {
+      "element": "FOREIGN_SPONSOR_REP_NAME_FRGNLNG",
+      "label": "(記入例にラベル明示なし)",
+      "sections": [
+        "4.3"
+      ],
+      "section_titles": [
+        "4.3 主たる被験薬に関する届出事項"
+      ],
+      "statuses": [
+        "NONE"
+      ],
+      "repeat_group": "",
+      "seq_type": ""
+    },
+    {
+      "element": "FOREIGN_ADDRESS1_FRGNLNG",
+      "label": "(記入例にラベル明示なし)",
+      "sections": [
+        "4.3"
+      ],
+      "section_titles": [
+        "4.3 主たる被験薬に関する届出事項"
+      ],
+      "statuses": [
+        "NONE"
+      ],
+      "repeat_group": "",
+      "seq_type": ""
+    },
+    {
+      "element": "FOREIGN_ADDRESS2_FRGNLNG",
+      "label": "所在地 2（外国文）",
+      "sections": [
+        "4.4"
+      ],
+      "section_titles": [
+        "4.4 治験使用薬等（主たる被験薬を除く）"
+      ],
+      "statuses": [
+        "NONE"
+      ],
+      "repeat_group": "",
+      "seq_type": ""
+    },
+    {
+      "element": "COMB_PRODUCTCATEGORY",
+      "label": "医薬品／医療機器／再生医療等製品の別",
+      "sections": [
+        "4.4"
+      ],
+      "section_titles": [
+        "4.4 治験使用薬等（主たる被験薬を除く）"
+      ],
+      "statuses": [
+        "NONE"
+      ],
+      "repeat_group": "",
+      "seq_type": ""
+    },
+    {
+      "element": "COMBINATION_ID",
+      "label": "記号・名称等",
+      "sections": [
+        "4.4"
+      ],
+      "section_titles": [
+        "4.4 治験使用薬等（主たる被験薬を除く）"
+      ],
+      "statuses": [
+        "NONE"
+      ],
+      "repeat_group": "",
+      "seq_type": ""
+    },
+    {
+      "element": "TYPECOMBINATION_ID",
+      "label": "記号・名称等の種類",
+      "sections": [
+        "4.4"
+      ],
+      "section_titles": [
+        "4.4 治験使用薬等（主たる被験薬を除く）"
+      ],
+      "statuses": [
+        "NONE"
+      ],
+      "repeat_group": "",
+      "seq_type": ""
+    },
+    {
+      "element": "COMBINATIONCATEGORY",
+      "label": "被験薬／対照薬／併用薬／レスキュー薬などの区別",
+      "sections": [
+        "4.4"
+      ],
+      "section_titles": [
+        "4.4 治験使用薬等（主たる被験薬を除く）"
+      ],
+      "statuses": [
+        "NONE"
+      ],
+      "repeat_group": "",
+      "seq_type": ""
+    },
+    {
+      "element": "COMB_APPLICATIONSTATUS",
+      "label": "国内における承認状況",
+      "sections": [
+        "4.4"
+      ],
+      "section_titles": [
+        "4.4 治験使用薬等（主たる被験薬を除く）"
+      ],
+      "statuses": [
+        "NONE"
+      ],
+      "repeat_group": "",
+      "seq_type": ""
+    },
+    {
+      "element": "SERIALNO2",
+      "label": "順序番号",
+      "sections": [
+        "4.4",
+        "4.5",
+        "5.2"
+      ],
+      "section_titles": [
+        "4.4 治験使用薬等（主たる被験薬を除く）",
+        "4.5 実施医療機関ごとの事項",
+        "5.2 変更届：インスタンスの入力方法"
+      ],
+      "statuses": [
+        "NONE",
+        "APPEND",
+        "DELETE"
+      ],
+      "repeat_group": "",
+      "seq_type": "繰り返し採番（親要素で型が決まる）"
+    },
+    {
+      "element": "COMB_SPONSOR_NAME",
+      "label": "名称",
+      "sections": [
+        "4.4"
+      ],
+      "section_titles": [
+        "4.4 治験使用薬等（主たる被験薬を除く）"
+      ],
+      "statuses": [
+        "NONE"
+      ],
+      "repeat_group": "",
+      "seq_type": ""
+    },
+    {
+      "element": "COMB_SPONSOR_ADDRESS1",
+      "label": "(記入例にラベル明示なし)",
+      "sections": [
+        "4.4"
+      ],
+      "section_titles": [
+        "4.4 治験使用薬等（主たる被験薬を除く）"
+      ],
+      "statuses": [
+        "NONE"
+      ],
+      "repeat_group": "",
+      "seq_type": ""
+    },
+    {
+      "element": "COMB_SPONSOR_ADDRESS2",
+      "label": "所在地２",
+      "sections": [
+        "4.4"
+      ],
+      "section_titles": [
+        "4.4 治験使用薬等（主たる被験薬を除く）"
+      ],
+      "statuses": [
+        "NONE"
+      ],
+      "repeat_group": "",
+      "seq_type": ""
+    },
+    {
+      "element": "COMB_MANUFACTURERIMPORTERCODE",
+      "label": "業者コード",
+      "sections": [
+        "4.4"
+      ],
+      "section_titles": [
+        "4.4 治験使用薬等（主たる被験薬を除く）"
+      ],
+      "statuses": [
+        "NONE"
+      ],
+      "repeat_group": "",
+      "seq_type": ""
+    },
+    {
+      "element": "COMB_INGREDIENTSQUANTITIES",
+      "label": "成分及び分量",
+      "sections": [
+        "4.4"
+      ],
+      "section_titles": [
+        "4.4 治験使用薬等（主たる被験薬を除く）"
+      ],
+      "statuses": [
+        "NONE"
+      ],
+      "repeat_group": "",
+      "seq_type": ""
+    },
+    {
+      "element": "COMB_DOSAGEFORMCODE",
+      "label": "剤形コード",
+      "sections": [
+        "4.4"
+      ],
+      "section_titles": [
+        "4.4 治験使用薬等（主たる被験薬を除く）"
+      ],
+      "statuses": [
+        "NONE"
+      ],
+      "repeat_group": "",
+      "seq_type": ""
+    },
+    {
+      "element": "COMB_MANUFACTMETHOD",
+      "label": "製造方法",
+      "sections": [
+        "4.4"
+      ],
+      "section_titles": [
+        "4.4 治験使用薬等（主たる被験薬を除く）"
+      ],
+      "statuses": [
+        "NONE"
+      ],
+      "repeat_group": "",
+      "seq_type": ""
+    },
+    {
+      "element": "COMB_INTENDINDICATIONSEFFECTS",
+      "label": "予定される効能又は効果",
+      "sections": [
+        "4.4"
+      ],
+      "section_titles": [
+        "4.4 治験使用薬等（主たる被験薬を除く）"
+      ],
+      "statuses": [
+        "NONE"
+      ],
+      "repeat_group": "",
+      "seq_type": ""
+    },
+    {
+      "element": "COMB_EFFICACYCLASSCODENUMBER",
+      "label": "薬効分類番号",
+      "sections": [
+        "4.4"
+      ],
+      "section_titles": [
+        "4.4 治験使用薬等（主たる被験薬を除く）"
+      ],
+      "statuses": [
+        "NONE"
+      ],
+      "repeat_group": "",
+      "seq_type": ""
+    },
+    {
+      "element": "COMB_INTENDDOSAGEADMIN",
+      "label": "予定される用法及び用量",
+      "sections": [
+        "4.4"
+      ],
+      "section_titles": [
+        "4.4 治験使用薬等（主たる被験薬を除く）"
+      ],
+      "statuses": [
+        "NONE"
+      ],
+      "repeat_group": "",
+      "seq_type": ""
+    },
+    {
+      "element": "COMB_ADMINROUTECODE",
+      "label": "投与経路コード",
+      "sections": [
+        "4.4"
+      ],
+      "section_titles": [
+        "4.4 治験使用薬等（主たる被験薬を除く）"
+      ],
+      "statuses": [
+        "NONE"
+      ],
+      "repeat_group": "",
+      "seq_type": ""
+    },
+    {
+      "element": "COMB_TARGETDISEASE",
+      "label": "対象疾患",
+      "sections": [
+        "4.4"
+      ],
+      "section_titles": [
+        "4.4 治験使用薬等（主たる被験薬を除く）"
+      ],
+      "statuses": [
+        "NONE"
+      ],
+      "repeat_group": "",
+      "seq_type": ""
+    },
+    {
+      "element": "COMB_DOSAGEADMIN",
+      "label": "用法及び用量",
+      "sections": [
+        "4.4"
+      ],
+      "section_titles": [
+        "4.4 治験使用薬等（主たる被験薬を除く）"
+      ],
+      "statuses": [
+        "NONE"
+      ],
+      "repeat_group": "",
+      "seq_type": ""
+    },
+    {
+      "element": "OTHERCOMMENTS",
+      "label": "その他",
+      "sections": [
+        "4.4"
+      ],
+      "section_titles": [
+        "4.4 治験使用薬等（主たる被験薬を除く）"
+      ],
+      "statuses": [
+        "NONE"
+      ],
+      "repeat_group": "",
+      "seq_type": ""
+    },
+    {
+      "element": "COMB_FOREIGN_SPONSOR_NAME",
+      "label": "海外依頼者、外国製造業者の名称（邦文）",
+      "sections": [
+        "4.4"
+      ],
+      "section_titles": [
+        "4.4 治験使用薬等（主たる被験薬を除く）"
+      ],
+      "statuses": [
+        "NONE"
+      ],
+      "repeat_group": "",
+      "seq_type": ""
+    },
+    {
+      "element": "COMB_FOREIGN_SPONSOR_REP_NAME",
+      "label": "(記入例にラベル明示なし)",
+      "sections": [
+        "4.4"
+      ],
+      "section_titles": [
+        "4.4 治験使用薬等（主たる被験薬を除く）"
+      ],
+      "statuses": [
+        "NONE"
+      ],
+      "repeat_group": "",
+      "seq_type": ""
+    },
+    {
+      "element": "COMB_FOREIGN_SPONSOR_ADDRESS1",
+      "label": "所在地１（邦文）",
+      "sections": [
+        "4.4"
+      ],
+      "section_titles": [
+        "4.4 治験使用薬等（主たる被験薬を除く）"
+      ],
+      "statuses": [
+        "NONE"
+      ],
+      "repeat_group": "",
+      "seq_type": ""
+    },
+    {
+      "element": "COMB_FOREIGN_SPONSOR_ADDRESS2",
+      "label": "所在地２（邦文）",
+      "sections": [
+        "4.4"
+      ],
+      "section_titles": [
+        "4.4 治験使用薬等（主たる被験薬を除く）"
+      ],
+      "statuses": [
+        "NONE"
+      ],
+      "repeat_group": "",
+      "seq_type": ""
+    },
+    {
+      "element": "COMB_FOREIGN_NAME_FRGNLNG",
+      "label": "海外依頼者、外国製造業者の名称（外国文）",
+      "sections": [
+        "4.4"
+      ],
+      "section_titles": [
+        "4.4 治験使用薬等（主たる被験薬を除く）"
+      ],
+      "statuses": [
+        "NONE"
+      ],
+      "repeat_group": "",
+      "seq_type": ""
+    },
+    {
+      "element": "COMB_FOREIGN_SPOMSPR_REP_NAME_FRGNLNG",
+      "label": "(記入例にラベル明示なし)",
+      "sections": [
+        "4.4"
+      ],
+      "section_titles": [
+        "4.4 治験使用薬等（主たる被験薬を除く）"
+      ],
+      "statuses": [
+        "NONE"
+      ],
+      "repeat_group": "",
+      "seq_type": ""
+    },
+    {
+      "element": "COMB_FOREIGN_ADDRESS1_FRGNLNG",
+      "label": "所在地１（外国文）",
+      "sections": [
+        "4.4"
+      ],
+      "section_titles": [
+        "4.4 治験使用薬等（主たる被験薬を除く）"
+      ],
+      "statuses": [
+        "NONE"
+      ],
+      "repeat_group": "",
+      "seq_type": ""
+    },
+    {
+      "element": "COMB_FOREIGN_ADDRESS2_FRGNLNG",
+      "label": "所在地２（外国文）",
+      "sections": [
+        "4.4"
+      ],
+      "section_titles": [
+        "4.4 治験使用薬等（主たる被験薬を除く）"
+      ],
+      "statuses": [
+        "NONE"
+      ],
+      "repeat_group": "",
+      "seq_type": ""
+    },
+    {
+      "element": "COMB_REMARKS",
+      "label": "その他備考",
+      "sections": [
+        "4.5"
+      ],
+      "section_titles": [
+        "4.5 実施医療機関ごとの事項"
+      ],
+      "statuses": [
+        "NONE"
+      ],
+      "repeat_group": "",
+      "seq_type": ""
+    },
+    {
+      "element": "COMB_PRESENCEADRREPORT",
+      "label": "副作用報告の有無",
+      "sections": [
+        "4.5"
+      ],
+      "section_titles": [
+        "4.5 実施医療機関ごとの事項"
+      ],
+      "statuses": [
+        "NONE"
+      ],
+      "repeat_group": "",
+      "seq_type": ""
+    },
+    {
+      "element": "INSTITUTE_NAME",
+      "label": "実施医療機関の名称",
+      "sections": [
+        "4.5"
+      ],
+      "section_titles": [
+        "4.5 実施医療機関ごとの事項"
+      ],
+      "statuses": [
+        "NONE"
+      ],
+      "repeat_group": "",
+      "seq_type": ""
+    },
+    {
+      "element": "DEPARTMENT",
+      "label": "(記入例にラベル明示なし)",
+      "sections": [
+        "4.5"
+      ],
+      "section_titles": [
+        "4.5 実施医療機関ごとの事項"
+      ],
+      "statuses": [
+        "NONE"
+      ],
+      "repeat_group": "",
+      "seq_type": ""
+    },
+    {
+      "element": "INSTITUTE_ADDRESS1",
+      "label": "所在地１",
+      "sections": [
+        "4.5"
+      ],
+      "section_titles": [
+        "4.5 実施医療機関ごとの事項"
+      ],
+      "statuses": [
+        "NONE"
+      ],
+      "repeat_group": "",
+      "seq_type": ""
+    },
+    {
+      "element": "INSTITUTE_ADDRESS2",
+      "label": "所在地２",
+      "sections": [
+        "4.5"
+      ],
+      "section_titles": [
+        "4.5 実施医療機関ごとの事項"
+      ],
+      "statuses": [
+        "NONE"
+      ],
+      "repeat_group": "",
+      "seq_type": ""
+    },
+    {
+      "element": "INSTITUTE_TELNUM",
+      "label": "電話番号",
+      "sections": [
+        "4.5"
+      ],
+      "section_titles": [
+        "4.5 実施医療機関ごとの事項"
+      ],
+      "statuses": [
+        "NONE"
+      ],
+      "repeat_group": "",
+      "seq_type": ""
+    },
+    {
+      "element": "CHIEFINVEST_NAME",
+      "label": "治験責任医師の氏名",
+      "sections": [
+        "4.5"
+      ],
+      "section_titles": [
+        "4.5 実施医療機関ごとの事項"
+      ],
+      "statuses": [
+        "NONE"
+      ],
+      "repeat_group": "",
+      "seq_type": ""
+    },
+    {
+      "element": "NUMMEDICALSCHOOL",
+      "label": "大学番号",
+      "sections": [
+        "4.5"
+      ],
+      "section_titles": [
+        "4.5 実施医療機関ごとの事項"
+      ],
+      "statuses": [
+        "NONE"
+      ],
+      "repeat_group": "",
+      "seq_type": ""
+    },
+    {
+      "element": "GRADUATYEARMEDICALSCHOOL",
+      "label": "(記入例にラベル明示なし)",
+      "sections": [
+        "4.5"
+      ],
+      "section_titles": [
+        "4.5 実施医療機関ごとの事項"
+      ],
+      "statuses": [
+        "NONE"
+      ],
+      "repeat_group": "",
+      "seq_type": ""
+    },
+    {
+      "element": "CHIEFINVEST_PRONOUNCE",
+      "label": "氏名よみかな",
+      "sections": [
+        "4.5"
+      ],
+      "section_titles": [
+        "4.5 実施医療機関ごとの事項"
+      ],
+      "statuses": [
+        "NONE"
+      ],
+      "repeat_group": "",
+      "seq_type": ""
+    },
+    {
+      "element": "INVESTIGATER_NAME",
+      "label": "治験分担医師の氏名",
+      "sections": [
+        "4.5"
+      ],
+      "section_titles": [
+        "4.5 実施医療機関ごとの事項"
+      ],
+      "statuses": [
+        "NONE"
+      ],
+      "repeat_group": "B:イベント行型（分担医師）",
+      "seq_type": ""
+    },
+    {
+      "element": "INVEST_PRONOUNCE",
+      "label": "氏名よみかな",
+      "sections": [
+        "4.5"
+      ],
+      "section_titles": [
+        "4.5 実施医療機関ごとの事項"
+      ],
+      "statuses": [
+        "NONE"
+      ],
+      "repeat_group": "B:イベント行型（分担医師）",
+      "seq_type": ""
+    },
+    {
+      "element": "NAMEINVESTPRODUCT",
+      "label": "(記入例にラベル明示なし)",
+      "sections": [
+        "4.5"
+      ],
+      "section_titles": [
+        "4.5 実施医療機関ごとの事項"
+      ],
+      "statuses": [
+        "NONE"
+      ],
+      "repeat_group": "A:突合キー型（治験薬・数量）",
+      "seq_type": ""
+    },
+    {
+      "element": "QUANTITIESPLANNED",
+      "label": "予定交付（入手）数量",
+      "sections": [
+        "4.5"
+      ],
+      "section_titles": [
+        "4.5 実施医療機関ごとの事項"
+      ],
+      "statuses": [
+        "NONE"
+      ],
+      "repeat_group": "A:突合キー型（治験薬・数量）",
+      "seq_type": ""
+    },
+    {
+      "element": "QUANTITIESSUPPLIED",
+      "label": "交付数量",
+      "sections": [
+        "4.5"
+      ],
+      "section_titles": [
+        "4.5 実施医療機関ごとの事項"
+      ],
+      "statuses": [
+        "NONE"
+      ],
+      "repeat_group": "A:突合キー型（治験薬・数量）",
+      "seq_type": ""
+    },
+    {
+      "element": "QUANTITIESUSED",
+      "label": "使用数量",
+      "sections": [
+        "4.5"
+      ],
+      "section_titles": [
+        "4.5 実施医療機関ごとの事項"
+      ],
+      "statuses": [
+        "NONE"
+      ],
+      "repeat_group": "A:突合キー型（治験薬・数量）",
+      "seq_type": ""
+    },
+    {
+      "element": "QUANTITIESWITHDRAWN",
+      "label": "回収数量",
+      "sections": [
+        "4.5"
+      ],
+      "section_titles": [
+        "4.5 実施医療機関ごとの事項"
+      ],
+      "statuses": [
+        "NONE"
+      ],
+      "repeat_group": "A:突合キー型（治験薬・数量）",
+      "seq_type": ""
+    },
+    {
+      "element": "QUANTITIESABROGATED",
+      "label": "廃棄数量",
+      "sections": [
+        "4.5"
+      ],
+      "section_titles": [
+        "4.5 実施医療機関ごとの事項"
+      ],
+      "statuses": [
+        "NONE"
+      ],
+      "repeat_group": "A:突合キー型（治験薬・数量）",
+      "seq_type": ""
+    },
+    {
+      "element": "PLANNUMSUBJMEDICALINSTUTUT",
+      "label": "実施医療機関予定被験者数",
+      "sections": [
+        "4.5"
+      ],
+      "section_titles": [
+        "4.5 実施医療機関ごとの事項"
+      ],
+      "statuses": [
+        "NONE"
+      ],
+      "repeat_group": "",
+      "seq_type": ""
+    },
+    {
+      "element": "NUMSUBJENROLLINSTITUTION",
+      "label": "実施医療機関被験者数",
+      "sections": [
+        "4.5"
+      ],
+      "section_titles": [
+        "4.5 実施医療機関ごとの事項"
+      ],
+      "statuses": [
+        "NONE"
+      ],
+      "repeat_group": "",
+      "seq_type": ""
+    },
+    {
+      "element": "SMO_NAME",
+      "label": "氏名",
+      "sections": [
+        "4.5"
+      ],
+      "section_titles": [
+        "4.5 実施医療機関ごとの事項"
+      ],
+      "statuses": [
+        "NONE"
+      ],
+      "repeat_group": "",
+      "seq_type": ""
+    },
+    {
+      "element": "SMO_ADDRESS1",
+      "label": "住所１",
+      "sections": [
+        "4.5"
+      ],
+      "section_titles": [
+        "4.5 実施医療機関ごとの事項"
+      ],
+      "statuses": [
+        "NONE"
+      ],
+      "repeat_group": "",
+      "seq_type": ""
+    },
+    {
+      "element": "SMO_ADDRESS2",
+      "label": "住所２",
+      "sections": [
+        "4.5"
+      ],
+      "section_titles": [
+        "4.5 実施医療機関ごとの事項"
+      ],
+      "statuses": [
+        "NONE"
+      ],
+      "repeat_group": "",
+      "seq_type": ""
+    },
+    {
+      "element": "SMO_SERVICE",
+      "label": "委託する業務の範囲",
+      "sections": [
+        "4.5"
+      ],
+      "section_titles": [
+        "4.5 実施医療機関ごとの事項"
+      ],
+      "statuses": [
+        "NONE"
+      ],
+      "repeat_group": "",
+      "seq_type": ""
+    },
+    {
+      "element": "TYPEIRB",
+      "label": "院内・外部の区分",
+      "sections": [
+        "4.5"
+      ],
+      "section_titles": [
+        "4.5 実施医療機関ごとの事項"
+      ],
+      "statuses": [
+        "NONE"
+      ],
+      "repeat_group": "",
+      "seq_type": ""
+    },
+    {
+      "element": "IRB_OWNER_NAME",
+      "label": "治験審査委員会の設置者の名称",
+      "sections": [
+        "4.5"
+      ],
+      "section_titles": [
+        "4.5 実施医療機関ごとの事項"
+      ],
+      "statuses": [
+        "NONE"
+      ],
+      "repeat_group": "",
+      "seq_type": ""
+    },
+    {
+      "element": "IRB_ADDRESS1",
+      "label": "所在地１",
+      "sections": [
+        "4.5"
+      ],
+      "section_titles": [
+        "4.5 実施医療機関ごとの事項"
+      ],
+      "statuses": [
+        "NONE"
+      ],
+      "repeat_group": "",
+      "seq_type": ""
+    },
+    {
+      "element": "IRB_ADDRESS2",
+      "label": "所在地２",
+      "sections": [
+        "4.5"
+      ],
+      "section_titles": [
+        "4.5 実施医療機関ごとの事項"
+      ],
+      "statuses": [
+        "NONE"
+      ],
+      "repeat_group": "",
+      "seq_type": ""
+    },
+    {
+      "element": "OTHERS",
+      "label": "その他",
+      "sections": [
+        "4.5"
+      ],
+      "section_titles": [
+        "4.5 実施医療機関ごとの事項"
+      ],
+      "statuses": [
+        "NONE"
+      ],
+      "repeat_group": "",
+      "seq_type": ""
+    },
+    {
+      "element": "FOOTNOTE",
+      "label": "脚注",
+      "sections": [
+        "4.5"
+      ],
+      "section_titles": [
+        "4.5 実施医療機関ごとの事項"
+      ],
+      "statuses": [
+        "NONE"
+      ],
+      "repeat_group": "",
+      "seq_type": ""
+    },
+    {
+      "element": "REF_PRODUCTCATEGORY",
+      "label": "医薬品／医療機器／再生医療等製品の別",
+      "sections": [
+        "4.6"
+      ],
+      "section_titles": [
+        "4.6 参照する治験届出情報"
+      ],
+      "statuses": [
+        "NONE"
+      ],
+      "repeat_group": "",
+      "seq_type": ""
+    },
+    {
+      "element": "REF_INFOTESTSUBSTANCEIDCODE",
+      "label": "治験成分記号又は治験識別記号",
+      "sections": [
+        "4.6"
+      ],
+      "section_titles": [
+        "4.6 参照する治験届出情報"
+      ],
+      "statuses": [
+        "NONE"
+      ],
+      "repeat_group": "",
+      "seq_type": ""
+    },
+    {
+      "element": "REF_SERIALNOTENUM",
+      "label": "届出回数",
+      "sections": [
+        "4.6"
+      ],
+      "section_titles": [
+        "4.6 参照する治験届出情報"
+      ],
+      "statuses": [
+        "NONE"
+      ],
+      "repeat_group": "",
+      "seq_type": ""
+    },
+    {
+      "element": "TYPEREFFERENCE",
+      "label": "参照の区分",
+      "sections": [
+        "4.6"
+      ],
+      "section_titles": [
+        "4.6 参照する治験届出情報"
+      ],
+      "statuses": [
+        "NONE"
+      ],
+      "repeat_group": "",
+      "seq_type": ""
+    },
+    {
+      "element": "NAME",
+      "label": "実施医療機関の名称 / 責任医師の氏名 / 分担医師の氏名",
+      "sections": [
+        "5.2"
+      ],
+      "section_titles": [
+        "5.2 変更届：インスタンスの入力方法"
+      ],
+      "statuses": [
+        "NONE"
+      ],
+      "repeat_group": "",
+      "seq_type": ""
+    }
+  ]
+}
