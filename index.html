@@ -7,151 +7,132 @@
 <title>CTN 治験届システム化 プロトタイプ</title>
 <style>
   :root{
-    --ink:#16242b; --sub:#5e6b78; --line:#e2eaed; --teal:#123f43; --teal2:#1c7a68;
-    --mint:#e7f5f0; --bg:#f4f7f8; --card:#ffffff; --amber:#fff7e0; --amber-b:#f2c94c;
-    --body:"Segoe UI","Yu Gothic UI","Hiragino Kaku Gothic ProN",Meiryo,sans-serif;
+    --bg:#0d1117; --surface:#161b22; --surface2:#1c2230; --border:#2a3038; --border2:#30363d;
+    --fg:#e6edf3; --muted:#8b949e; --faint:#6e7681;
+    --accent:#4493f8; --accent-soft:#388bfd1a; --green:#3fb950; --teal:#39c5b0;
+    --amber:#d29922;
+    --sans:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans","Yu Gothic UI",Meiryo,sans-serif;
+    --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
   }
   *{box-sizing:border-box}
-  body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);line-height:1.75;font-size:15px}
+  body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--sans);font-size:15px;line-height:1.7;
+       background-image:radial-gradient(900px 380px at 78% -8%,#1f6feb22,transparent 70%),radial-gradient(700px 300px at 0% 0%,#39c5b015,transparent 60%)}
   a{color:inherit;text-decoration:none}
 
+  .container{max-width:1080px;margin:0 auto;padding:0 22px}
+
+  /* top brand bar */
+  .topbar{border-bottom:1px solid var(--border);background:#0d1117cc;backdrop-filter:blur(6px);position:sticky;top:0;z-index:5}
+  .topbar .in{max-width:1080px;margin:0 auto;padding:13px 22px;display:flex;align-items:center;gap:11px}
+  .logo{width:30px;height:30px;border-radius:9px;background:linear-gradient(135deg,#39c5b0,#1f6feb);display:flex;align-items:center;justify-content:center;
+        font-weight:800;font-size:12px;color:#04121a;letter-spacing:.02em;flex:none}
+  .topbar b{font-size:14.5px;font-weight:700}
+  .topbar .muted{color:var(--muted);font-size:12.5px}
+  .topbar .right{margin-left:auto;display:flex;gap:8px}
+  .ghost{border:1px solid var(--border2);border-radius:8px;padding:5px 12px;font-size:12.5px;color:var(--fg)}
+  .ghost:hover{border-color:var(--accent);color:var(--accent)}
+
   /* hero */
-  .hero{background:linear-gradient(135deg,#123f43 0%,#1c5a52 60%,#1c7a68 100%);color:#fff;padding:44px 24px 38px}
-  .hero .in{max-width:1060px;margin:0 auto}
-  .eyebrow{font-size:11px;font-weight:800;letter-spacing:.22em;color:#a9e6d6;text-transform:uppercase}
-  h1{font-size:clamp(24px,3.2vw,34px);margin:8px 0 8px;font-weight:800;letter-spacing:.01em}
-  .hero p{margin:0;color:#d6eee;font-size:14.5px;max-width:680px}
-  .meta{display:flex;flex-wrap:wrap;gap:10px;margin-top:18px}
-  .chip{display:inline-flex;align-items:center;gap:6px;background:#ffffff1f;border:1px solid #ffffff33;border-radius:999px;padding:5px 13px;font-size:12.5px;color:#eafaf5}
-  .chip a{color:#eafaf5;text-decoration:underline;text-underline-offset:2px}
+  .hero{padding:48px 0 30px}
+  .eyebrow{font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:.2em;color:var(--teal);text-transform:uppercase}
+  h1{font-size:clamp(26px,3.6vw,38px);margin:12px 0 12px;font-weight:800;letter-spacing:.01em}
+  .lead{color:var(--muted);font-size:15px;max-width:700px;margin:0}
+  .chips{display:flex;flex-wrap:wrap;gap:9px;margin-top:20px}
+  .chip{display:inline-flex;align-items:center;gap:7px;background:var(--surface);border:1px solid var(--border2);border-radius:999px;padding:6px 13px;font-size:12.5px;color:var(--muted)}
+  .chip a{color:var(--accent)}
+  .chip .dot{width:7px;height:7px;border-radius:50%;background:var(--green)}
 
-  /* notice */
-  .wrap{max-width:1060px;margin:0 auto;padding:26px 24px 70px}
-  .notice{display:flex;gap:10px;background:var(--amber);border:1px solid var(--amber-b);border-radius:12px;padding:12px 16px;font-size:13px;color:#7a5d00;margin-bottom:10px}
+  .notice{display:flex;gap:10px;align-items:flex-start;background:#bb800914;border:1px solid #bb800940;border-radius:11px;padding:12px 16px;font-size:13px;color:#e3b341;margin-top:22px}
 
-  /* section */
-  section{margin-top:34px}
-  .shead{display:flex;align-items:baseline;gap:12px;margin-bottom:14px}
-  .snum{font-size:12px;font-weight:800;color:#fff;background:var(--teal2);border-radius:8px;padding:3px 10px;letter-spacing:.04em}
-  .shead h2{font-size:18px;margin:0;color:var(--teal);font-weight:800}
-  .shead .sd{color:var(--sub);font-size:12.5px}
+  /* sections */
+  section{margin-top:38px}
+  .shead{display:flex;align-items:center;gap:12px;margin-bottom:15px}
+  .shead .n{font-family:var(--mono);font-size:12px;font-weight:700;color:var(--faint)}
+  .shead h2{font-size:16px;margin:0;font-weight:700}
+  .shead .line{flex:1;height:1px;background:var(--border)}
 
-  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:14px}
-  .card{display:block;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px 20px;position:relative;
-        transition:transform .14s ease,box-shadow .14s ease,border-color .14s}
-  .card:hover{transform:translateY(-3px);box-shadow:0 10px 26px rgba(18,63,67,.12);border-color:#bfe0d6}
-  .card::before{content:"";position:absolute;left:0;top:16px;bottom:16px;width:4px;border-radius:0 4px 4px 0;background:var(--teal2);opacity:.0;transition:opacity .14s}
-  .card:hover::before{opacity:1}
-  .card .tag{display:inline-block;font-size:10px;font-weight:800;letter-spacing:.06em;border-radius:6px;padding:2px 8px;background:var(--mint);color:var(--teal2);margin-bottom:9px}
-  .card .tag.main{background:var(--teal);color:#fff}
-  .card h3{font-size:15.5px;margin:0 0 6px;color:var(--ink);font-weight:700}
-  .card p{margin:0;color:var(--sub);font-size:12.8px;line-height:1.65}
-  .card .arrow{position:absolute;right:16px;top:16px;color:#bcccd0;font-size:16px;transition:transform .14s,color .14s}
-  .card:hover .arrow{color:var(--teal2);transform:translate(2px,-2px)}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:13px}
+  .card{position:relative;display:block;background:var(--surface);border:1px solid var(--border2);border-radius:13px;padding:17px 18px;
+        transition:transform .14s,border-color .14s,background .14s,box-shadow .14s;overflow:hidden}
+  .card::after{content:"";position:absolute;inset:0 0 auto 0;height:2px;background:linear-gradient(90deg,var(--teal),var(--accent));opacity:0;transition:opacity .14s}
+  .card:hover{transform:translateY(-3px);border-color:#3d4654;background:var(--surface2);box-shadow:0 12px 30px #0008}
+  .card:hover::after{opacity:1}
+  .card .tag{display:inline-block;font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:.04em;border-radius:6px;padding:2px 8px;
+             background:var(--accent-soft);color:var(--accent);margin-bottom:10px}
+  .card .tag.main{background:#2ea04326;color:#3fb950}
+  .card h3{font-size:15px;margin:0 0 6px;font-weight:700}
+  .card p{margin:0;color:var(--muted);font-size:12.8px;line-height:1.6}
+  .card .arrow{position:absolute;right:15px;top:15px;color:var(--faint);font-size:15px;transition:color .14s,transform .14s}
+  .card:hover .arrow{color:var(--accent);transform:translate(2px,-2px)}
 
-  footer{border-top:1px solid var(--line);margin-top:48px;padding-top:20px;color:#9aa9ad;font-size:11.5px;text-align:center}
-  footer a{color:var(--teal2);text-decoration:underline}
-  @media(max-width:560px){.grid{grid-template-columns:1fr}}
+  footer{border-top:1px solid var(--border);margin-top:52px;padding:22px 0 40px;color:var(--faint);font-size:12px;text-align:center}
+  footer a{color:var(--accent)}
+  @media(max-width:560px){.grid{grid-template-columns:1fr}.topbar .muted{display:none}}
 </style>
 </head>
 <body>
 
-<header class="hero">
+<div class="topbar">
   <div class="in">
+    <span class="logo">CTN</span>
+    <b>治験届システム化</b>
+    <span class="muted">プロトタイプ・ポータル</span>
+    <span class="right"><a class="ghost" href="https://splaika.github.io/ctn-prototype/">公開URL ↗</a></span>
+  </div>
+</div>
+
+<div class="container">
+  <header class="hero">
     <div class="eyebrow">Clinical Trial Notification · Internal Prototype</div>
-    <h1>CTN 治験届システム化 プロトタイプ</h1>
-    <p>治験届（計画・変更・終了・中止・開発中止）の作成 → 社内承認 → 提出を Power Platform で電子化する検討プロジェクトの共有ポータルです。</p>
-    <div class="meta">
+    <h1>治験届の作成 → 承認 → 提出を、電子化する。</h1>
+    <p class="lead">治験届（計画・変更・終了・中止・開発中止）を Power Platform ＋ 公式XSD で電子化する検討プロジェクトの共有ポータルです。検討・仕様・実装・検証の成果物をここに集約しています。</p>
+    <div class="chips">
+      <span class="chip"><span class="dot"></span> 公式XSD v3.0.0 準拠</span>
       <span class="chip">🔒 社内共有用 / noindex</span>
       <span class="chip">🔗 <a href="https://splaika.github.io/ctn-prototype/">splaika.github.io/ctn-prototype</a></span>
-      <span class="chip">📄 公式XSD v3.0.0 準拠</span>
     </div>
-  </div>
-</header>
+    <div class="notice">⚠️ 社内共有用の試作です。URL を知る人は誰でも閲覧できます（検索エンジンには noindex 済み）。</div>
+  </header>
 
-<div class="wrap">
-  <div class="notice">⚠️ 社内共有用の試作です。URL を知る人は誰でも閲覧できます（検索エンジンには noindex 済み）。</div>
-
-  <!-- 1. プロトタイプ -->
   <section>
-    <div class="shead"><span class="snum">01</span><h2>プロトタイプ</h2><span class="sd">触って確かめる</span></div>
+    <div class="shead"><span class="n">01</span><h2>プロトタイプ</h2><span class="line"></span></div>
     <div class="grid">
-      <a class="card" href="./ctn-ux-react-standalone.html">
-        <span class="arrow">↗</span><span class="tag main">MAIN</span>
-        <h3>UX モック (React)</h3><p>治験届管理のメイン画面。操作可能なインタラクティブ版。</p>
-      </a>
-      <a class="card" href="./ctn-ux-manual.html">
-        <span class="arrow">↗</span><span class="tag">ガイド</span>
-        <h3>操作マニュアル</h3><p>UX モックの構造と使い方の解説。</p>
-      </a>
+      <a class="card" href="./ctn-ux-react-standalone.html"><span class="arrow">↗</span><span class="tag main">MAIN</span><h3>UX モック (React)</h3><p>治験届管理のメイン画面。操作可能なインタラクティブ版。</p></a>
+      <a class="card" href="./ctn-ux-manual.html"><span class="arrow">↗</span><span class="tag">GUIDE</span><h3>操作マニュアル</h3><p>UX モックの構造と使い方の解説。</p></a>
     </div>
   </section>
 
-  <!-- 2. 検討・設計 -->
   <section>
-    <div class="shead"><span class="snum">02</span><h2>検討・設計</h2><span class="sd">なぜ・どう作るか</span></div>
+    <div class="shead"><span class="n">02</span><h2>検討・設計</h2><span class="line"></span></div>
     <div class="grid">
-      <a class="card" href="./ctn-systemization-summary.html">
-        <span class="arrow">↗</span><span class="tag">解説</span>
-        <h3>システム化 検討まとめ</h3><p>データモデル・順序番号・外字の設計判断と CSV/GxP の要点。</p>
-      </a>
-      <a class="card" href="./ctn-implementation-handoff.html">
-        <span class="arrow">↗</span><span class="tag">実装向け</span>
-        <h3>実装ハンドオフ仕様</h3><p>開発メンバー向け。Dataverseスキーマ・PAフロー・Cat5 I/F契約・受入基準(OQ)。</p>
-      </a>
-      <a class="card" href="./ctn-poc-backlog.html">
-        <span class="arrow">↗</span><span class="tag">計画</span>
-        <h3>PoC タスクバックログ</h3><p>実装チケット E1〜E9（Phase1/2・Cat4/5・依存・受入基準）。</p>
-      </a>
+      <a class="card" href="./ctn-systemization-summary.html"><span class="arrow">↗</span><span class="tag">解説</span><h3>システム化 検討まとめ</h3><p>データモデル・順序番号・外字の設計判断と CSV/GxP の要点。</p></a>
+      <a class="card" href="./ctn-implementation-handoff.html"><span class="arrow">↗</span><span class="tag">実装向け</span><h3>実装ハンドオフ仕様</h3><p>開発メンバー向け。Dataverseスキーマ・PAフロー・Cat5 I/F契約・受入基準(OQ)。</p></a>
+      <a class="card" href="./ctn-poc-backlog.html"><span class="arrow">↗</span><span class="tag">計画</span><h3>PoC タスクバックログ</h3><p>実装チケット E1〜E9（Phase1/2・Cat4/5・依存・受入基準）。</p></a>
     </div>
   </section>
 
-  <!-- 3. 仕様（公式XSD準拠） -->
   <section>
-    <div class="shead"><span class="snum">03</span><h2>仕様（公式XSD準拠）</h2><span class="sd">何を実装するか</span></div>
+    <div class="shead"><span class="n">03</span><h2>仕様（公式XSD準拠）</h2><span class="line"></span></div>
     <div class="grid">
-      <a class="card" href="./ctn-dataverse-columns.html">
-        <span class="arrow">↗</span><span class="tag">XSD準拠</span>
-        <h3>Dataverse 列定義</h3><p>公式XSD v3.0.0 の要素ツリーから生成した24テーブル・176項目（型/必須/STATUS方式/キー）。</p>
-      </a>
-      <a class="card" href="./ctn-xsd-mapping.html">
-        <span class="arrow">↗</span><span class="tag">対応表</span>
-        <h3>XSD マッピング表</h3><p>手引き第4版由来の138要素 × STATUS × 順序番号型。</p>
-      </a>
-      <a class="card" href="./ctn-notification-matrix.html">
-        <span class="arrow">↗</span><span class="tag">種別×項目</span>
-        <h3>届出種別マトリクス</h3><p>計画/変更/終了/中止/開発中止で各項目をどう扱うか（記入/継承/3.8固定NONE）。</p>
-      </a>
+      <a class="card" href="./ctn-dataverse-columns.html"><span class="arrow">↗</span><span class="tag">XSD準拠</span><h3>Dataverse 列定義</h3><p>公式XSD v3.0.0 の要素ツリーから生成した24テーブル・176項目（型/必須/STATUS方式/キー）。</p></a>
+      <a class="card" href="./ctn-xsd-mapping.html"><span class="arrow">↗</span><span class="tag">対応表</span><h3>XSD マッピング表</h3><p>手引き第4版由来の138要素 × STATUS × 順序番号型。</p></a>
+      <a class="card" href="./ctn-notification-matrix.html"><span class="arrow">↗</span><span class="tag">種別×項目</span><h3>届出種別マトリクス</h3><p>計画/変更/終了/中止/開発中止で各項目をどう扱うか（記入/継承/3.8固定NONE）。</p></a>
     </div>
   </section>
 
-  <!-- 4. 検証・参照データ -->
   <section>
-    <div class="shead"><span class="snum">04</span><h2>検証・参照データ</h2><span class="sd">実証と補助データ</span></div>
+    <div class="shead"><span class="n">04</span><h2>検証・参照データ</h2><span class="line"></span></div>
     <div class="grid">
-      <a class="card" href="./ctn-xsd-roundtrip.html">
-        <span class="arrow">↗</span><span class="tag">検証済</span>
-        <h3>XSD ラウンドトリップ検証</h3><p>XML生成→公式XSD検証の実証（正常PASS・不正検出・桁はXSD対象外）。</p>
-      </a>
-      <a class="card" href="./ctn-code-tables.html">
-        <span class="arrow">↗</span><span class="tag">コード</span>
-        <h3>コード参照表</h3><p>大学番号一覧94件ほかコード表レジストリ。</p>
-      </a>
-      <a class="card" href="./ctn-deadline-rules.html">
-        <span class="arrow">↗</span><span class="tag">ルール</span>
-        <h3>期限・通知ルール</h3><p>変更届の提出期限管理ルール（たたき台）。</p>
-      </a>
+      <a class="card" href="./ctn-xsd-roundtrip.html"><span class="arrow">↗</span><span class="tag">検証済</span><h3>XSD ラウンドトリップ検証</h3><p>XML生成→公式XSD検証の実証（正常PASS・不正検出・桁はXSD対象外）。</p></a>
+      <a class="card" href="./ctn-code-tables.html"><span class="arrow">↗</span><span class="tag">コード</span><h3>コード参照表</h3><p>大学番号一覧94件ほかコード表レジストリ。</p></a>
+      <a class="card" href="./ctn-deadline-rules.html"><span class="arrow">↗</span><span class="tag">ルール</span><h3>期限・通知ルール</h3><p>変更届の提出期限管理ルール（たたき台）。</p></a>
     </div>
   </section>
 
-  <!-- 5. その他 -->
   <section>
-    <div class="shead"><span class="snum">05</span><h2>その他</h2></div>
+    <div class="shead"><span class="n">05</span><h2>その他</h2><span class="line"></span></div>
     <div class="grid">
-      <a class="card" href="./outputs/ctn-lp-static-safe-20260618-235143/index.html">
-        <span class="arrow">↗</span><span class="tag">生成物</span>
-        <h3>静的バンドル一式</h3><p>LP・ドキュメントビューア等を含む生成済みサイト。</p>
-      </a>
+      <a class="card" href="./outputs/ctn-lp-static-safe-20260618-235143/index.html"><span class="arrow">↗</span><span class="tag">生成物</span><h3>静的バンドル一式</h3><p>LP・ドキュメントビューア等を含む生成済みサイト。</p></a>
     </div>
   </section>
 
