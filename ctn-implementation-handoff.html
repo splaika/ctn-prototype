@@ -163,7 +163,7 @@
 
     <section id="s3">
       <h2>3. Power Automate フロー仕様</h2>
-      <div class="goal"><span class="ic">要点</span><p>経験者向けに<b>仕様のみ</b>（作り方は割愛）。承認は30日超を想定し <b>Dataverse永続化＋2フロー構成</b>（依頼／応答処理）。承認前は提出不可をシステムで強制。</p></div>
+      <div class="goal"><span class="ic">要点</span><p>経験者向けに<b>仕様のみ</b>（作り方は割愛）。<b>社内承認は5段階で確定</b>（担当→一次レビュー→薬事確認→承認→提出）。<b>PMDA審査の30日/14日は対象外</b>（提出後クロック）だが、<b>変更届の提出期限は管理する</b>（事象→起算→期限候補→通知）。承認は長時間化に備え Dataverse永続化＋2フロー構成、承認前は提出不可を強制。</p></div>
 
       <h3>状態モデル（ctn_notification.状態）</h3>
       <div class="flow"><span>下書き</span><span class="arr">→</span><span>入力完了</span><span class="arr">→</span><span>一次レビュー</span><span class="arr">→</span><span>薬事確認</span><span class="arr">→</span><span>承認待ち</span><span class="arr">→</span><span>承認済み</span><span class="arr">→</span><span>出力準備</span><span class="arr">→</span><span>提出済み</span></div>
@@ -172,11 +172,12 @@
         <thead><tr><th>フロー</th><th>トリガー</th><th>処理概要</th></tr></thead>
         <tbody>
           <tr><td>A. 届起票</td><td>手動／シリーズから</td><td>届出種別を選択し下書き作成。種別は <code>CLASSNOTE</code> に設定。変更/終了/中止は最新届のデータを引き継いで複製（§6マトリクスの「継承」列）。</td></tr>
-          <tr><td>B. 変更届候補生成</td><td>Dataverse: マスタ行の更新</td><td>差分検出→該当項目を <code>ctn_changeitem</code> 化（STATUS=UPDATE＋変更日・理由）→ 30日起算で期限候補→ Teams/Outlook通知。3.8固定項目は除外。</td></tr>
+          <tr><td>B. 変更届候補生成</td><td>Dataverse: マスタ行の更新</td><td>差分検出→該当項目を <code>ctn_changeitem</code> 化（STATUS=UPDATE＋変更日・理由）→ 変更届ドラフトを起票→<b>提出期限を起算・算出しダッシュボード/通知</b>（起算日・期限ルールはシステム管理に保持）。3.8固定項目は除外。</td></tr>
           <tr><td>C. レビュー・承認</td><td>状態遷移／承認応答</td><td>承認(v2)＋Dataverse永続化の2フロー。職務分離（起案者≠承認者）を強制。電子署名を記録に紐付け。</td></tr>
           <tr><td>D. 提出準備</td><td>状態=出力準備</td><td>XML生成Functionを呼ぶ（§4）→XSD検証→エラーを画面の項目別に表示／添付不足チェック→提出パッケージ化（PDF＋XML＋添付＋命名規則）。</td></tr>
         </tbody>
       </table></div>
+      <div class="warn"><b>期限のスコープ:</b> PMDA審査の30日/14日は<b>提出後の当局クロックでありシステム管理外</b>（提出で完了）。一方、<b>変更届の提出期限は管理する</b>（事象から起算→期限候補→ダッシュボード通知。起算日・期限ルールはシステム管理レイヤーに保持し、提出期限・起算日は内部管理列としてXSD項目外に持つ）。なお <code>CATEGTESTPRODUCTSUBJ30DAYREVIEW</code>（30日調査対象区分）は<b>届出区分の項目値判定</b>であって、フローの期限ゲートではない。</div>
       <div class="note"><b>HITL→HOTL:</b> 初期は全項目HITL（人が確認）。XML整形・XSD検証・コード引き・継承(NONE)の値繰越など決定的処理から順にHOTL（自動）へ。低信頼抽出・新規マスタ登録・STATUS/変更理由の妥当性はHITL維持。</div>
     </section>
 
@@ -253,7 +254,9 @@ else
       <ul>
         <li><a href="./ctn-xsd-mapping.html">XSDマッピング表</a> … 138要素 × ラベル × 取りうるSTATUS × 順序番号型（出現セクション付き）。機械可読は <code>outputs/ctn-xsd-mapping/ctn-xsd-mapping.json</code>。</li>
         <li><a href="./ctn-notification-matrix.html">届出種別マトリクス</a> … 計画/変更/終了/中止/開発中止 × 各項目（記入/継承/△/—、3.8固定NONE）。機械可読は <code>outputs/ctn-xsd-mapping/ctn-notification-matrix.json</code>。</li>
+        <li><a href="./ctn-dataverse-columns.html">Dataverse 列定義（公式XSD準拠）</a> … <b>公式XSD v3.0.0 の要素ツリーから生成</b>した24テーブル・176項目（階層・型・必須・STATUS方式・順序番号キー）。<b>§2のスキーマはこれを正本とする。</b> 公式XSD実体は <code>outputs/ctn-xsd-mapping/iykckn_all_v3_0_0.xsd</code>、ツリーJSONは <code>ctn-xsd-tree.json</code>。</li>
       </ul>
+      <div class="note"><b>公式XSDで確定した重要事実:</b> ① STATUS属性は2系統 — <b>UPDATE型</b>(UPDATE/NONE)＝単票、<b>ADD型</b>(NONE/APPEND/DELETE)＝繰り返し行。② <b>桁・コード値はXSDに無い</b>（全て xsd:string、maxLength/列挙なし）。したがって §4 の文字数(バイト)・コード値検証は <b>XSD検証とは別に業務ロジックで必須</b>。</div>
       <div class="note"><b>種別の作り分け（再掲）:</b> 種別は <code>STATUS</code> ではなく <b>届出分類(CLASSNOTE)</b> で指定。終了/中止の実績（中止情報・数量・被験者数）は<b>3.8によりSTATUS=NONEで記入</b>。開発中止届は<b>抜粋フォーマット（22項目）</b>で引き継ぎではない。</div>
     </section>
 

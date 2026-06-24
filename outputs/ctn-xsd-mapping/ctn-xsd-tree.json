@@ -1,0 +1,1605 @@
+{
+ "source": "iykckn_all_v3_0_0.xsd v3.0.0",
+ "tables": [
+  {
+   "table": "治験届 ctn_notification",
+   "type": "__ROOT__",
+   "parent": null,
+   "repeating": false,
+   "fields": [
+    {
+     "element": "INFOFORMVERSION",
+     "label": "様式等のバージョン情報",
+     "attr": "UPDATE型",
+     "status": "単票更新(UPDATE/NONE)",
+     "required": true,
+     "dtype": "テキスト"
+    },
+    {
+     "element": "TESTSUBSTANCEIDCODE",
+     "label": "主たる被験薬の治験成分記号",
+     "attr": "UPDATE型",
+     "status": "単票更新(UPDATE/NONE)",
+     "required": true,
+     "dtype": "選択肢(コード表)"
+    },
+    {
+     "element": "TYPECLINTRIALS",
+     "label": "治験の種類",
+     "attr": "UPDATE型",
+     "status": "単票更新(UPDATE/NONE)",
+     "required": true,
+     "dtype": "テキスト"
+    },
+    {
+     "element": "RECEPTNUMINITNOTE",
+     "label": "主たる被験薬の初回届出受付番号",
+     "attr": "UPDATE型",
+     "status": "単票更新(UPDATE/NONE)",
+     "required": true,
+     "dtype": "整数/番号"
+    },
+    {
+     "element": "INITNOTEDATE",
+     "label": "主たる被験薬の初回届出年月日",
+     "attr": "UPDATE型",
+     "status": "単票更新(UPDATE/NONE)",
+     "required": true,
+     "dtype": "日付(TZ非依存)"
+    },
+    {
+     "element": "SERIALNOTENUM",
+     "label": "主たる被験薬の届出回数",
+     "attr": "UPDATE型",
+     "status": "単票更新(UPDATE/NONE)",
+     "required": false,
+     "dtype": "順序番号(キー)"
+    },
+    {
+     "element": "RECEPTNUMCLINTRIALPLANNOTE",
+     "label": "当該治験計画届出受付番号",
+     "attr": "UPDATE型",
+     "status": "単票更新(UPDATE/NONE)",
+     "required": false,
+     "dtype": "整数/番号"
+    },
+    {
+     "element": "CLINTRIALPLANNOTEDATE",
+     "label": "当該治験計画届出年月日",
+     "attr": "UPDATE型",
+     "status": "単票更新(UPDATE/NONE)",
+     "required": false,
+     "dtype": "日付(TZ非依存)"
+    },
+    {
+     "element": "NOTEDATE",
+     "label": "届出年月日",
+     "attr": "UPDATE型",
+     "status": "単票更新(UPDATE/NONE)",
+     "required": true,
+     "dtype": "日付(TZ非依存)"
+    },
+    {
+     "element": "CLASSNOTE",
+     "label": "届出分類",
+     "attr": "UPDATE型",
+     "status": "単票更新(UPDATE/NONE)",
+     "required": true,
+     "dtype": "テキスト"
+    },
+    {
+     "element": "TIMESCHANGE",
+     "label": "変更回数",
+     "attr": "UPDATE型",
+     "status": "単票更新(UPDATE/NONE)",
+     "required": false,
+     "dtype": "整数/番号"
+    },
+    {
+     "element": "CATEGORYNOTE",
+     "label": "届出区分",
+     "attr": "UPDATE型",
+     "status": "単票更新(UPDATE/NONE)",
+     "required": true,
+     "dtype": "テキスト"
+    },
+    {
+     "element": "CATEGTESTPRODUCTSUBJ30DAYREVIEW",
+     "label": "主たる被験薬の30日調査対応被験薬区分",
+     "attr": "UPDATE型(値なし)",
+     "status": "コンテナ(UPDATE/NONE)",
+     "required": false,
+     "dtype": "テキスト"
+    },
+    {
+     "element": "MANUFACTMETHOD",
+     "label": "主たる被験薬の製造方法",
+     "attr": "UPDATE型",
+     "status": "単票更新(UPDATE/NONE)",
+     "required": false,
+     "dtype": "テキスト(複数行)"
+    },
+    {
+     "element": "PROTOCOLNUM",
+     "label": "実施計画書識別記号",
+     "attr": "UPDATE型",
+     "status": "単票更新(UPDATE/NONE)",
+     "required": true,
+     "dtype": "整数/番号"
+    },
+    {
+     "element": "PHASECLINTRIAL",
+     "label": "開発の相",
+     "attr": "UPDATE型",
+     "status": "単票更新(UPDATE/NONE)",
+     "required": true,
+     "dtype": "テキスト"
+    },
+    {
+     "element": "TYPECLINTRIAL",
+     "label": "試験の種類",
+     "attr": "UPDATE型",
+     "status": "単票更新(UPDATE/NONE)",
+     "required": true,
+     "dtype": "テキスト"
+    },
+    {
+     "element": "TRIALOBJECTIVES",
+     "label": "目的",
+     "attr": "UPDATE型",
+     "status": "単票更新(UPDATE/NONE)",
+     "required": true,
+     "dtype": "テキスト(複数行)"
+    },
+    {
+     "element": "TARGETDISEASE",
+     "label": "主たる被験薬の対象疾患",
+     "attr": "UPDATE型",
+     "status": "単票更新(UPDATE/NONE)",
+     "required": true,
+     "dtype": "テキスト"
+    },
+    {
+     "element": "REASONONEROUS",
+     "label": "有償の理由等",
+     "attr": "UPDATE型",
+     "status": "単票更新(UPDATE/NONE)",
+     "required": true,
+     "dtype": "テキスト(複数行)"
+    },
+    {
+     "element": "OTHERCOMMENTS_PRIMARY",
+     "label": "その他",
+     "attr": "UPDATE型",
+     "status": "単票更新(UPDATE/NONE)",
+     "required": false,
+     "dtype": "テキスト"
+    },
+    {
+     "element": "OTHERCOMMENTS_PROTOCOL",
+     "label": "その他",
+     "attr": "UPDATE型",
+     "status": "単票更新(UPDATE/NONE)",
+     "required": false,
+     "dtype": "テキスト"
+    },
+    {
+     "element": "TERMINATIONDATE",
+     "label": "中止日年月日",
+     "attr": "UPDATE型",
+     "status": "単票更新(UPDATE/NONE)",
+     "required": true,
+     "dtype": "日付(TZ非依存)"
+    },
+    {
+     "element": "REASONTERMINATION",
+     "label": "中止理由",
+     "attr": "UPDATE型",
+     "status": "単票更新(UPDATE/NONE)",
+     "required": true,
+     "dtype": "テキスト(複数行)"
+    },
+    {
+     "element": "POSTTERMINATIONMEASURE",
+     "label": "その後の対応状況",
+     "attr": "UPDATE型",
+     "status": "単票更新(UPDATE/NONE)",
+     "required": false,
+     "dtype": "テキスト"
+    },
+    {
+     "element": "INGREDIENTSQUANTITIES",
+     "label": "成分及び分量",
+     "attr": "UPDATE型",
+     "status": "単票更新(UPDATE/NONE)",
+     "required": true,
+     "dtype": "整数/番号"
+    },
+    {
+     "element": "INTENDINDICATIONSEFFECTS",
+     "label": "予定される効能又は効果",
+     "attr": "UPDATE型",
+     "status": "単票更新(UPDATE/NONE)",
+     "required": true,
+     "dtype": "テキスト"
+    },
+    {
+     "element": "EFFICACYCLASSCODENUMBER",
+     "label": "薬効分類番号",
+     "attr": "UPDATE型",
+     "status": "単票更新(UPDATE/NONE)",
+     "required": true,
+     "dtype": "選択肢(コード表)"
+    },
+    {
+     "element": "INTENDDOSAGEADMIN",
+     "label": "予定される用法及び用量",
+     "attr": "UPDATE型",
+     "status": "単票更新(UPDATE/NONE)",
+     "required": true,
+     "dtype": "テキスト(複数行)"
+    },
+    {
+     "element": "PLANNUMSUBJTESTPRODUCT",
+     "label": "予定被験者数（被験薬）",
+     "attr": "UPDATE型",
+     "status": "単票更新(UPDATE/NONE)",
+     "required": true,
+     "dtype": "整数/番号"
+    },
+    {
+     "element": "PLANNUMSUBJECTSTOTAL",
+     "label": "予定被験者数（合計）",
+     "attr": "UPDATE型",
+     "status": "単票更新(UPDATE/NONE)",
+     "required": true,
+     "dtype": "整数/番号"
+    },
+    {
+     "element": "DOSAGEADMIN",
+     "label": "用法及び用量",
+     "attr": "UPDATE型",
+     "status": "単票更新(UPDATE/NONE)",
+     "required": true,
+     "dtype": "テキスト(複数行)"
+    },
+    {
+     "element": "STARTDATECLINTRIAL",
+     "label": "開始日年月日",
+     "attr": "UPDATE型",
+     "status": "単票更新(UPDATE/NONE)",
+     "required": true,
+     "dtype": "日付(TZ非依存)"
+    },
+    {
+     "element": "ENDDATECLINTRIAL",
+     "label": "終了日年月日",
+     "attr": "UPDATE型",
+     "status": "単票更新(UPDATE/NONE)",
+     "required": true,
+     "dtype": "日付(TZ非依存)"
+    },
+    {
+     "element": "TYPECLINTRIALWITHDRUGCARTAGENA",
+     "label": "該当の有無等",
+     "attr": "UPDATE型",
+     "status": "単票更新(UPDATE/NONE)",
+     "required": true,
+     "dtype": "二者択一"
+    },
+    {
+     "element": "DETAIL",
+     "label": "その他の場合の詳述",
+     "attr": "UPDATE型",
+     "status": "単票更新(UPDATE/NONE)",
+     "required": false,
+     "dtype": "テキスト"
+    },
+    {
+     "element": "TYPEBIOLOGICALPROD",
+     "label": "該当の有無等",
+     "attr": "UPDATE型",
+     "status": "単票更新(UPDATE/NONE)",
+     "required": true,
+     "dtype": "二者択一"
+    },
+    {
+     "element": "APPLICABLEORNOT",
+     "label": "該当の有無",
+     "attr": "UPDATE型",
+     "status": "単票更新(UPDATE/NONE)",
+     "required": true,
+     "dtype": "二者択一"
+    },
+    {
+     "element": "APPLICABLEORNOT",
+     "label": "該当の有無",
+     "attr": "UPDATE型",
+     "status": "単票更新(UPDATE/NONE)",
+     "required": true,
+     "dtype": "二者択一"
+    },
+    {
+     "element": "TYPEEXPANDEDACCESSPROG",
+     "label": "該当の有無等",
+     "attr": "UPDATE型",
+     "status": "単票更新(UPDATE/NONE)",
+     "required": true,
+     "dtype": "二者択一"
+    },
+    {
+     "element": "APPLICABLEORNOT",
+     "label": "該当の有無",
+     "attr": "UPDATE型",
+     "status": "単票更新(UPDATE/NONE)",
+     "required": true,
+     "dtype": "二者択一"
+    },
+    {
+     "element": "CONTENTS",
+     "label": "参照の詳細",
+     "attr": "UPDATE型",
+     "status": "単票更新(UPDATE/NONE)",
+     "required": false,
+     "dtype": "テキスト"
+    },
+    {
+     "element": "APPLICABLEORNOT",
+     "label": "該当の有無",
+     "attr": "UPDATE型",
+     "status": "単票更新(UPDATE/NONE)",
+     "required": true,
+     "dtype": "二者択一"
+    },
+    {
+     "element": "APPLICABLEORNOT",
+     "label": "該当の有無",
+     "attr": "UPDATE型",
+     "status": "単票更新(UPDATE/NONE)",
+     "required": true,
+     "dtype": "二者択一"
+    },
+    {
+     "element": "REMARK",
+     "label": "備考",
+     "attr": "UPDATE型",
+     "status": "単票更新(UPDATE/NONE)",
+     "required": true,
+     "dtype": "テキスト"
+    },
+    {
+     "element": "FOOTNOTE",
+     "label": "脚注",
+     "attr": "UPDATE型",
+     "status": "単票更新(UPDATE/NONE)",
+     "required": true,
+     "dtype": "テキスト"
+    }
+   ]
+  },
+  {
+   "table": "INFONAMEADDRESSMANUFACTPLANT",
+   "type": "INFONAMEADDRESSMANUFACTPLANT_TYPE",
+   "parent": "治験届 ctn_notification",
+   "repeating": true,
+   "fields": [
+    {
+     "element": "SERIALNO1",
+     "label": "順序番号",
+     "attr": "ADD型",
+     "status": "行追加削除(NONE/APPEND/DELETE)",
+     "required": true,
+     "dtype": "順序番号(キー)"
+    },
+    {
+     "element": "SPONSOR_NAME",
+     "label": "名称",
+     "attr": "UPDATE型",
+     "status": "単票更新(UPDATE/NONE)",
+     "required": true,
+     "dtype": "テキスト"
+    },
+    {
+     "element": "SPONSOR_ADDRESS1",
+     "label": "所在地１",
+     "attr": "UPDATE型",
+     "status": "単票更新(UPDATE/NONE)",
+     "required": true,
+     "dtype": "テキスト"
+    },
+    {
+     "element": "SPONSOR_ADDRESS2",
+     "label": "所在地２",
+     "attr": "UPDATE型",
+     "status": "単票更新(UPDATE/NONE)",
+     "required": true,
+     "dtype": "テキスト"
+    },
+    {
+     "element": "MANUFACTURERIMPORTERCODE",
+     "label": "業者コード",
+     "attr": "UPDATE型",
+     "status": "単票更新(UPDATE/NONE)",
+     "required": true,
+     "dtype": "選択肢(コード表)"
+    }
+   ]
+  },
+  {
+   "table": "INFODOSAGEFORMCODE",
+   "type": "INFODOSAGEFORMCODE_TYPE",
+   "parent": "治験届 ctn_notification",
+   "repeating": true,
+   "fields": [
+    {
+     "element": "SERIALNO1",
+     "label": "順序番号",
+     "attr": "ADD型",
+     "status": "行追加削除(NONE/APPEND/DELETE)",
+     "required": true,
+     "dtype": "順序番号(キー)"
+    },
+    {
+     "element": "DOSAGEFORMCODE",
+     "label": "剤形コード",
+     "attr": "UPDATE型",
+     "status": "単票更新(UPDATE/NONE)",
+     "required": true,
+     "dtype": "選択肢(コード表)"
+    }
+   ]
+  },
+  {
+   "table": "INFOADMINROUTECODE",
+   "type": "INFOADMINROUTECODE_TYPE",
+   "parent": "治験届 ctn_notification",
+   "repeating": true,
+   "fields": [
+    {
+     "element": "SERIALNO1",
+     "label": "順序番号",
+     "attr": "ADD型",
+     "status": "行追加削除(NONE/APPEND/DELETE)",
+     "required": true,
+     "dtype": "順序番号(キー)"
+    },
+    {
+     "element": "ADMINROUTECODE",
+     "label": "投与経路コード",
+     "attr": "UPDATE型",
+     "status": "単票更新(UPDATE/NONE)",
+     "required": true,
+     "dtype": "選択肢(コード表)"
+    }
+   ]
+  },
+  {
+   "table": "CHARGEOUTPERSONCLINTRIAL",
+   "type": "CHARGEOUTPERSONCLINTRIAL_TYPE",
+   "parent": "治験届 ctn_notification",
+   "repeating": true,
+   "fields": [
+    {
+     "element": "SERIALNO1",
+     "label": "順序番号",
+     "attr": "ADD型",
+     "status": "行追加削除(NONE/APPEND/DELETE)",
+     "required": true,
+     "dtype": "順序番号(キー)"
+    },
+    {
+     "element": "CHARGEOUTPERSONNAME",
+     "label": "費用負担者氏名",
+     "attr": "UPDATE型",
+     "status": "単票更新(UPDATE/NONE)",
+     "required": true,
+     "dtype": "テキスト"
+    },
+    {
+     "element": "VALIDITYREASONS",
+     "label": "妥当性",
+     "attr": "UPDATE型",
+     "status": "単票更新(UPDATE/NONE)",
+     "required": true,
+     "dtype": "テキスト(複数行)"
+    }
+   ]
+  },
+  {
+   "table": "INFOCOORDINVESTIGATOR",
+   "type": "INFOCOORDINVESTIGATOR_TYPE",
+   "parent": "治験届 ctn_notification",
+   "repeating": true,
+   "fields": [
+    {
+     "element": "SERIALNO1",
+     "label": "順序番号",
+     "attr": "ADD型",
+     "status": "行追加削除(NONE/APPEND/DELETE)",
+     "required": true,
+     "dtype": "順序番号(キー)"
+    },
+    {
+     "element": "KEYINVEST_NAME",
+     "label": "治験調整医師の氏名",
+     "attr": "UPDATE型",
+     "status": "単票更新(UPDATE/NONE)",
+     "required": true,
+     "dtype": "テキスト"
+    },
+    {
+     "element": "NAMEMEDICALINSTITUT",
+     "label": "治験調整医師の所属機関",
+     "attr": "UPDATE型",
+     "status": "単票更新(UPDATE/NONE)",
+     "required": true,
+     "dtype": "テキスト"
+    },
+    {
+     "element": "KEYINVEST_AFFILIATION",
+     "label": "治験調整医師の所属",
+     "attr": "UPDATE型",
+     "status": "単票更新(UPDATE/NONE)",
+     "required": true,
+     "dtype": "テキスト"
+    }
+   ]
+  },
+  {
+   "table": "INFOCRO",
+   "type": "INFOCRO_TYPE",
+   "parent": "治験届 ctn_notification",
+   "repeating": true,
+   "fields": [
+    {
+     "element": "SERIALNO1",
+     "label": "順序番号",
+     "attr": "ADD型",
+     "status": "行追加削除(NONE/APPEND/DELETE)",
+     "required": true,
+     "dtype": "順序番号(キー)"
+    },
+    {
+     "element": "CRO_NAME",
+     "label": "氏名",
+     "attr": "UPDATE型",
+     "status": "単票更新(UPDATE/NONE)",
+     "required": true,
+     "dtype": "テキスト"
+    },
+    {
+     "element": "CRO_ADDRESS1",
+     "label": "住所１",
+     "attr": "UPDATE型",
+     "status": "単票更新(UPDATE/NONE)",
+     "required": true,
+     "dtype": "テキスト"
+    },
+    {
+     "element": "CRO_ADDRESS2",
+     "label": "住所２",
+     "attr": "UPDATE型",
+     "status": "単票更新(UPDATE/NONE)",
+     "required": true,
+     "dtype": "テキスト"
+    },
+    {
+     "element": "CRO_SERVICE",
+     "label": "委託する業務の範囲",
+     "attr": "UPDATE型",
+     "status": "単票更新(UPDATE/NONE)",
+     "required": true,
+     "dtype": "テキスト"
+    }
+   ]
+  },
+  {
+   "table": "INFOCOMBEQUIPMENT",
+   "type": "INFOCOMBEQUIPMENT_TYPE",
+   "parent": "治験届 ctn_notification",
+   "repeating": true,
+   "fields": [
+    {
+     "element": "APPLICABLEORNOT",
+     "label": "該当の有無",
+     "attr": "UPDATE型",
+     "status": "単票更新(UPDATE/NONE)",
+     "required": true,
+     "dtype": "二者択一"
+    },
+    {
+     "element": "SERIALNO1",
+     "label": "順序番号",
+     "attr": "ADD型",
+     "status": "行追加削除(NONE/APPEND/DELETE)",
+     "required": true,
+     "dtype": "順序番号(キー)"
+    },
+    {
+     "element": "CONTENTS",
+     "label": "参照の詳細",
+     "attr": "UPDATE型",
+     "status": "単票更新(UPDATE/NONE)",
+     "required": true,
+     "dtype": "テキスト"
+    }
+   ]
+  },
+  {
+   "table": "REMARKS",
+   "type": "REMARKS_TYPE",
+   "parent": "治験届 ctn_notification",
+   "repeating": true,
+   "fields": [
+    {
+     "element": "SERIALNO1",
+     "label": "順序番号",
+     "attr": "ADD型",
+     "status": "行追加削除(NONE/APPEND/DELETE)",
+     "required": true,
+     "dtype": "順序番号(キー)"
+    },
+    {
+     "element": "DETAIL",
+     "label": "その他の場合の詳述",
+     "attr": "UPDATE型",
+     "status": "単票更新(UPDATE/NONE)",
+     "required": true,
+     "dtype": "テキスト"
+    }
+   ]
+  },
+  {
+   "table": "INFONAMEDOCUMENTS",
+   "type": "INFONAMEDOCUMENTS_TYPE",
+   "parent": "治験届 ctn_notification",
+   "repeating": true,
+   "fields": [
+    {
+     "element": "SERIALNO1",
+     "label": "順序番号",
+     "attr": "ADD型",
+     "status": "行追加削除(NONE/APPEND/DELETE)",
+     "required": true,
+     "dtype": "順序番号(キー)"
+    },
+    {
+     "element": "NAMEDOC",
+     "label": "資料名",
+     "attr": "UPDATE型",
+     "status": "単票更新(UPDATE/NONE)",
+     "required": true,
+     "dtype": "テキスト"
+    }
+   ]
+  },
+  {
+   "table": "INFOPERSONFILLNOTE",
+   "type": "INFOPERSONFILLNOTE_TYPE",
+   "parent": "治験届 ctn_notification",
+   "repeating": true,
+   "fields": [
+    {
+     "element": "SERIALNO1",
+     "label": "順序番号",
+     "attr": "ADD型",
+     "status": "行追加削除(NONE/APPEND/DELETE)",
+     "required": true,
+     "dtype": "順序番号(キー)"
+    },
+    {
+     "element": "CLASSPERSONFILLNOTE",
+     "label": "治験届出者の種別",
+     "attr": "UPDATE型",
+     "status": "単票更新(UPDATE/NONE)",
+     "required": true,
+     "dtype": "テキスト"
+    },
+    {
+     "element": "APPLICAT_NAME",
+     "label": "届出者の名称",
+     "attr": "UPDATE型",
+     "status": "単票更新(UPDATE/NONE)",
+     "required": true,
+     "dtype": "テキスト"
+    },
+    {
+     "element": "APPLICAT_REP_NAME",
+     "label": "届出者の(代表者の)氏名",
+     "attr": "UPDATE型",
+     "status": "単票更新(UPDATE/NONE)",
+     "required": true,
+     "dtype": "テキスト"
+    },
+    {
+     "element": "APPLICAT_ADDRESS1",
+     "label": "所在地１",
+     "attr": "UPDATE型",
+     "status": "単票更新(UPDATE/NONE)",
+     "required": true,
+     "dtype": "テキスト"
+    },
+    {
+     "element": "APPLICAT_ADDRESS2",
+     "label": "所在地２",
+     "attr": "UPDATE型",
+     "status": "単票更新(UPDATE/NONE)",
+     "required": true,
+     "dtype": "テキスト"
+    },
+    {
+     "element": "MANUFACTURERIMPORTERCODE",
+     "label": "業者コード",
+     "attr": "UPDATE型",
+     "status": "単票更新(UPDATE/NONE)",
+     "required": true,
+     "dtype": "選択肢(コード表)"
+    },
+    {
+     "element": "APPLICAT_PERSON_NAME",
+     "label": "担当者の氏名",
+     "attr": "UPDATE型",
+     "status": "単票更新(UPDATE/NONE)",
+     "required": true,
+     "dtype": "テキスト"
+    },
+    {
+     "element": "APPLICAT_PERSON_TITLE",
+     "label": "担当者の所属",
+     "attr": "UPDATE型",
+     "status": "単票更新(UPDATE/NONE)",
+     "required": true,
+     "dtype": "テキスト"
+    },
+    {
+     "element": "APPLICAT_TELNUM",
+     "label": "電話番号",
+     "attr": "UPDATE型",
+     "status": "単票更新(UPDATE/NONE)",
+     "required": true,
+     "dtype": "整数/番号"
+    },
+    {
+     "element": "FAXNUMBER",
+     "label": "ＦＡＸ番号又はメールアドレス",
+     "attr": "UPDATE型",
+     "status": "単票更新(UPDATE/NONE)",
+     "required": true,
+     "dtype": "整数/番号"
+    }
+   ]
+  },
+  {
+   "table": "INFOFOREIGNMANUFACTURER",
+   "type": "INFOFOREIGNMANUFACTURER_TYPE",
+   "parent": "治験届 ctn_notification",
+   "repeating": true,
+   "fields": [
+    {
+     "element": "SERIALNO1",
+     "label": "順序番号",
+     "attr": "ADD型",
+     "status": "行追加削除(NONE/APPEND/DELETE)",
+     "required": true,
+     "dtype": "順序番号(キー)"
+    },
+    {
+     "element": "FOREIGN_SPONSOR_NAME",
+     "label": "海外依頼者、外国製造業者の名称（邦文）",
+     "attr": "UPDATE型",
+     "status": "単票更新(UPDATE/NONE)",
+     "required": true,
+     "dtype": "テキスト"
+    },
+    {
+     "element": "FOREIGN_SPONSOR_REP_NAME",
+     "label": "海外依頼者、外国製造業者の(代表者の)氏名（邦文）",
+     "attr": "UPDATE型",
+     "status": "単票更新(UPDATE/NONE)",
+     "required": true,
+     "dtype": "テキスト"
+    },
+    {
+     "element": "FOREIGN_SPONSOR_ADDRESS1",
+     "label": "所在地１（邦文）",
+     "attr": "UPDATE型",
+     "status": "単票更新(UPDATE/NONE)",
+     "required": true,
+     "dtype": "テキスト"
+    },
+    {
+     "element": "FOREIGN_SPONSOR_ADDRESS2",
+     "label": "所在地２（邦文）",
+     "attr": "UPDATE型",
+     "status": "単票更新(UPDATE/NONE)",
+     "required": true,
+     "dtype": "テキスト"
+    },
+    {
+     "element": "FOREIGN_NAME_FRGNLNG",
+     "label": "海外依頼者、外国製造業者の名称（外国文）",
+     "attr": "UPDATE型",
+     "status": "単票更新(UPDATE/NONE)",
+     "required": true,
+     "dtype": "テキスト"
+    },
+    {
+     "element": "FOREIGN_SPOMSPR_REP_NAME_FRGNLNG",
+     "label": "海外依頼者、外国製造業者の(代表者の)氏名（外国文）",
+     "attr": "UPDATE型",
+     "status": "単票更新(UPDATE/NONE)",
+     "required": true,
+     "dtype": "テキスト"
+    },
+    {
+     "element": "FOREIGN_ADDRESS1_FRGNLNG",
+     "label": "所在地１（外国文）",
+     "attr": "UPDATE型",
+     "status": "単票更新(UPDATE/NONE)",
+     "required": true,
+     "dtype": "テキスト"
+    },
+    {
+     "element": "FOREIGN_ADDRESS2_FRGNLNG",
+     "label": "所在地２（外国文）",
+     "attr": "UPDATE型",
+     "status": "単票更新(UPDATE/NONE)",
+     "required": true,
+     "dtype": "テキスト"
+    }
+   ]
+  },
+  {
+   "table": "INFOCOMBINATION",
+   "type": "INFOCOMBINATION_TYPE",
+   "parent": "治験届 ctn_notification",
+   "repeating": true,
+   "fields": [
+    {
+     "element": "SERIALNO1",
+     "label": "順序番号",
+     "attr": "ADD型",
+     "status": "行追加削除(NONE/APPEND/DELETE)",
+     "required": true,
+     "dtype": "順序番号(キー)"
+    },
+    {
+     "element": "COMB_PRODUCTCATEGORY",
+     "label": "医薬品／医療機器／再生医療等製品の別",
+     "attr": "UPDATE型",
+     "status": "単票更新(UPDATE/NONE)",
+     "required": true,
+     "dtype": "テキスト"
+    },
+    {
+     "element": "COMBINATION_ID",
+     "label": "記号・名称等",
+     "attr": "UPDATE型",
+     "status": "単票更新(UPDATE/NONE)",
+     "required": true,
+     "dtype": "テキスト"
+    },
+    {
+     "element": "TYPECOMBINATION_ID",
+     "label": "記号・名称等の種類",
+     "attr": "UPDATE型",
+     "status": "単票更新(UPDATE/NONE)",
+     "required": true,
+     "dtype": "テキスト"
+    },
+    {
+     "element": "DETAIL",
+     "label": "その他の場合の詳述",
+     "attr": "UPDATE型",
+     "status": "単票更新(UPDATE/NONE)",
+     "required": false,
+     "dtype": "テキスト"
+    },
+    {
+     "element": "COMBINATIONCATEGORY",
+     "label": "被験薬／対照薬／併用薬／レスキュー薬などの区別",
+     "attr": "UPDATE型",
+     "status": "単票更新(UPDATE/NONE)",
+     "required": true,
+     "dtype": "テキスト"
+    },
+    {
+     "element": "OTHERCOMBINATIONCATEGORY",
+     "label": "その他の場合の治験使用薬、治験使用機器相当、治験使用製品相当の別",
+     "attr": "UPDATE型",
+     "status": "単票更新(UPDATE/NONE)",
+     "required": false,
+     "dtype": "テキスト"
+    },
+    {
+     "element": "COMB_APPLICATIONSTATUS",
+     "label": "国内における承認状況",
+     "attr": "UPDATE型",
+     "status": "単票更新(UPDATE/NONE)",
+     "required": true,
+     "dtype": "テキスト"
+    },
+    {
+     "element": "COMB_CATEGTESTPRODUCTSUBJ30DAYREVIEW",
+     "label": "30日調査対応被験薬区分",
+     "attr": "UPDATE型(値なし)",
+     "status": "コンテナ(UPDATE/NONE)",
+     "required": false,
+     "dtype": "テキスト"
+    },
+    {
+     "element": "COMB_MANUFACTMETHOD",
+     "label": "製造方法",
+     "attr": "UPDATE型",
+     "status": "単票更新(UPDATE/NONE)",
+     "required": false,
+     "dtype": "テキスト(複数行)"
+    },
+    {
+     "element": "COMB_TARGETDISEASE",
+     "label": "対象疾患",
+     "attr": "UPDATE型",
+     "status": "単票更新(UPDATE/NONE)",
+     "required": true,
+     "dtype": "テキスト"
+    },
+    {
+     "element": "OTHERCOMMENTS",
+     "label": "その他",
+     "attr": "UPDATE型",
+     "status": "単票更新(UPDATE/NONE)",
+     "required": false,
+     "dtype": "テキスト"
+    },
+    {
+     "element": "COMB_REMARKS",
+     "label": "その他備考",
+     "attr": "UPDATE型",
+     "status": "単票更新(UPDATE/NONE)",
+     "required": false,
+     "dtype": "テキスト"
+    },
+    {
+     "element": "COMB_PRESENCEADRREPORT",
+     "label": "副作用報告の有無",
+     "attr": "UPDATE型",
+     "status": "単票更新(UPDATE/NONE)",
+     "required": true,
+     "dtype": "二者択一"
+    },
+    {
+     "element": "COMB_INGREDIENTSQUANTITIES",
+     "label": "成分及び分量",
+     "attr": "UPDATE型",
+     "status": "単票更新(UPDATE/NONE)",
+     "required": true,
+     "dtype": "整数/番号"
+    },
+    {
+     "element": "COMB_INTENDINDICATIONSEFFECTS",
+     "label": "予定される効能又は効果",
+     "attr": "UPDATE型",
+     "status": "単票更新(UPDATE/NONE)",
+     "required": true,
+     "dtype": "テキスト"
+    },
+    {
+     "element": "COMB_EFFICACYCLASSCODENUMBER",
+     "label": "薬効分類番号",
+     "attr": "UPDATE型",
+     "status": "単票更新(UPDATE/NONE)",
+     "required": true,
+     "dtype": "選択肢(コード表)"
+    },
+    {
+     "element": "COMB_INTENDDOSAGEADMIN",
+     "label": "予定される用法及び用量",
+     "attr": "UPDATE型",
+     "status": "単票更新(UPDATE/NONE)",
+     "required": true,
+     "dtype": "テキスト(複数行)"
+    },
+    {
+     "element": "COMB_DOSAGEADMIN",
+     "label": "用法及び用量",
+     "attr": "UPDATE型",
+     "status": "単票更新(UPDATE/NONE)",
+     "required": true,
+     "dtype": "テキスト(複数行)"
+    },
+    {
+     "element": "TYPECLINTRIALWITHDRUGCARTAGENA",
+     "label": "該当の有無等",
+     "attr": "UPDATE型",
+     "status": "単票更新(UPDATE/NONE)",
+     "required": true,
+     "dtype": "二者択一"
+    },
+    {
+     "element": "DETAIL",
+     "label": "その他の場合の詳述",
+     "attr": "UPDATE型",
+     "status": "単票更新(UPDATE/NONE)",
+     "required": false,
+     "dtype": "テキスト"
+    },
+    {
+     "element": "TYPEBIOLOGICALPROD",
+     "label": "該当の有無等",
+     "attr": "UPDATE型",
+     "status": "単票更新(UPDATE/NONE)",
+     "required": true,
+     "dtype": "二者択一"
+    },
+    {
+     "element": "APPLICABLEORNOT",
+     "label": "該当の有無",
+     "attr": "UPDATE型",
+     "status": "単票更新(UPDATE/NONE)",
+     "required": true,
+     "dtype": "二者択一"
+    },
+    {
+     "element": "APPLICABLEORNOT",
+     "label": "該当の有無",
+     "attr": "UPDATE型",
+     "status": "単票更新(UPDATE/NONE)",
+     "required": true,
+     "dtype": "二者択一"
+    }
+   ]
+  },
+  {
+   "table": "COMB_INFONAMEADDRESSMANUFACTPLANT",
+   "type": "COMB_INFONAMEADDRESSMANUFACTPLANT_TYPE",
+   "parent": "INFOCOMBINATION",
+   "repeating": true,
+   "fields": [
+    {
+     "element": "SERIALNO2",
+     "label": "順序番号",
+     "attr": "ADD型",
+     "status": "行追加削除(NONE/APPEND/DELETE)",
+     "required": true,
+     "dtype": "順序番号(キー)"
+    },
+    {
+     "element": "COMB_SPONSOR_NAME",
+     "label": "名称",
+     "attr": "UPDATE型",
+     "status": "単票更新(UPDATE/NONE)",
+     "required": true,
+     "dtype": "テキスト"
+    },
+    {
+     "element": "COMB_SPONSOR_ADDRESS1",
+     "label": "所在地１",
+     "attr": "UPDATE型",
+     "status": "単票更新(UPDATE/NONE)",
+     "required": true,
+     "dtype": "テキスト"
+    },
+    {
+     "element": "COMB_SPONSOR_ADDRESS2",
+     "label": "所在地２",
+     "attr": "UPDATE型",
+     "status": "単票更新(UPDATE/NONE)",
+     "required": true,
+     "dtype": "テキスト"
+    },
+    {
+     "element": "COMB_MANUFACTURERIMPORTERCODE",
+     "label": "業者コード",
+     "attr": "UPDATE型",
+     "status": "単票更新(UPDATE/NONE)",
+     "required": true,
+     "dtype": "選択肢(コード表)"
+    }
+   ]
+  },
+  {
+   "table": "COMB_INFODOSAGEFORMCODE",
+   "type": "COMB_INFODOSAGEFORMCODE_TYPE",
+   "parent": "INFOCOMBINATION",
+   "repeating": true,
+   "fields": [
+    {
+     "element": "SERIALNO2",
+     "label": "順序番号",
+     "attr": "ADD型",
+     "status": "行追加削除(NONE/APPEND/DELETE)",
+     "required": true,
+     "dtype": "順序番号(キー)"
+    },
+    {
+     "element": "COMB_DOSAGEFORMCODE",
+     "label": "剤形コード",
+     "attr": "UPDATE型",
+     "status": "単票更新(UPDATE/NONE)",
+     "required": true,
+     "dtype": "選択肢(コード表)"
+    }
+   ]
+  },
+  {
+   "table": "COMB_INFOADMINROUTECODE",
+   "type": "COMB_INFOADMINROUTECODE_TYPE",
+   "parent": "INFOCOMBINATION",
+   "repeating": true,
+   "fields": [
+    {
+     "element": "SERIALNO2",
+     "label": "順序番号",
+     "attr": "ADD型",
+     "status": "行追加削除(NONE/APPEND/DELETE)",
+     "required": true,
+     "dtype": "順序番号(キー)"
+    },
+    {
+     "element": "COMB_ADMINROUTECODE",
+     "label": "投与経路コード",
+     "attr": "UPDATE型",
+     "status": "単票更新(UPDATE/NONE)",
+     "required": true,
+     "dtype": "選択肢(コード表)"
+    }
+   ]
+  },
+  {
+   "table": "COMB_INFOFOREIGNMANUFACTURER",
+   "type": "COMB_INFOFOREIGNMANUFACTURER_TYPE",
+   "parent": "INFOCOMBINATION",
+   "repeating": true,
+   "fields": [
+    {
+     "element": "SERIALNO2",
+     "label": "順序番号",
+     "attr": "ADD型",
+     "status": "行追加削除(NONE/APPEND/DELETE)",
+     "required": true,
+     "dtype": "順序番号(キー)"
+    },
+    {
+     "element": "COMB_FOREIGN_SPONSOR_NAME",
+     "label": "海外依頼者、外国製造業者の名称（邦文）",
+     "attr": "UPDATE型",
+     "status": "単票更新(UPDATE/NONE)",
+     "required": true,
+     "dtype": "テキスト"
+    },
+    {
+     "element": "COMB_FOREIGN_SPONSOR_REP_NAME",
+     "label": "海外依頼者、外国製造業者の(代表者の)氏名（邦文）",
+     "attr": "UPDATE型",
+     "status": "単票更新(UPDATE/NONE)",
+     "required": true,
+     "dtype": "テキスト"
+    },
+    {
+     "element": "COMB_FOREIGN_SPONSOR_ADDRESS1",
+     "label": "所在地１（邦文）",
+     "attr": "UPDATE型",
+     "status": "単票更新(UPDATE/NONE)",
+     "required": true,
+     "dtype": "テキスト"
+    },
+    {
+     "element": "COMB_FOREIGN_SPONSOR_ADDRESS2",
+     "label": "所在地２（邦文）",
+     "attr": "UPDATE型",
+     "status": "単票更新(UPDATE/NONE)",
+     "required": true,
+     "dtype": "テキスト"
+    },
+    {
+     "element": "COMB_FOREIGN_NAME_FRGNLNG",
+     "label": "海外依頼者、外国製造業者の名称（外国文）",
+     "attr": "UPDATE型",
+     "status": "単票更新(UPDATE/NONE)",
+     "required": true,
+     "dtype": "テキスト"
+    },
+    {
+     "element": "COMB_FOREIGN_SPOMSPR_REP_NAME_FRGNLNG",
+     "label": "海外依頼者、外国製造業者の(代表者の)氏名（外国文）",
+     "attr": "UPDATE型",
+     "status": "単票更新(UPDATE/NONE)",
+     "required": true,
+     "dtype": "テキスト"
+    },
+    {
+     "element": "COMB_FOREIGN_ADDRESS1_FRGNLNG",
+     "label": "所在地１（外国文）",
+     "attr": "UPDATE型",
+     "status": "単票更新(UPDATE/NONE)",
+     "required": true,
+     "dtype": "テキスト"
+    },
+    {
+     "element": "COMB_FOREIGN_ADDRESS2_FRGNLNG",
+     "label": "所在地２（外国文）",
+     "attr": "UPDATE型",
+     "status": "単票更新(UPDATE/NONE)",
+     "required": true,
+     "dtype": "テキスト"
+    }
+   ]
+  },
+  {
+   "table": "INFOEACHMEDICALINSTITUT",
+   "type": "INFOEACHMEDICALINSTITUT_TYPE",
+   "parent": "治験届 ctn_notification",
+   "repeating": true,
+   "fields": [
+    {
+     "element": "SERIALNO1",
+     "label": "順序番号",
+     "attr": "ADD型",
+     "status": "行追加削除(NONE/APPEND/DELETE)",
+     "required": true,
+     "dtype": "順序番号(キー)"
+    },
+    {
+     "element": "INSTITUTE_NAME",
+     "label": "実施医療機関の名称",
+     "attr": "UPDATE型",
+     "status": "単票更新(UPDATE/NONE)",
+     "required": true,
+     "dtype": "テキスト"
+    },
+    {
+     "element": "DEPARTMENT",
+     "label": "実施診療科",
+     "attr": "UPDATE型",
+     "status": "単票更新(UPDATE/NONE)",
+     "required": true,
+     "dtype": "テキスト"
+    },
+    {
+     "element": "INSTITUTE_ADDRESS1",
+     "label": "所在地１",
+     "attr": "UPDATE型",
+     "status": "単票更新(UPDATE/NONE)",
+     "required": true,
+     "dtype": "テキスト"
+    },
+    {
+     "element": "INSTITUTE_ADDRESS2",
+     "label": "所在地２",
+     "attr": "UPDATE型",
+     "status": "単票更新(UPDATE/NONE)",
+     "required": true,
+     "dtype": "テキスト"
+    },
+    {
+     "element": "INSTITUTE_TELNUM",
+     "label": "電話番号",
+     "attr": "UPDATE型",
+     "status": "単票更新(UPDATE/NONE)",
+     "required": true,
+     "dtype": "整数/番号"
+    },
+    {
+     "element": "PLANNUMSUBJMEDICALINSTUTUT",
+     "label": "実施医療機関予定被験者数",
+     "attr": "UPDATE型",
+     "status": "単票更新(UPDATE/NONE)",
+     "required": true,
+     "dtype": "整数/番号"
+    },
+    {
+     "element": "NUMSUBJENROLLINSTITUTION",
+     "label": "実施医療機関被験者数",
+     "attr": "UPDATE型",
+     "status": "単票更新(UPDATE/NONE)",
+     "required": true,
+     "dtype": "整数/番号"
+    },
+    {
+     "element": "OTHERS",
+     "label": "その他",
+     "attr": "UPDATE型",
+     "status": "単票更新(UPDATE/NONE)",
+     "required": true,
+     "dtype": "テキスト"
+    }
+   ]
+  },
+  {
+   "table": "INFOINVESTIGATOR",
+   "type": "INFOINVESTIGATOR_TYPE",
+   "parent": "INFOEACHMEDICALINSTITUT",
+   "repeating": true,
+   "fields": [
+    {
+     "element": "SERIALNO2",
+     "label": "順序番号",
+     "attr": "ADD型",
+     "status": "行追加削除(NONE/APPEND/DELETE)",
+     "required": true,
+     "dtype": "順序番号(キー)"
+    },
+    {
+     "element": "CHIEFINVEST_NAME",
+     "label": "治験責任医師の氏名",
+     "attr": "UPDATE型",
+     "status": "単票更新(UPDATE/NONE)",
+     "required": true,
+     "dtype": "テキスト"
+    },
+    {
+     "element": "NUMMEDICALSCHOOL",
+     "label": "大学番号",
+     "attr": "UPDATE型",
+     "status": "単票更新(UPDATE/NONE)",
+     "required": true,
+     "dtype": "整数/番号"
+    },
+    {
+     "element": "GRADUATYEARMEDICALSCHOOL",
+     "label": "卒業年",
+     "attr": "UPDATE型",
+     "status": "単票更新(UPDATE/NONE)",
+     "required": true,
+     "dtype": "テキスト"
+    },
+    {
+     "element": "CHIEFINVEST_PRONOUNCE",
+     "label": "氏名よみかな",
+     "attr": "UPDATE型",
+     "status": "単票更新(UPDATE/NONE)",
+     "required": true,
+     "dtype": "テキスト"
+    }
+   ]
+  },
+  {
+   "table": "INFOSUBINVESTIGATOR",
+   "type": "INFOSUBINVESTIGATOR_TYPE",
+   "parent": "INFOEACHMEDICALINSTITUT",
+   "repeating": true,
+   "fields": [
+    {
+     "element": "SERIALNO2",
+     "label": "順序番号",
+     "attr": "ADD型",
+     "status": "行追加削除(NONE/APPEND/DELETE)",
+     "required": true,
+     "dtype": "順序番号(キー)"
+    },
+    {
+     "element": "INVESTIGATER_NAME",
+     "label": "治験分担医師の氏名",
+     "attr": "UPDATE型",
+     "status": "単票更新(UPDATE/NONE)",
+     "required": true,
+     "dtype": "テキスト"
+    },
+    {
+     "element": "INVEST_PRONOUNCE",
+     "label": "氏名よみかな",
+     "attr": "UPDATE型",
+     "status": "単票更新(UPDATE/NONE)",
+     "required": true,
+     "dtype": "テキスト"
+    }
+   ]
+  },
+  {
+   "table": "INFOQUANTITIESINVESTPRODUCT",
+   "type": "INFOQUANTITIESINVESTPRODUCT_TYPE",
+   "parent": "INFOEACHMEDICALINSTITUT",
+   "repeating": true,
+   "fields": [
+    {
+     "element": "SERIALNO2",
+     "label": "順序番号",
+     "attr": "ADD型",
+     "status": "行追加削除(NONE/APPEND/DELETE)",
+     "required": true,
+     "dtype": "順序番号(キー)"
+    },
+    {
+     "element": "NAMEINVESTPRODUCT",
+     "label": "治験使用薬、治験使用機器相当、治験使用製品相当の名称",
+     "attr": "UPDATE型",
+     "status": "単票更新(UPDATE/NONE)",
+     "required": true,
+     "dtype": "テキスト"
+    },
+    {
+     "element": "QUANTITIESPLANNED",
+     "label": "予定交付（入手）数量",
+     "attr": "UPDATE型",
+     "status": "単票更新(UPDATE/NONE)",
+     "required": true,
+     "dtype": "整数/番号"
+    },
+    {
+     "element": "QUANTITIESSUPPLIED",
+     "label": "交付数量",
+     "attr": "UPDATE型",
+     "status": "単票更新(UPDATE/NONE)",
+     "required": true,
+     "dtype": "整数/番号"
+    },
+    {
+     "element": "QUANTITIESUSED",
+     "label": "使用数量",
+     "attr": "UPDATE型",
+     "status": "単票更新(UPDATE/NONE)",
+     "required": true,
+     "dtype": "整数/番号"
+    },
+    {
+     "element": "QUANTITIESWITHDRAWN",
+     "label": "回収数量",
+     "attr": "UPDATE型",
+     "status": "単票更新(UPDATE/NONE)",
+     "required": true,
+     "dtype": "整数/番号"
+    },
+    {
+     "element": "QUANTITIESABROGATED",
+     "label": "廃棄数量",
+     "attr": "UPDATE型",
+     "status": "単票更新(UPDATE/NONE)",
+     "required": true,
+     "dtype": "整数/番号"
+    }
+   ]
+  },
+  {
+   "table": "INFOSMOINMEDINST",
+   "type": "INFOSMOINMEDINST_TYPE",
+   "parent": "INFOEACHMEDICALINSTITUT",
+   "repeating": true,
+   "fields": [
+    {
+     "element": "SERIALNO2",
+     "label": "順序番号",
+     "attr": "ADD型",
+     "status": "行追加削除(NONE/APPEND/DELETE)",
+     "required": true,
+     "dtype": "順序番号(キー)"
+    },
+    {
+     "element": "SMO_NAME",
+     "label": "氏名",
+     "attr": "UPDATE型",
+     "status": "単票更新(UPDATE/NONE)",
+     "required": true,
+     "dtype": "テキスト"
+    },
+    {
+     "element": "SMO_ADDRESS1",
+     "label": "住所１",
+     "attr": "UPDATE型",
+     "status": "単票更新(UPDATE/NONE)",
+     "required": true,
+     "dtype": "テキスト"
+    },
+    {
+     "element": "SMO_ADDRESS2",
+     "label": "住所２",
+     "attr": "UPDATE型",
+     "status": "単票更新(UPDATE/NONE)",
+     "required": true,
+     "dtype": "テキスト"
+    },
+    {
+     "element": "SMO_SERVICE",
+     "label": "委託する業務の範囲",
+     "attr": "UPDATE型",
+     "status": "単票更新(UPDATE/NONE)",
+     "required": true,
+     "dtype": "テキスト"
+    }
+   ]
+  },
+  {
+   "table": "INFOIRB",
+   "type": "INFOIRB_TYPE",
+   "parent": "INFOEACHMEDICALINSTITUT",
+   "repeating": true,
+   "fields": [
+    {
+     "element": "SERIALNO2",
+     "label": "順序番号",
+     "attr": "ADD型",
+     "status": "行追加削除(NONE/APPEND/DELETE)",
+     "required": true,
+     "dtype": "順序番号(キー)"
+    },
+    {
+     "element": "TYPEIRB",
+     "label": "院内・外部の区分",
+     "attr": "UPDATE型",
+     "status": "単票更新(UPDATE/NONE)",
+     "required": true,
+     "dtype": "テキスト"
+    },
+    {
+     "element": "IRB_OWNER_NAME",
+     "label": "治験審査委員会の設置者の名称",
+     "attr": "UPDATE型",
+     "status": "単票更新(UPDATE/NONE)",
+     "required": true,
+     "dtype": "テキスト"
+    },
+    {
+     "element": "IRB_ADDRESS1",
+     "label": "所在地１",
+     "attr": "UPDATE型",
+     "status": "単票更新(UPDATE/NONE)",
+     "required": true,
+     "dtype": "テキスト"
+    },
+    {
+     "element": "IRB_ADDRESS2",
+     "label": "所在地２",
+     "attr": "UPDATE型",
+     "status": "単票更新(UPDATE/NONE)",
+     "required": true,
+     "dtype": "テキスト"
+    }
+   ]
+  },
+  {
+   "table": "INFOREFCLINTRIALPLANNOTER",
+   "type": "INFOREFCLINTRIALPLANNOTER_TYPE",
+   "parent": "治験届 ctn_notification",
+   "repeating": true,
+   "fields": [
+    {
+     "element": "SERIALNO1",
+     "label": "順序番号",
+     "attr": "ADD型",
+     "status": "行追加削除(NONE/APPEND/DELETE)",
+     "required": true,
+     "dtype": "順序番号(キー)"
+    },
+    {
+     "element": "REF_PRODUCTCATEGORY",
+     "label": "医薬品／医療機器／再生医療等製品の別",
+     "attr": "UPDATE型",
+     "status": "単票更新(UPDATE/NONE)",
+     "required": true,
+     "dtype": "テキスト"
+    },
+    {
+     "element": "REF_INFOTESTSUBSTANCEIDCODE",
+     "label": "治験成分記号又は治験識別記号",
+     "attr": "UPDATE型",
+     "status": "単票更新(UPDATE/NONE)",
+     "required": true,
+     "dtype": "選択肢(コード表)"
+    },
+    {
+     "element": "REF_SERIALNOTENUM",
+     "label": "届出回数",
+     "attr": "UPDATE型",
+     "status": "単票更新(UPDATE/NONE)",
+     "required": true,
+     "dtype": "整数/番号"
+    },
+    {
+     "element": "TYPEREFFERENCE",
+     "label": "参照の区分",
+     "attr": "UPDATE型",
+     "status": "単票更新(UPDATE/NONE)",
+     "required": true,
+     "dtype": "テキスト"
+    },
+    {
+     "element": "CONTENTS",
+     "label": "参照の詳細",
+     "attr": "UPDATE型",
+     "status": "単票更新(UPDATE/NONE)",
+     "required": true,
+     "dtype": "テキスト"
+    }
+   ]
+  }
+ ]
+}
