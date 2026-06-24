@@ -4,276 +4,139 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <meta name="robots" content="noindex, nofollow" />
-<title>splaika/ctn-prototype</title>
+<title>CTN 治験届システム化 プロトタイプ</title>
 <style>
   :root{
-    --bg:#0d1117;--canvas:#0d1117;--subtle:#161b22;--inset:#010409;
-    --border:#30363d;--border-muted:#21262d;
-    --fg:#e6edf3;--muted:#7d8590;--link:#4493f8;
-    --green:#238636;--green-h:#2ea043;--green-fg:#ffffff;
-    --accent-bg:#388bfd1a;--accent-border:#388bfd66;
-    --attn-bg:#bb800926;--attn-border:#bb800966;--attn-fg:#d29922;
-    --mono:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,"Liberation Mono",monospace;
+    --bg:#0b0f14; --panel:#10151c; --panel2:#151b24; --row:#121821; --rowh:#1b2531;
+    --border:#222b36; --border2:#2c3742;
+    --fg:#e8eef4; --muted:#90a0b0; --faint:#5f6e7d;
+    --accent:#4aa3ff; --accent-soft:#4aa3ff1f; --teal:#39c5b0; --green:#54d07f;
     --sans:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans","Yu Gothic UI",Meiryo,sans-serif;
+    --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
   }
   *{box-sizing:border-box}
-  html,body{margin:0}
-  body{background:var(--bg);color:var(--fg);font-family:var(--sans);font-size:14px;line-height:1.5}
-  a{color:var(--link);text-decoration:none}
-  a:hover{text-decoration:underline}
-  .octicon{display:inline-block;vertical-align:text-bottom;fill:currentColor;flex:none}
+  html,body{margin:0;height:100%}
+  body{background:var(--bg);color:var(--fg);font-family:var(--sans);font-size:15px;line-height:1.6}
+  a{color:inherit;text-decoration:none}
 
-  /* ===== global header ===== */
-  .ghbar{background:var(--subtle);border-bottom:1px solid var(--border);padding:12px 16px;display:flex;align-items:center;gap:12px}
-  .ghbar .mark{color:var(--fg);flex:none}
-  .breadcrumb{display:flex;align-items:center;gap:6px;font-size:16px;min-width:0;flex-wrap:wrap}
-  .breadcrumb .owner{color:var(--link)}
-  .breadcrumb .sep{color:var(--muted)}
-  .breadcrumb .repo{color:var(--link);font-weight:600}
-  .badge{font-size:11px;color:var(--muted);border:1px solid var(--border);border-radius:2em;padding:1px 8px;font-weight:500}
-  .ghbar .spacer{margin-left:auto}
-  .searchbox{display:flex;align-items:center;gap:6px;background:var(--canvas);border:1px solid var(--border);border-radius:6px;padding:5px 10px;color:var(--muted);font-size:13px;min-width:200px}
-  @media(max-width:720px){.searchbox{display:none}}
-
-  /* ===== repo tabs ===== */
-  .tabs{background:var(--subtle);border-bottom:1px solid var(--border);padding:0 16px;display:flex;gap:4px;overflow-x:auto}
-  .tabs a{display:flex;align-items:center;gap:8px;padding:8px 10px;color:var(--fg);font-size:14px;border-bottom:2px solid transparent;white-space:nowrap;border-radius:6px 6px 0 0}
-  .tabs a:hover{background:var(--border-muted);text-decoration:none}
-  .tabs a .cnt{font-size:11px;background:var(--border-muted);color:var(--fg);border-radius:2em;padding:0 6px}
-  .tabs a.active{border-bottom-color:#f78166;font-weight:600}
-  .tabs a .octicon{color:var(--muted)}
-
-  /* ===== layout ===== */
-  .container{max-width:1280px;margin:0 auto;padding:24px 16px 60px}
-  .layout{display:grid;grid-template-columns:1fr 296px;gap:24px}
-  @media(max-width:1011px){.layout{grid-template-columns:1fr}.side{order:-1}}
-
-  /* file list toolbar */
-  .toolbar{display:flex;align-items:center;gap:8px;margin-bottom:16px;flex-wrap:wrap}
-  .btn{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--border);background:var(--subtle);color:var(--fg);border-radius:6px;padding:5px 12px;font-size:14px;font-weight:500;cursor:default}
-  .btn .octicon{color:var(--muted)}
-  .btn.branch{font-weight:600}
-  .btn.green{background:var(--green);border-color:#2ea04366;color:var(--green-fg)}
-  .btn.green .octicon{color:var(--green-fg)}
-  .toolbar .spacer{margin-left:auto}
-  .ghost{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--border);background:transparent;color:var(--fg);border-radius:6px;padding:5px 12px;font-size:14px}
-
-  /* file table */
-  .filebox{border:1px solid var(--border);border-radius:6px;overflow:hidden}
-  .filebox .head{background:var(--subtle);border-bottom:1px solid var(--border);padding:8px 16px;display:flex;align-items:center;gap:10px;font-size:13px;color:var(--muted)}
-  .filebox .head .avatar{width:20px;height:20px;border-radius:50%;background:#6e40c9;color:#fff;font-size:11px;display:flex;align-items:center;justify-content:center;font-weight:700}
-  .filebox .head .msg{color:var(--fg)}
-  .row{display:grid;grid-template-columns:minmax(180px,1.1fr) 2fr auto;gap:16px;align-items:center;padding:10px 16px;border-top:1px solid var(--border-muted)}
-  .row:first-of-type{border-top:0}
-  .row:hover{background:#161b2280}
-  .row .name{display:flex;align-items:center;gap:8px;min-width:0}
-  .row .name .octicon.file{color:var(--muted)}
-  .row .name .octicon.dir{color:#54aeff}
-  .row .name a{color:var(--fg);font-weight:400;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .row .name a:hover{color:var(--link);text-decoration:underline}
-  .row .desc{color:var(--muted);font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .row .when{color:var(--muted);font-size:13px;text-align:right;white-space:nowrap}
-  @media(max-width:720px){.row{grid-template-columns:1fr auto}.row .desc{display:none}}
-
-  /* readme */
-  .readme{border:1px solid var(--border);border-radius:6px;margin-top:24px}
-  .readme .rhead{display:flex;align-items:center;gap:8px;padding:8px 16px;border-bottom:1px solid var(--border);font-size:14px;font-weight:600}
-  .readme .rhead .octicon{color:var(--muted)}
-  .readme .rbody{padding:24px 28px}
-  .readme h1{font-size:24px;margin:0 0 4px;border:0}
-  .readme .tagline{color:var(--muted);margin:0 0 20px}
-  .readme h2{font-size:18px;margin:24px 0 12px;padding-bottom:7px;border-bottom:1px solid var(--border-muted)}
-  .note{display:flex;gap:10px;background:var(--attn-bg);border:1px solid var(--attn-border);border-radius:6px;padding:10px 14px;font-size:13px;color:var(--fg);margin:0 0 8px}
-  .note .octicon{color:var(--attn-fg);margin-top:2px}
-  .readme ul{padding-left:22px;margin:10px 0}
-  .readme li{margin:5px 0}
-  .readme code{font-family:var(--mono);background:#6e768166;border-radius:6px;padding:.15em .4em;font-size:85%}
+  .shell{display:grid;grid-template-columns:248px 1fr;min-height:100vh}
 
   /* sidebar */
-  .side h2{font-size:14px;font-weight:600;margin:0 0 8px;display:flex;align-items:center;gap:6px}
-  .side .about{color:var(--fg);font-size:14px;margin:0 0 16px}
-  .side .meta{display:flex;flex-direction:column;gap:10px;color:var(--muted);font-size:14px;padding-bottom:20px;border-bottom:1px solid var(--border-muted)}
-  .side .meta a{display:inline-flex;align-items:center;gap:8px}
-  .side .meta .octicon{color:var(--muted)}
-  .side .topics{display:flex;flex-wrap:wrap;gap:6px;margin:16px 0 0}
-  .side .topics span{background:var(--accent-bg);color:var(--link);border:1px solid transparent;border-radius:2em;padding:1px 10px;font-size:12px;font-weight:500}
+  .side{border-right:1px solid var(--border);background:var(--panel);padding:18px 14px;position:sticky;top:0;height:100vh;overflow:auto}
+  .brand{display:flex;align-items:center;gap:10px;padding:4px 8px 16px}
+  .brand .mark{width:30px;height:30px;border-radius:9px;background:linear-gradient(135deg,#39c5b0,#4aa3ff);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:11px;color:#04121a;flex:none}
+  .brand b{font-size:14px}.brand small{display:block;color:var(--faint);font-size:11px;font-weight:400}
+  .search{width:100%;background:var(--row);border:1px solid var(--border2);border-radius:9px;padding:8px 11px;color:var(--fg);font-size:13px;margin-bottom:14px}
+  .search::placeholder{color:var(--faint)}
+  .search:focus{outline:none;border-color:var(--accent)}
+  .navlbl{font-size:10px;letter-spacing:.14em;color:var(--faint);font-weight:700;padding:6px 9px 4px;text-transform:uppercase}
+  .nav{display:flex;flex-direction:column;gap:2px}
+  .nav button{all:unset;cursor:pointer;display:flex;align-items:center;gap:9px;padding:8px 10px;border-radius:8px;color:var(--muted);font-size:13px}
+  .nav button .c{margin-left:auto;font-family:var(--mono);font-size:11px;color:var(--faint);background:var(--row);border-radius:6px;padding:0 7px}
+  .nav button:hover{background:var(--rowh);color:var(--fg)}
+  .nav button.active{background:var(--accent-soft);color:#cfe6ff}
+  .nav button.active .c{color:#cfe6ff;background:#4aa3ff22}
+  .side .foot{margin-top:16px;padding:12px 9px 0;border-top:1px solid var(--border);color:var(--faint);font-size:11px;line-height:1.7}
+  .side .foot a{color:var(--accent)}
 
-  footer{max-width:1280px;margin:0 auto;padding:24px 16px;color:var(--muted);font-size:12px;text-align:center;border-top:1px solid var(--border-muted)}
+  /* main */
+  .main{padding:26px 30px 60px;min-width:0}
+  .head{margin-bottom:6px}
+  .head h1{font-size:21px;margin:0 0 4px;font-weight:700}
+  .head p{margin:0;color:var(--muted);font-size:13px}
+  .notice{display:flex;gap:9px;background:#bb800914;border:1px solid #bb800940;border-radius:10px;padding:10px 14px;font-size:12.5px;color:#e3b341;margin:16px 0 8px}
+  .count{color:var(--faint);font-size:12px;margin:18px 0 8px;font-family:var(--mono)}
+
+  .list{display:flex;flex-direction:column;gap:7px}
+  .grouplbl{font-size:11px;letter-spacing:.1em;color:var(--teal);font-weight:700;margin:16px 0 4px;text-transform:uppercase}
+  .item{display:flex;align-items:center;gap:14px;background:var(--row);border:1px solid var(--border);border-radius:11px;padding:13px 16px;transition:background .13s,border-color .13s,transform .13s}
+  .item:hover{background:var(--rowh);border-color:var(--border2);transform:translateX(3px)}
+  .item .ic{width:34px;height:34px;border-radius:9px;background:#0e141c;border:1px solid var(--border2);display:flex;align-items:center;justify-content:center;font-size:16px;flex:none}
+  .item .tx{min-width:0;flex:1}
+  .item .tx b{font-size:14px;font-weight:600;display:block}
+  .item .tx span{display:block;color:var(--muted);font-size:12.3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .item .tag{font-family:var(--mono);font-size:10px;font-weight:700;border-radius:6px;padding:2px 8px;background:var(--accent-soft);color:var(--accent);flex:none}
+  .item .tag.main{background:#2ea04326;color:var(--green)}
+  .item .go{color:var(--faint);font-size:15px;flex:none;transition:color .13s,transform .13s}
+  .item:hover .go{color:var(--accent);transform:translateX(2px)}
+  .empty{color:var(--faint);font-size:13px;padding:24px 4px}
+
+  @media(max-width:760px){
+    .shell{grid-template-columns:1fr}
+    .side{position:static;height:auto;border-right:0;border-bottom:1px solid var(--border)}
+    .nav{flex-direction:row;flex-wrap:wrap}.nav button .c{display:none}
+    .item .tx span{white-space:normal}
+  }
 </style>
 </head>
 <body>
+<div class="shell">
 
-<!-- global bar -->
-<div class="ghbar">
-  <svg class="octicon mark" height="28" viewBox="0 0 16 16" width="28" aria-hidden="true"><path d="M8 0c4.42 0 8 3.58 8 8a8.013 8.013 0 0 1-5.45 7.59c-.4.08-.55-.17-.55-.38 0-.27.01-1.13.01-2.2 0-.75-.25-1.23-.54-1.48 1.78-.2 3.65-.88 3.65-3.95 0-.88-.31-1.59-.82-2.15.08-.2.36-1.02-.08-2.12 0 0-.67-.22-2.2.82-.64-.18-1.32-.27-2-.27-.68 0-1.36.09-2 .27-1.53-1.03-2.2-.82-2.2-.82-.44 1.1-.16 1.92-.08 2.12-.51.56-.82 1.28-.82 2.15 0 3.06 1.86 3.75 3.64 3.95-.23.2-.44.55-.51 1.07-.46.21-1.61.55-2.33-.66-.15-.24-.6-.83-1.23-.82-.67.01-.27.38.01.53.34.19.73.9.82 1.13.16.45.68 1.31 2.69.94 0 .67.01 1.3.01 1.49 0 .21-.15.45-.55.38A7.995 7.995 0 0 1 0 8c0-4.42 3.58-8 8-8Z"></path></svg>
-  <div class="breadcrumb">
-    <a class="owner" href="https://github.com/splaika">splaika</a>
-    <span class="sep">/</span>
-    <a class="repo" href="https://github.com/splaika/ctn-prototype">ctn-prototype</a>
-    <span class="badge">Public</span>
-  </div>
-  <div class="spacer"></div>
-  <div class="searchbox">
-    <svg class="octicon" height="16" viewBox="0 0 16 16" width="16" aria-hidden="true"><path d="M10.68 11.74a6 6 0 0 1-7.922-8.982 6 6 0 0 1 8.982 7.922l3.04 3.04a.749.749 0 0 1-.326 1.275.749.749 0 0 1-.734-.215ZM11.5 7a4.499 4.499 0 1 0-8.997 0A4.499 4.499 0 0 0 11.5 7Z"></path></svg>
-    <span>Go to file</span>
-  </div>
+  <aside class="side">
+    <div class="brand"><span class="mark">CTN</span><span><b>治験届システム化</b><small>プロトタイプ・ポータル</small></span></div>
+    <input id="q" class="search" type="search" placeholder="🔍 ドキュメントを検索…" />
+    <div class="navlbl">グループ</div>
+    <nav class="nav" id="nav">
+      <button data-g="all" class="active">すべて<span class="c" data-cnt="all"></span></button>
+      <button data-g="proto">プロトタイプ<span class="c" data-cnt="proto"></span></button>
+      <button data-g="design">検討・設計<span class="c" data-cnt="design"></span></button>
+      <button data-g="spec">仕様（XSD準拠）<span class="c" data-cnt="spec"></span></button>
+      <button data-g="verify">検証・参照<span class="c" data-cnt="verify"></span></button>
+      <button data-g="other">その他<span class="c" data-cnt="other"></span></button>
+    </nav>
+    <div class="foot">社内共有用 / noindex<br><a href="https://splaika.github.io/ctn-prototype/">公開URL ↗</a></div>
+  </aside>
+
+  <main class="main">
+    <div class="head">
+      <h1>ドキュメント・ハブ</h1>
+      <p>検討・仕様・実装・検証の成果物を、左のグループまたは検索で探せます。</p>
+    </div>
+    <div class="notice">⚠️ 社内共有用の試作です。URL を知る人は誰でも閲覧できます（noindex 済み）。</div>
+    <div class="count" id="count"></div>
+    <div class="list" id="list"></div>
+    <div class="empty" id="empty" style="display:none">該当するドキュメントがありません。</div>
+  </main>
 </div>
 
-<!-- repo tabs -->
-<nav class="tabs">
-  <a class="active" href="./index.html"><svg class="octicon" height="16" viewBox="0 0 16 16" width="16" aria-hidden="true"><path d="M0 1.75A.75.75 0 0 1 .75 1h4.253c1.227 0 2.317.59 3 1.501A3.743 3.743 0 0 1 11.006 1h4.245a.75.75 0 0 1 .75.75v10.5a.75.75 0 0 1-.75.75h-4.507a2.25 2.25 0 0 0-1.591.659l-.622.621a.75.75 0 0 1-1.06 0l-.622-.621A2.25 2.25 0 0 0 5.258 13H.75a.75.75 0 0 1-.75-.75Zm7.251 10.324.004-5.073-.002-2.253A2.25 2.25 0 0 0 5.003 2.5H1.5v9h3.757a3.75 3.75 0 0 1 1.994.574ZM8.755 4.75l-.004 7.322a3.752 3.752 0 0 1 1.992-.572H14.5v-9h-3.495a2.25 2.25 0 0 0-2.25 2.25Z"></path></svg>共有ドキュメント</a>
-  <a href="https://github.com/splaika/ctn-prototype"><svg class="octicon" height="16" viewBox="0 0 16 16" width="16" aria-hidden="true"><path d="M1.75 1h12.5c.966 0 1.75.784 1.75 1.75v9.5A1.75 1.75 0 0 1 14.25 14H1.75A1.75 1.75 0 0 1 0 12.25v-9.5C0 1.784.784 1 1.75 1ZM1.5 2.75v9.5c0 .138.112.25.25.25h12.5a.25.25 0 0 0 .25-.25v-9.5a.25.25 0 0 0-.25-.25H1.75a.25.25 0 0 0-.25.25Zm1.75.75h8.5a.75.75 0 0 1 0 1.5h-8.5a.75.75 0 0 1 0-1.5Zm0 3h4a.75.75 0 0 1 0 1.5h-4a.75.75 0 0 1 0-1.5Z"></path></svg>Code</a>
-  <a href="https://github.com/splaika/ctn-prototype/pulls"><svg class="octicon" height="16" viewBox="0 0 16 16" width="16" aria-hidden="true"><path d="M1.5 3.25a2.25 2.25 0 1 1 3 2.122v5.256a2.251 2.251 0 1 1-1.5 0V5.372A2.25 2.25 0 0 1 1.5 3.25Zm5.677-.177L9.573.677A.25.25 0 0 1 10 .854V2.5h1A2.5 2.5 0 0 1 13.5 5v5.628a2.251 2.251 0 1 1-1.5 0V5a1 1 0 0 0-1-1h-1v1.646a.25.25 0 0 1-.427.177L7.177 3.427a.25.25 0 0 1 0-.354ZM3.75 2.5a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5Zm0 9.5a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5Zm8.25.75a.75.75 0 1 0 1.5 0 .75.75 0 0 0-1.5 0Z"></path></svg>Pull requests</a>
-  <a href="https://github.com/splaika/ctn-prototype/actions"><svg class="octicon" height="16" viewBox="0 0 16 16" width="16" aria-hidden="true"><path d="M8 0a8 8 0 1 1 0 16A8 8 0 0 1 8 0ZM1.5 8a6.5 6.5 0 1 0 13 0 6.5 6.5 0 0 0-13 0Zm9.78-2.22-3.25 3.25a.75.75 0 0 1-1.06 0L5.22 7.53a.751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018l1.22 1.22 2.72-2.72a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042Z"></path></svg>Actions</a>
-  <a href="https://github.com/splaika/ctn-prototype/settings"><svg class="octicon" height="16" viewBox="0 0 16 16" width="16" aria-hidden="true"><path d="M8 0a8.2 8.2 0 0 1 .701.031C9.444.095 9.99.645 10.16 1.29l.288 1.107c.018.066.079.158.212.224.231.114.454.243.668.386.123.082.233.09.299.071l1.103-.303c.644-.176 1.392.021 1.82.63.27.385.506.792.704 1.218.315.675.111 1.422-.364 1.891l-.814.806c-.049.048-.098.147-.088.294.016.257.016.515 0 .772-.01.147.038.246.088.294l.814.806c.475.469.679 1.216.364 1.891a7.977 7.977 0 0 1-.704 1.217c-.428.61-1.176.807-1.82.63l-1.103-.303c-.066-.019-.176-.011-.299.071a4.909 4.909 0 0 1-.668.386c-.133.066-.194.158-.212.224l-.288 1.106c-.17.646-.716 1.196-1.459 1.26a8.006 8.006 0 0 1-1.402 0c-.743-.064-1.289-.614-1.459-1.26l-.288-1.106c-.018-.066-.079-.158-.212-.224a4.948 4.948 0 0 1-.668-.386c-.123-.082-.233-.09-.299-.071l-1.103.303c-.644.176-1.392-.021-1.82-.63a8.12 8.12 0 0 1-.704-1.217c-.315-.675-.111-1.422.363-1.891l.815-.806c.05-.048.098-.147.088-.294a6.214 6.214 0 0 1 0-.772c.01-.147-.038-.246-.088-.294l-.815-.806C.635 6.045.431 5.298.746 4.623a7.92 7.92 0 0 1 .704-1.218c.428-.609 1.176-.806 1.82-.63l1.103.303c.066.019.176.011.299-.071.214-.143.437-.272.668-.386.133-.066.194-.158.212-.224l.288-1.107C6.01.645 6.556.095 7.299.03 7.53.01 7.764 0 8 0Zm-.571 1.525c-.036.003-.108.036-.137.146l-.289 1.105c-.147.561-.549.967-.998 1.189-.173.086-.34.183-.5.29-.417.278-.97.423-1.529.27l-1.103-.303c-.109-.03-.175.016-.195.045-.22.312-.412.644-.573.99-.014.031-.021.11.059.19l.815.806c.411.406.562.957.53 1.456a4.709 4.709 0 0 0 0 .582c.032.499-.119 1.05-.53 1.456l-.815.806c-.081.08-.073.159-.059.19.162.346.353.677.573.989.02.03.085.076.195.046l1.102-.303c.56-.153 1.113-.008 1.53.27.161.107.328.204.501.29.447.222.85.629.997 1.189l.289 1.105c.029.109.101.143.137.146a6.6 6.6 0 0 0 1.142 0c.036-.003.108-.036.137-.146l.289-1.105c.147-.561.549-.967.998-1.189.173-.086.34-.183.5-.29.417-.278.97-.423 1.529-.27l1.103.303c.109.029.175-.016.195-.045.22-.313.411-.644.573-.99.014-.031.021-.11-.059-.19l-.815-.806c-.411-.406-.562-.957-.53-1.456a4.709 4.709 0 0 0 0-.582c-.032-.499.119-1.05.53-1.456l.815-.806c.081-.08.073-.159.059-.19a6.464 6.464 0 0 0-.573-.989c-.02-.03-.085-.076-.195-.046l-1.102.303c-.56.153-1.113.008-1.53-.27a3.428 3.428 0 0 0-.501-.29c-.447-.222-.85-.629-.997-1.189l-.289-1.105c-.029-.11-.101-.143-.137-.146a6.6 6.6 0 0 0-1.142 0ZM11 8a3 3 0 1 1-6 0 3 3 0 0 1 6 0ZM9.5 8a1.5 1.5 0 1 0-3.001.001A1.5 1.5 0 0 0 9.5 8Z"></path></svg>Settings</a>
-</nav>
-
-<div class="container">
-  <div class="layout">
-
-    <!-- main column -->
-    <section class="main">
-      <div class="toolbar">
-        <span class="btn branch"><svg class="octicon" height="16" viewBox="0 0 16 16" width="16" aria-hidden="true"><path d="M9.5 3.25a2.25 2.25 0 1 1 3 2.122V6A2.5 2.5 0 0 1 10 8.5H6a1 1 0 0 0-1 1v1.128a2.251 2.251 0 1 1-1.5 0V5.372a2.25 2.25 0 1 1 1.5 0v1.836A2.493 2.493 0 0 1 6 7h4a1 1 0 0 0 1-1v-.628A2.25 2.25 0 0 1 9.5 3.25Zm-6 0a.75.75 0 1 0 1.5 0 .75.75 0 0 0-1.5 0Zm8.25-.75a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5ZM4.25 12a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5Z"></path></svg>main</span>
-        <span class="btn">12 共有ページ</span>
-        <div class="spacer"></div>
-        <span class="ghost">Go to file</span>
-        <span class="btn green"><svg class="octicon" height="16" viewBox="0 0 16 16" width="16" aria-hidden="true"><path d="m11.28 3.22 4.25 4.25a.75.75 0 0 1 0 1.06l-4.25 4.25a.749.749 0 0 1-1.275-.326.749.749 0 0 1 .215-.734L13.94 8l-3.72-3.72a.749.749 0 0 1 .326-1.275.749.749 0 0 1 .734.215Zm-6.56 0a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042L2.06 8l3.72 3.72a.749.749 0 0 1-.326 1.275.749.749 0 0 1-.734-.215L.47 8.53a.75.75 0 0 1 0-1.06Z"></path></svg>開く</span>
-      </div>
-
-      <div class="filebox">
-        <div class="head">
-          <span class="avatar">S</span>
-          <a href="https://github.com/splaika">splaika</a>
-          <span class="msg">CTNシステム化 検討まとめ・XSDマッピング表・レビューを追加</span>
-        </div>
-
-        <div class="row">
-          <span class="name"><svg class="octicon dir" height="16" viewBox="0 0 16 16" width="16" aria-hidden="true"><path d="M1.75 1A1.75 1.75 0 0 0 0 2.75v10.5C0 14.216.784 15 1.75 15h12.5A1.75 1.75 0 0 0 16 13.25v-8.5A1.75 1.75 0 0 0 14.25 3H7.5a.25.25 0 0 1-.2-.1l-.9-1.2C6.07 1.26 5.55 1 5 1H1.75Z"></path></svg><a href="./outputs/ctn-lp-static-safe-20260618-235143/index.html">outputs</a></span>
-          <span class="desc">静的バンドル一式（LP・ドキュメントビューア等）</span>
-          <span class="when">静的サイト</span>
-        </div>
-
-        <div class="row">
-          <span class="name"><svg class="octicon file" height="16" viewBox="0 0 16 16" width="16" aria-hidden="true"><path d="M2 1.75C2 .784 2.784 0 3.75 0h6.586c.464 0 .909.184 1.237.513l2.914 2.914c.329.328.513.773.513 1.237v9.586A1.75 1.75 0 0 1 13.25 16h-9.5A1.75 1.75 0 0 1 2 14.25Zm1.75-.25a.25.25 0 0 0-.25.25v12.5c0 .138.112.25.25.25h9.5a.25.25 0 0 0 .25-.25V6h-2.75A1.75 1.75 0 0 1 9 4.25V1.5Zm6.75.062V4.25c0 .138.112.25.25.25h2.688l-.011-.013-2.914-2.914-.013-.011Z"></path></svg><a href="./ctn-ux-react-standalone.html">ctn-ux-react-standalone.html</a></span>
-          <span class="desc">UXモック (React) — 治験届管理のメイン画面・操作可能</span>
-          <span class="when">MAIN</span>
-        </div>
-
-        <div class="row">
-          <span class="name"><svg class="octicon file" height="16" viewBox="0 0 16 16" width="16" aria-hidden="true"><path d="M2 1.75C2 .784 2.784 0 3.75 0h6.586c.464 0 .909.184 1.237.513l2.914 2.914c.329.328.513.773.513 1.237v9.586A1.75 1.75 0 0 1 13.25 16h-9.5A1.75 1.75 0 0 1 2 14.25Zm1.75-.25a.25.25 0 0 0-.25.25v12.5c0 .138.112.25.25.25h9.5a.25.25 0 0 0 .25-.25V6h-2.75A1.75 1.75 0 0 1 9 4.25V1.5Zm6.75.062V4.25c0 .138.112.25.25.25h2.688l-.011-.013-2.914-2.914-.013-.011Z"></path></svg><a href="./ctn-ux-manual.html">ctn-ux-manual.html</a></span>
-          <span class="desc">操作マニュアル — UXモックの操作ガイド</span>
-          <span class="when">マニュアル</span>
-        </div>
-
-        <div class="row">
-          <span class="name"><svg class="octicon file" height="16" viewBox="0 0 16 16" width="16" aria-hidden="true"><path d="M2 1.75C2 .784 2.784 0 3.75 0h6.586c.464 0 .909.184 1.237.513l2.914 2.914c.329.328.513.773.513 1.237v9.586A1.75 1.75 0 0 1 13.25 16h-9.5A1.75 1.75 0 0 1 2 14.25Zm1.75-.25a.25.25 0 0 0-.25.25v12.5c0 .138.112.25.25.25h9.5a.25.25 0 0 0 .25-.25V6h-2.75A1.75 1.75 0 0 1 9 4.25V1.5Zm6.75.062V4.25c0 .138.112.25.25.25h2.688l-.011-.013-2.914-2.914-.013-.011Z"></path></svg><a href="./ctn-systemization-summary.html">ctn-systemization-summary.html</a></span>
-          <span class="desc">システム化 検討まとめ — 設計判断と CSV/GxP 要点</span>
-          <span class="when">解説</span>
-        </div>
-
-        <div class="row">
-          <span class="name"><svg class="octicon file" height="16" viewBox="0 0 16 16" width="16" aria-hidden="true"><path d="M2 1.75C2 .784 2.784 0 3.75 0h6.586c.464 0 .909.184 1.237.513l2.914 2.914c.329.328.513.773.513 1.237v9.586A1.75 1.75 0 0 1 13.25 16h-9.5A1.75 1.75 0 0 1 2 14.25Zm1.75-.25a.25.25 0 0 0-.25.25v12.5c0 .138.112.25.25.25h9.5a.25.25 0 0 0 .25-.25V6h-2.75A1.75 1.75 0 0 1 9 4.25V1.5Zm6.75.062V4.25c0 .138.112.25.25.25h2.688l-.011-.013-2.914-2.914-.013-.011Z"></path></svg><a href="./ctn-xsd-mapping.html">ctn-xsd-mapping.html</a></span>
-          <span class="desc">XSDマッピング表（たたき台）— 138要素 × STATUS × 順序番号型</span>
-          <span class="when">たたき台</span>
-        </div>
-
-        <div class="row">
-          <span class="name"><svg class="octicon file" height="16" viewBox="0 0 16 16" width="16" aria-hidden="true"><path d="M2 1.75C2 .784 2.784 0 3.75 0h6.586c.464 0 .909.184 1.237.513l2.914 2.914c.329.328.513.773.513 1.237v9.586A1.75 1.75 0 0 1 13.25 16h-9.5A1.75 1.75 0 0 1 2 14.25Zm1.75-.25a.25.25 0 0 0-.25.25v12.5c0 .138.112.25.25.25h9.5a.25.25 0 0 0 .25-.25V6h-2.75A1.75 1.75 0 0 1 9 4.25V1.5Zm6.75.062V4.25c0 .138.112.25.25.25h2.688l-.011-.013-2.914-2.914-.013-.011Z"></path></svg><a href="./ctn-notification-matrix.html">ctn-notification-matrix.html</a></span>
-          <span class="desc">届出種別 × 項目 使用マトリクス — 計画/変更/終了/中止/開発中止でどの項目を使うか</span>
-          <span class="when">たたき台</span>
-        </div>
-
-        <div class="row">
-          <span class="name"><svg class="octicon file" height="16" viewBox="0 0 16 16" width="16" aria-hidden="true"><path d="M2 1.75C2 .784 2.784 0 3.75 0h6.586c.464 0 .909.184 1.237.513l2.914 2.914c.329.328.513.773.513 1.237v9.586A1.75 1.75 0 0 1 13.25 16h-9.5A1.75 1.75 0 0 1 2 14.25Zm1.75-.25a.25.25 0 0 0-.25.25v12.5c0 .138.112.25.25.25h9.5a.25.25 0 0 0 .25-.25V6h-2.75A1.75 1.75 0 0 1 9 4.25V1.5Zm6.75.062V4.25c0 .138.112.25.25.25h2.688l-.011-.013-2.914-2.914-.013-.011Z"></path></svg><a href="./ctn-implementation-handoff.html">ctn-implementation-handoff.html</a></span>
-          <span class="desc">実装ハンドオフ仕様 — 開発メンバー向け（Dataverse/フロー/Cat5 I/F契約/OQ）</span>
-          <span class="when">実装向け</span>
-        </div>
-
-        <div class="row">
-          <span class="name"><svg class="octicon file" height="16" viewBox="0 0 16 16" width="16" aria-hidden="true"><path d="M2 1.75C2 .784 2.784 0 3.75 0h6.586c.464 0 .909.184 1.237.513l2.914 2.914c.329.328.513.773.513 1.237v9.586A1.75 1.75 0 0 1 13.25 16h-9.5A1.75 1.75 0 0 1 2 14.25Zm1.75-.25a.25.25 0 0 0-.25.25v12.5c0 .138.112.25.25.25h9.5a.25.25 0 0 0 .25-.25V6h-2.75A1.75 1.75 0 0 1 9 4.25V1.5Zm6.75.062V4.25c0 .138.112.25.25.25h2.688l-.011-.013-2.914-2.914-.013-.011Z"></path></svg><a href="./ctn-dataverse-columns.html">ctn-dataverse-columns.html</a></span>
-          <span class="desc">Dataverse 列定義（公式XSD v3.0.0 準拠）— 24テーブル・176項目の階層と型/必須/STATUS方式</span>
-          <span class="when">XSD準拠</span>
-        </div>
-
-        <div class="row">
-          <span class="name"><svg class="octicon file" height="16" viewBox="0 0 16 16" width="16" aria-hidden="true"><path d="M2 1.75C2 .784 2.784 0 3.75 0h6.586c.464 0 .909.184 1.237.513l2.914 2.914c.329.328.513.773.513 1.237v9.586A1.75 1.75 0 0 1 13.25 16h-9.5A1.75 1.75 0 0 1 2 14.25Zm1.75-.25a.25.25 0 0 0-.25.25v12.5c0 .138.112.25.25.25h9.5a.25.25 0 0 0 .25-.25V6h-2.75A1.75 1.75 0 0 1 9 4.25V1.5Zm6.75.062V4.25c0 .138.112.25.25.25h2.688l-.011-.013-2.914-2.914-.013-.011Z"></path></svg><a href="./ctn-xsd-roundtrip.html">ctn-xsd-roundtrip.html</a></span>
-          <span class="desc">XML生成→XSD検証 ラウンドトリップ検証（A）— 公式XSDで生成・検証を実証</span>
-          <span class="when">検証済</span>
-        </div>
-
-        <div class="row">
-          <span class="name"><svg class="octicon file" height="16" viewBox="0 0 16 16" width="16" aria-hidden="true"><path d="M2 1.75C2 .784 2.784 0 3.75 0h6.586c.464 0 .909.184 1.237.513l2.914 2.914c.329.328.513.773.513 1.237v9.586A1.75 1.75 0 0 1 13.25 16h-9.5A1.75 1.75 0 0 1 2 14.25Zm1.75-.25a.25.25 0 0 0-.25.25v12.5c0 .138.112.25.25.25h9.5a.25.25 0 0 0 .25-.25V6h-2.75A1.75 1.75 0 0 1 9 4.25V1.5Zm6.75.062V4.25c0 .138.112.25.25.25h2.688l-.011-.013-2.914-2.914-.013-.011Z"></path></svg><a href="./ctn-code-tables.html">ctn-code-tables.html</a></span>
-          <span class="desc">コード参照表（B）— 大学番号一覧94件ほかコード表レジストリ</span>
-          <span class="when">コード</span>
-        </div>
-
-        <div class="row">
-          <span class="name"><svg class="octicon file" height="16" viewBox="0 0 16 16" width="16" aria-hidden="true"><path d="M2 1.75C2 .784 2.784 0 3.75 0h6.586c.464 0 .909.184 1.237.513l2.914 2.914c.329.328.513.773.513 1.237v9.586A1.75 1.75 0 0 1 13.25 16h-9.5A1.75 1.75 0 0 1 2 14.25Zm1.75-.25a.25.25 0 0 0-.25.25v12.5c0 .138.112.25.25.25h9.5a.25.25 0 0 0 .25-.25V6h-2.75A1.75 1.75 0 0 1 9 4.25V1.5Zm6.75.062V4.25c0 .138.112.25.25.25h2.688l-.011-.013-2.914-2.914-.013-.011Z"></path></svg><a href="./ctn-deadline-rules.html">ctn-deadline-rules.html</a></span>
-          <span class="desc">期限・通知ルール（C）— 変更届の提出期限管理ルール（たたき台）</span>
-          <span class="when">ルール</span>
-        </div>
-
-        <div class="row">
-          <span class="name"><svg class="octicon file" height="16" viewBox="0 0 16 16" width="16" aria-hidden="true"><path d="M2 1.75C2 .784 2.784 0 3.75 0h6.586c.464 0 .909.184 1.237.513l2.914 2.914c.329.328.513.773.513 1.237v9.586A1.75 1.75 0 0 1 13.25 16h-9.5A1.75 1.75 0 0 1 2 14.25Zm1.75-.25a.25.25 0 0 0-.25.25v12.5c0 .138.112.25.25.25h9.5a.25.25 0 0 0 .25-.25V6h-2.75A1.75 1.75 0 0 1 9 4.25V1.5Zm6.75.062V4.25c0 .138.112.25.25.25h2.688l-.011-.013-2.914-2.914-.013-.011Z"></path></svg><a href="./ctn-poc-backlog.html">ctn-poc-backlog.html</a></span>
-          <span class="desc">PoC タスクバックログ（D）— ハンドオフのチケット粒度分解（E1〜E9）</span>
-          <span class="when">計画</span>
-        </div>
-      </div>
-
-      <!-- readme -->
-      <div class="readme">
-        <div class="rhead">
-          <svg class="octicon" height="16" viewBox="0 0 16 16" width="16" aria-hidden="true"><path d="M0 1.75A.75.75 0 0 1 .75 1h4.253c1.227 0 2.317.59 3 1.501A3.743 3.743 0 0 1 11.006 1h4.245a.75.75 0 0 1 .75.75v10.5a.75.75 0 0 1-.75.75h-4.507a2.25 2.25 0 0 0-1.591.659l-.622.621a.75.75 0 0 1-1.06 0l-.622-.621A2.25 2.25 0 0 0 5.258 13H.75a.75.75 0 0 1-.75-.75Zm7.251 10.324.004-5.073-.002-2.253A2.25 2.25 0 0 0 5.003 2.5H1.5v9h3.757a3.75 3.75 0 0 1 1.994.574ZM8.755 4.75l-.004 7.322a3.752 3.752 0 0 1 1.992-.572H14.5v-9h-3.495a2.25 2.25 0 0 0-2.25 2.25Z"></path></svg>
-          README
-        </div>
-        <div class="rbody">
-          <h1>CTN 治験届システム化 プロトタイプ</h1>
-          <p class="tagline">ブラウザでそのまま動作・操作できる共有用プレビュー（アカウント不要）</p>
-          <div class="note">
-            <svg class="octicon" height="16" viewBox="0 0 16 16" width="16" aria-hidden="true"><path d="M6.457 1.047c.659-1.234 2.427-1.234 3.086 0l6.082 11.378A1.75 1.75 0 0 1 14.082 15H1.918a1.75 1.75 0 0 1-1.543-2.575Zm1.763.707a.25.25 0 0 0-.44 0L1.698 13.132a.25.25 0 0 0 .22.368h12.164a.25.25 0 0 0 .22-.368Zm.53 3.996v2.5a.75.75 0 0 1-1.5 0v-2.5a.75.75 0 0 1 1.5 0ZM9 11a1 1 0 1 1-2 0 1 1 0 0 1 2 0Z"></path></svg>
-            <div>社内共有用の試作です。URL を知る人は誰でも閲覧できます（検索エンジンには <code>noindex</code> 済み）。</div>
-          </div>
-
-          <h2>共有ドキュメント</h2>
-          <ul>
-            <li><a href="./ctn-ux-react-standalone.html">UX モック (React)</a> — 治験届管理のメイン画面。操作可能なインタラクティブ版</li>
-            <li><a href="./ctn-ux-manual.html">操作マニュアル</a> — UX モックの操作ガイド</li>
-            <li><a href="./ctn-systemization-summary.html">システム化 検討まとめ</a> — データモデル・順序番号・外字の設計判断と CSV/GxP 要点</li>
-            <li><a href="./ctn-xsd-mapping.html">XSD マッピング表（たたき台）</a> — 手引き第4版から自動抽出した 138 要素 × STATUS × 順序番号型</li>
-            <li><a href="./ctn-notification-matrix.html">届出種別 × 項目 使用マトリクス（たたき台）</a> — 計画/変更/終了/中止/開発中止で各項目をどう扱うか（記入/継承/3.8固定NONE）</li>
-            <li><a href="./ctn-implementation-handoff.html">実装ハンドオフ仕様</a> — 開発メンバー向け。Dataverseスキーマ・PAフロー仕様・Cat5(XML/XSD・採番)のI/F契約・受入基準(OQ)</li>
-            <li><a href="./ctn-dataverse-columns.html">Dataverse 列定義（公式XSD準拠）</a> — 公式XSD v3.0.0 の要素ツリーから生成した24テーブル・176項目（型/必須/STATUS方式/順序番号キー）</li>
-            <li><a href="./ctn-xsd-roundtrip.html">XSD ラウンドトリップ検証（A）</a> — 生成→公式XSD検証の実証（正常PASS・不正検出・桁はXSD対象外）</li>
-            <li><a href="./ctn-code-tables.html">コード参照表（B）</a> — 大学番号一覧94件ほかコード表レジストリ</li>
-            <li><a href="./ctn-deadline-rules.html">期限・通知ルール（C）</a> — 変更届の提出期限管理ルール（たたき台）</li>
-            <li><a href="./ctn-poc-backlog.html">PoC タスクバックログ（D）</a> — 実装チケット E1〜E9（Phase1/2・Cat4/5・受入基準）</li>
-            <li><a href="./outputs/ctn-lp-static-safe-20260618-235143/index.html">静的バンドル一式</a> — LP・ドキュメントビューア等を含む生成済みサイト</li>
-          </ul>
-
-          <h2>公開URL</h2>
-          <p>このページは GitHub Pages で配信されています：<br>
-          <a href="https://splaika.github.io/ctn-prototype/">https://splaika.github.io/ctn-prototype/</a></p>
-        </div>
-      </div>
-    </section>
-
-    <!-- sidebar -->
-    <aside class="side">
-      <h2>About</h2>
-      <p class="about">治験届（CTN）システム化プロトタイプ。UXモック・検討資料・XSDマッピングを共有するための静的サイト。</p>
-      <div class="meta">
-        <a href="https://splaika.github.io/ctn-prototype/"><svg class="octicon" height="16" viewBox="0 0 16 16" width="16" aria-hidden="true"><path d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 2 2 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a2 2 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 2 2 0 0 0-2.83 0l-2.5 2.5a2 2 0 0 0 0 2.83Z"></path></svg>splaika.github.io/ctn-prototype</a>
-        <span><svg class="octicon" height="16" viewBox="0 0 16 16" width="16" aria-hidden="true"><path d="M8 9.5a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3Z"></path><path d="M8 0a8 8 0 1 1 0 16A8 8 0 0 1 8 0ZM1.5 8a6.5 6.5 0 1 0 13 0 6.5 6.5 0 0 0-13 0Z"></path></svg>社内共有用 / noindex</span>
-      </div>
-      <div class="topics">
-        <span>治験届</span><span>CTN</span><span>PMDA</span><span>Power-Platform</span><span>XSD</span><span>prototype</span>
-      </div>
-    </aside>
-
-  </div>
-</div>
-
-<footer>CTN prototype · noindex · internal sharing only</footer>
+<script>
+const GROUPS={proto:'プロトタイプ',design:'検討・設計',spec:'仕様（公式XSD準拠）',verify:'検証・参照データ',other:'その他'};
+const DOCS=[
+ {g:'proto', ic:'▶', t:'UX モック (React)', d:'治験届管理のメイン画面。操作可能なインタラクティブ版', tag:'MAIN', main:true, href:'./ctn-ux-react-standalone.html'},
+ {g:'proto', ic:'📘', t:'操作マニュアル', d:'UX モックの構造と使い方の解説', tag:'GUIDE', href:'./ctn-ux-manual.html'},
+ {g:'design', ic:'🧭', t:'システム化 検討まとめ', d:'データモデル・順序番号・外字の設計判断と CSV/GxP 要点', tag:'解説', href:'./ctn-systemization-summary.html'},
+ {g:'design', ic:'🛠', t:'実装ハンドオフ仕様', d:'開発メンバー向け。Dataverseスキーマ・PAフロー・Cat5 I/F契約・OQ', tag:'実装', href:'./ctn-implementation-handoff.html'},
+ {g:'design', ic:'🗂', t:'PoC タスクバックログ', d:'実装チケット E1〜E9（Phase1/2・Cat4/5・依存・受入基準）', tag:'計画', href:'./ctn-poc-backlog.html'},
+ {g:'spec', ic:'🗄', t:'Dataverse 列定義', d:'公式XSD v3.0.0 の要素ツリーから生成した24テーブル・176項目', tag:'XSD準拠', href:'./ctn-dataverse-columns.html'},
+ {g:'spec', ic:'🔗', t:'XSD マッピング表', d:'手引き第4版由来の138要素 × STATUS × 順序番号型', tag:'対応表', href:'./ctn-xsd-mapping.html'},
+ {g:'spec', ic:'▦', t:'届出種別マトリクス', d:'計画/変更/終了/中止/開発中止で各項目をどう扱うか（記入/継承/3.8）', tag:'種別×項目', href:'./ctn-notification-matrix.html'},
+ {g:'verify', ic:'✓', t:'XSD ラウンドトリップ検証', d:'XML生成→公式XSD検証の実証（正常PASS・不正検出・桁はXSD対象外）', tag:'検証済', href:'./ctn-xsd-roundtrip.html'},
+ {g:'verify', ic:'#', t:'コード参照表', d:'大学番号一覧94件ほかコード表レジストリ', tag:'コード', href:'./ctn-code-tables.html'},
+ {g:'verify', ic:'⏱', t:'期限・通知ルール', d:'変更届の提出期限管理ルール（たたき台）', tag:'ルール', href:'./ctn-deadline-rules.html'},
+ {g:'other', ic:'📦', t:'静的バンドル一式', d:'LP・ドキュメントビューア等を含む生成済みサイト', tag:'生成物', href:'./outputs/ctn-lp-static-safe-20260618-235143/index.html'},
+];
+const list=document.getElementById('list'), empty=document.getElementById('empty'), count=document.getElementById('count');
+let cur='all', q='';
+// counts
+document.querySelectorAll('[data-cnt]').forEach(el=>{const g=el.dataset.cnt; el.textContent = g==='all'?DOCS.length:DOCS.filter(d=>d.g===g).length;});
+function esc(s){return s.replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
+function render(){
+  const items=DOCS.filter(d=>(cur==='all'||d.g===cur) && (!q || (d.t+d.d+d.tag).toLowerCase().includes(q)));
+  list.innerHTML='';
+  count.textContent=items.length+' / '+DOCS.length+' 件';
+  empty.style.display=items.length?'none':'block';
+  let lastG=null;
+  items.forEach(d=>{
+    if(cur==='all' && d.g!==lastG){lastG=d.g;const h=document.createElement('div');h.className='grouplbl';h.textContent=GROUPS[d.g];list.appendChild(h);}
+    const a=document.createElement('a');a.className='item';a.href=d.href;
+    a.innerHTML=`<span class="ic">${esc(d.ic)}</span><span class="tx"><b>${esc(d.t)}</b><span>${esc(d.d)}</span></span><span class="tag${d.main?' main':''}">${esc(d.tag)}</span><span class="go">↗</span>`;
+    list.appendChild(a);
+  });
+}
+document.getElementById('nav').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;
+  document.querySelectorAll('#nav button').forEach(x=>x.classList.remove('active'));b.classList.add('active');cur=b.dataset.g;render();});
+document.getElementById('q').addEventListener('input',e=>{q=e.target.value.trim().toLowerCase();render();});
+render();
+</script>
 </body>
 </html>
