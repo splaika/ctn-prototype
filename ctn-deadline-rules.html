@@ -1,0 +1,43 @@
+<!doctype html><html lang="ja"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="robots" content="noindex, nofollow"><title>期限・通知ルール (C)</title><style>
+:root{--ink:#16222e;--sub:#5e6b78;--line:#dce6e9;--teal:#123f43;--teal2:#176154;--mint:#e7f5f0;--bg:#f5f7f8;--amber:#fff7e0;--mono:"SFMono-Regular",Consolas,Menlo,monospace}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:"Segoe UI","Yu Gothic UI",Meiryo,sans-serif;font-size:14px;line-height:1.7}
+.wrap{max-width:1080px;margin:0 auto;padding:34px 24px 80px}
+a.back{color:var(--teal2);font-size:12.5px;text-decoration:none}
+h1{font-size:23px;color:var(--teal);margin:6px 0 4px}h2{font-size:18px;color:var(--teal);margin:26px 0 8px;border-bottom:2px solid var(--line);padding-bottom:6px}
+.sub0{color:var(--sub);font-size:13px;margin-bottom:14px}
+.ok{background:#e7f0d2;color:#3f5a0a;border:1px solid #c4d98a;border-radius:9px;padding:12px 16px;margin:12px 0;font-weight:600}
+.warn{background:var(--amber);border:1px solid #ead58d;border-radius:9px;padding:11px 16px;margin:12px 0;font-size:13px;color:#6b5200}
+.note{background:var(--mint);border:1px solid #cde4df;border-radius:9px;padding:11px 16px;margin:12px 0;font-size:13px;color:#254b45}
+.tbl{overflow:auto;border:1px solid var(--line);border-radius:9px;margin:12px 0}
+table{border-collapse:collapse;width:100%;font-size:13px;min-width:520px}
+th{background:var(--teal);color:#fff;text-align:left;padding:8px 11px;font-size:12.5px;white-space:nowrap}
+td{padding:6px 11px;border-top:1px solid #eef2f3;vertical-align:top}
+tbody tr:nth-child(even){background:#fafcfd}
+code{font-family:var(--mono);background:#eef2f3;border-radius:5px;padding:1px 5px;font-size:90%}
+pre{background:#0f2b2e;color:#dcefe9;border-radius:9px;padding:13px 15px;overflow:auto;font-family:var(--mono);font-size:12.5px}
+.pill{display:inline-block;font-size:10.5px;font-weight:700;border-radius:5px;padding:1px 7px}
+.c4{background:#dcecf6;color:#1b6fa0}.c5{background:#123f43;color:#fff}.todo{background:#fff0ec;color:#9d351c}.done{background:#e7f0d2;color:#5c6b12}
+ul{padding-left:20px}li{margin:4px 0}
+footer{margin-top:26px;color:#9aa9ad;font-size:11px;text-align:center}
+.nav{margin-bottom:8px}
+</style></head><body><div class="wrap"><div class="nav"><a class="back" href="./index.html">&larr; ポータル</a>　|　<a class="back" href="./ctn-implementation-handoff.html">実装ハンドオフ</a>　|　<a class="back" href="./ctn-dataverse-columns.html">Dataverse列定義</a></div><h1>期限・通知ルール (C)</h1><div class="sub0">変更届の提出期限管理ルール（たたき台）</div>
+<div class="note"><b>スコープ:</b> PMDA審査の30日/14日は対象外（提出後クロック）。本表は<b>変更届の提出期限管理</b>のためのルール定義。</div>
+<h2>期限ルールのスキーマ</h2>
+<div class="tbl"><table><thead><tr><th>列</th><th>意味</th></tr></thead><tbody>
+<tr><td>事象種別</td><td>期限が発生するトリガー（マスタ変更の種類等）</td></tr>
+<tr><td>対象届出種別</td><td>計画/変更/終了/中止/開発中止</td></tr>
+<tr><td>起算日</td><td>期限計算の起点（事象発生日／決定日 等）</td></tr>
+<tr><td>期限日数</td><td>起算日からの日数（法令/SOP）</td></tr>
+<tr><td>通知タイミング</td><td>期限N日前にダッシュボード/通知</td></tr>
+</tbody></table></div>
+<h2>ルール表（たたき台）</h2>
+<div class="tbl"><table><thead><tr><th>事象種別</th><th>対象届</th><th>起算日</th><th>期限日数</th><th>通知</th></tr></thead><tbody>
+<tr><td>治験責任医師の変更</td><td>変更届</td><td>変更決定日</td><td>SOP規定（例:遅滞なく/30日）</td><td>7日前</td></tr>
+<tr><td>実施医療機関の追加</td><td>変更届</td><td>追加決定日</td><td>SOP規定</td><td>7日前</td></tr>
+<tr><td>予定被験者数の変更</td><td>変更届</td><td>変更決定日</td><td>SOP規定</td><td>7日前</td></tr>
+<tr><td>治験の終了</td><td>終了届</td><td>終了日</td><td>SOP規定</td><td>7日前</td></tr>
+<tr><td>治験の中止</td><td>中止届</td><td>中止決定日</td><td>SOP規定</td><td>7日前</td></tr>
+</tbody></table></div>
+<div class="warn"><b>要確定:</b> 治験計画の変更届は法令上「変更後遅滞なく」が基本で明確な日数規定が無い場合が多い。<b>「期限日数」は各社の通知解釈・SOPで確定</b>すること。本表は構造とルール運用の雛形。</div>
+<div class="note">実装: このルール表は<b>システム管理レイヤー</b>に保持。Flow B（変更届候補生成）が事象→起算→期限日を算出し、提出期限・起算日を届の<b>内部管理列（XSD項目外）</b>に書き、ダッシュボード/通知する。</div>
+<footer>CTN prototype · noindex · internal sharing only</footer></div></body></html>

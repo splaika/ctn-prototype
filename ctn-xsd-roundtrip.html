@@ -1,0 +1,40 @@
+<!doctype html><html lang="ja"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="robots" content="noindex, nofollow"><title>XML生成→XSD検証 ラウンドトリップ検証 (A)</title><style>
+:root{--ink:#16222e;--sub:#5e6b78;--line:#dce6e9;--teal:#123f43;--teal2:#176154;--mint:#e7f5f0;--bg:#f5f7f8;--amber:#fff7e0;--mono:"SFMono-Regular",Consolas,Menlo,monospace}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:"Segoe UI","Yu Gothic UI",Meiryo,sans-serif;font-size:14px;line-height:1.7}
+.wrap{max-width:1080px;margin:0 auto;padding:34px 24px 80px}
+a.back{color:var(--teal2);font-size:12.5px;text-decoration:none}
+h1{font-size:23px;color:var(--teal);margin:6px 0 4px}h2{font-size:18px;color:var(--teal);margin:26px 0 8px;border-bottom:2px solid var(--line);padding-bottom:6px}
+.sub0{color:var(--sub);font-size:13px;margin-bottom:14px}
+.ok{background:#e7f0d2;color:#3f5a0a;border:1px solid #c4d98a;border-radius:9px;padding:12px 16px;margin:12px 0;font-weight:600}
+.warn{background:var(--amber);border:1px solid #ead58d;border-radius:9px;padding:11px 16px;margin:12px 0;font-size:13px;color:#6b5200}
+.note{background:var(--mint);border:1px solid #cde4df;border-radius:9px;padding:11px 16px;margin:12px 0;font-size:13px;color:#254b45}
+.tbl{overflow:auto;border:1px solid var(--line);border-radius:9px;margin:12px 0}
+table{border-collapse:collapse;width:100%;font-size:13px;min-width:520px}
+th{background:var(--teal);color:#fff;text-align:left;padding:8px 11px;font-size:12.5px;white-space:nowrap}
+td{padding:6px 11px;border-top:1px solid #eef2f3;vertical-align:top}
+tbody tr:nth-child(even){background:#fafcfd}
+code{font-family:var(--mono);background:#eef2f3;border-radius:5px;padding:1px 5px;font-size:90%}
+pre{background:#0f2b2e;color:#dcefe9;border-radius:9px;padding:13px 15px;overflow:auto;font-family:var(--mono);font-size:12.5px}
+.pill{display:inline-block;font-size:10.5px;font-weight:700;border-radius:5px;padding:1px 7px}
+.c4{background:#dcecf6;color:#1b6fa0}.c5{background:#123f43;color:#fff}.todo{background:#fff0ec;color:#9d351c}.done{background:#e7f0d2;color:#5c6b12}
+ul{padding-left:20px}li{margin:4px 0}
+footer{margin-top:26px;color:#9aa9ad;font-size:11px;text-align:center}
+.nav{margin-bottom:8px}
+</style></head><body><div class="wrap"><div class="nav"><a class="back" href="./index.html">&larr; ポータル</a>　|　<a class="back" href="./ctn-implementation-handoff.html">実装ハンドオフ</a>　|　<a class="back" href="./ctn-dataverse-columns.html">Dataverse列定義</a></div><h1>XML生成→XSD検証 ラウンドトリップ検証 (A)</h1><div class="sub0">公式XSD v3.0.0 に対する生成・検証の実証</div>
+<div class="ok">✅ ラウンドトリップ検証 PASS — サンプルXMLを生成し、公式XSD (iykckn_all_v3_0_0.xsd) で検証→適合</div>
+<h2>検証内容</h2>
+<div class="tbl"><table><thead><tr><th>テスト</th><th>結果</th><th>意味</th></tr></thead><tbody>
+<tr><td>正常サンプルXML → XSD検証</td><td><b>PASS</b></td><td>要素の出現順・入れ子・STATUS・必須を正しく満たせる</td></tr>
+<tr><td>不正 <code>STATUS="FOO"</code> を注入</td><td><b>検出(1件)</b></td><td>「value must be one of ['UPDATE','NONE']」→ STATUS値を検証できる</td></tr>
+<tr><td>未知要素 <code>&lt;BOGUSELEMENT&gt;</code> 注入</td><td><b>検出(1件)</b></td><td>「Unexpected child」→ 構造逸脱を検出できる</td></tr>
+<tr><td>500字の長すぎる値</td><td><b>PASS(=検出されない)</b></td><td><b>XSDは桁を見ない</b> → 文字数(バイト)は業務検証で担保が必須</td></tr>
+</tbody></table></div>
+<h2>成果物（実装で再利用可）</h2>
+<ul>
+<li><code>outputs/ctn-xsd-mapping/iykckn_all_v3_0_0.xsd</code> … 公式XSD（検証スキーマ）</li>
+<li><code>outputs/ctn-xsd-mapping/sample-CLINTRIALPLANNOTE.xml</code> … 生成済みの適合サンプル（参照実装の出力例）</li>
+<li><code>outputs/ctn-xsd-mapping/validate_ctn_xml.py</code> … 検証スクリプト（xmlschema利用、Cat5-Aの検証部の雛形）</li>
+</ul>
+<h2>結論</h2>
+<div class="note">Cat5-A（XML生成＋XSD検証）の<b>検証コントラクトは実証済み</b>。XSDは構造・出現順・STATUS値・必須を検証するが、<b>桁・コード値は対象外</b>。実装では XSD検証に加え、文字数(バイト)・コード値・3.10スピルの<b>業務検証を併設</b>すること（ハンドオフ§4）。<br>※ 本サンプルは合成データ。実運用前に<b>過去の有効提出XML（ゴールデン）でのラウンドトリップ</b>も実施推奨。</div>
+<footer>CTN prototype · noindex · internal sharing only</footer></div></body></html>
