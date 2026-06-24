@@ -1,0 +1,309 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>CTN 実装ハンドオフ仕様 — 開発メンバー向け</title>
+<style>
+  :root{--ink:#16222e;--sub:#5e6b78;--line:#dce6e9;--teal:#123f43;--teal2:#176154;--mint:#e7f5f0;--bg:#f5f7f8;
+  --amber:#fff7e0;--blue:#e9f3ff;--red:#fff0ec;
+  --mono:"SFMono-Regular",Consolas,Menlo,monospace;--body:"Segoe UI","Yu Gothic UI",Meiryo,sans-serif}
+  *{box-sizing:border-box}html{scroll-behavior:smooth}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);line-height:1.85;font-size:14.5px}
+  .shell{display:grid;grid-template-columns:266px minmax(0,1fr);max-width:1240px;margin:0 auto;background:#fff;min-height:100vh}
+  aside{position:sticky;top:0;height:100vh;overflow:auto;padding:26px 18px;border-right:1px solid var(--line);background:#fbfcfc}
+  aside .brand{font-weight:800;color:var(--teal);font-size:15px}
+  aside small{color:var(--sub);font-size:11.5px;display:block;margin-top:3px}
+  nav{display:grid;gap:2px;margin-top:18px}
+  nav a{padding:6px 9px;border-radius:7px;color:var(--sub);text-decoration:none;font-size:12.5px}
+  nav a:hover{background:var(--mint);color:var(--teal)}
+  .links{margin-top:16px;padding-top:14px;border-top:1px solid var(--line);display:grid;gap:6px}
+  .links a{font-size:12px;color:var(--teal2);text-decoration:none}
+  .links a:hover{text-decoration:underline}
+  main{padding:42px 46px 90px;min-width:0}
+  h1{font-size:30px;color:var(--teal);margin:0 0 6px;line-height:1.4}
+  .lead{color:var(--sub);font-size:15px;margin:0 0 8px}
+  h2{font-size:22px;margin:46px 0 12px;padding-bottom:9px;border-bottom:3px solid var(--teal);color:var(--ink)}
+  h3{font-size:16.5px;color:var(--teal);margin:24px 0 6px}
+  h4{font-size:14.5px;margin:16px 0 4px}
+  p{margin:8px 0}
+  code{font-family:var(--mono);background:#eef2f3;border-radius:5px;padding:1px 5px;font-size:90%}
+  pre{background:#0f2b2e;color:#dcefe9;border-radius:9px;padding:14px 16px;overflow:auto;font-family:var(--mono);font-size:12.5px;line-height:1.65}
+  pre .c{color:#7fae9f}
+  .goal{display:flex;gap:12px;background:#fff;border:1.5px solid var(--teal);border-radius:11px;padding:13px 17px;margin:14px 0;font-size:13.5px}
+  .goal .ic{flex:none;font-weight:800;color:#fff;background:var(--teal);border-radius:7px;padding:3px 9px;font-size:11px;height:fit-content}
+  .note{background:var(--mint);border:1px solid #cde4df;border-radius:8px;padding:11px 16px;margin:14px 0;font-size:13px;color:#254b45}
+  .warn{background:var(--amber);border:1px solid #ead58d;border-radius:8px;padding:11px 16px;margin:14px 0;font-size:13px;color:#6b5200}
+  .tbl{overflow:auto;border:1px solid var(--line);border-radius:9px;margin:14px 0}
+  table{border-collapse:collapse;width:100%;min-width:640px;font-size:13px}
+  th{background:var(--teal);color:#fff;text-align:left;padding:8px 11px;font-size:12.5px;white-space:nowrap}
+  td{padding:7px 11px;border-top:1px solid #eef2f3;vertical-align:top}
+  tbody tr:nth-child(even){background:#fafcfd}
+  td code{font-size:85%}
+  .pill{display:inline-block;font-size:10.5px;font-weight:700;border-radius:5px;padding:1px 7px}
+  .c4{background:#dcecf6;color:#1b6fa0}.c5{background:#123f43;color:#fff}
+  ul{padding-left:20px;margin:8px 0}li{margin:4px 0}
+  .flow{display:flex;flex-wrap:wrap;gap:6px;margin:12px 0;align-items:center}
+  .flow span{padding:7px 11px;border:1px solid var(--line);border-radius:7px;background:#fbfcfc;font-size:12px;font-weight:700}
+  .flow span:nth-child(odd){background:var(--mint)}
+  .arr{color:#9db7c9}
+  a.back{color:var(--teal2);font-size:12.5px;text-decoration:none}
+  footer{margin-top:48px;padding-top:16px;border-top:1px solid var(--line);color:var(--sub);font-size:11.5px}
+  @media(max-width:920px){.shell{grid-template-columns:1fr}aside{position:static;height:auto;border-right:0;border-bottom:1px solid var(--line)}main{padding:28px 20px 60px}}
+</style>
+</head>
+<body>
+<div class="shell">
+  <aside>
+    <div class="brand">CTN 実装ハンドオフ</div>
+    <small>開発メンバー向け実装仕様</small>
+    <nav>
+      <a href="#s0">0. 読み方・前提</a>
+      <a href="#s1">1. スコープと Cat4/Cat5 境界</a>
+      <a href="#s2">2. Dataverse スキーマ</a>
+      <a href="#s3">3. Power Automate フロー仕様</a>
+      <a href="#s4">4. Cat5-A: XML生成＋XSD検証</a>
+      <a href="#s5">5. Cat5-B: 採番プラグイン</a>
+      <a href="#s6">6. 実装の入力仕様（参照）</a>
+      <a href="#s7">7. ハマりどころ</a>
+      <a href="#s8">8. 受入基準（OQ）</a>
+    </nav>
+    <div class="links">
+      <a href="./index.html">&larr; ポータル</a>
+      <a href="./ctn-systemization-summary.html">検討まとめ</a>
+      <a href="./ctn-xsd-mapping.html">XSDマッピング表</a>
+      <a href="./ctn-notification-matrix.html">届出種別マトリクス</a>
+    </div>
+  </aside>
+
+  <main>
+    <h1>CTN 治験届システム化 — 実装ハンドオフ仕様</h1>
+    <p class="lead">Power Platform（Dataverse / Power Apps / Power Automate）＋ Azure Functions で実装するメンバー向けの「何をどう作るか」仕様です。</p>
+
+    <section id="s0">
+      <h2>0. 読み方・前提</h2>
+      <div class="goal"><span class="ic">前提</span><p>読み手は <b>Power Automate / Dataverse の構築経験者</b>。本書はPAの基礎は扱わず、<b>この案件固有で経験から推測できない部分</b>（CTNドメイン規則・データモデル・Cat5のI/F契約・受入基準）に集中します。</p></div>
+      <p>本書は単独で完結させず、以下の「正本」を参照します。実装すべき項目定義はマッピング表・種別マトリクスが正本です。</p>
+      <div class="tbl"><table>
+        <thead><tr><th>正本資料</th><th>役割</th></tr></thead>
+        <tbody>
+          <tr><td><a href="./ctn-systemization-summary.html">検討まとめ</a></td><td>設計判断の背景（データモデル・順序番号2類型・外字）</td></tr>
+          <tr><td><a href="./ctn-xsd-mapping.html">XSDマッピング表</a></td><td>138要素 × ラベル × STATUS × 順序番号型（XML生成の入力仕様）</td></tr>
+          <tr><td><a href="./ctn-notification-matrix.html">届出種別マトリクス</a></td><td>計画/変更/終了/中止/開発中止で各項目をどう扱うか（記入/継承/3.8固定NONE）</td></tr>
+          <tr><td><code>outputs/ctn-xsd-mapping/*.json</code></td><td>上記の機械可読版（生成器・テストの入力に使用）</td></tr>
+        </tbody>
+      </table></div>
+      <div class="warn"><b>規制前提:</b> 提出物の正本は <b>XML</b>（公式XSD <code>iykckn_all_v3_0_0.xsd</code> / noNamespace / UTF-8、ルート <code>&lt;CLINTRIALPLANNOTE&gt;</code>）。要素名・出現順・型・桁は最終的に <b>PMDA配布の公式XSD</b> と突合のこと。マッピング表はPDF抽出由来のたたき台。</div>
+    </section>
+
+    <section id="s1">
+      <h2>1. スコープと Cat4/Cat5 境界</h2>
+      <div class="goal"><span class="ic">要点</span><p><b>大半は設定（Cat4）で作る。</b>PAで作れない2点だけがコード（Cat5）：<b>XSD検証付きXML生成</b>と<b>届スコープ採番</b>。ここの切り分けが工数とCSV負荷を決める。</p></div>
+      <div class="tbl"><table>
+        <thead><tr><th>レイヤー</th><th>技術</th><th>区分</th></tr></thead>
+        <tbody>
+          <tr><td>データ（マスタ・届・監査）</td><td>Dataverse</td><td><span class="pill c4">Cat 4</span></td></tr>
+          <tr><td>UI（フォーム/ビュー＋特殊UIのみPCF）</td><td>モデル駆動アプリ / PCF</td><td><span class="pill c4">Cat 4</span> ＋ PCFは<span class="pill c5">Cat 5</span></td></tr>
+          <tr><td>ワークフロー（起票→承認→提出）</td><td>Power Automate / BPF</td><td><span class="pill c4">Cat 4</span></td></tr>
+          <tr><td>文書保管</td><td>SharePoint</td><td><span class="pill c4">Cat 4</span></td></tr>
+          <tr><td><b>XML生成＋XSD検証</b></td><td>Azure Functions (.NET)</td><td><span class="pill c5">Cat 5</span></td></tr>
+          <tr><td><b>届スコープ採番・複雑判定</b></td><td>Dataverse プラグイン (C#)</td><td><span class="pill c5">Cat 5</span></td></tr>
+        </tbody>
+      </table></div>
+      <p><b>段階導入：</b> Phase 1＝社内ワークフロー電子化（設定中心・検証軽量）、Phase 2＝XML自動生成・提出（Cat5・検証重）。Cat5が入る瞬間にCSV負荷が跳ねるため、この順序。</p>
+    </section>
+
+    <section id="s2">
+      <h2>2. Dataverse スキーマ</h2>
+      <div class="goal"><span class="ic">要点</span><p><b>治験成分シリーズ＝親、各届＝子。</b>繰り返し要素は子テーブルで持ち、順序番号は型別に採番（→ §5）。物理削除は禁止、人の同一性は不変の医師IDが担う。</p></div>
+
+      <h3>2.1 トランザクション系</h3>
+      <div class="tbl"><table>
+        <thead><tr><th>テーブル（論理名例）</th><th>主な列</th><th>関係</th></tr></thead>
+        <tbody>
+          <tr><td><code>ctn_compoundseries</code><br>治験成分シリーズ（親）</td><td>治験成分記号(TESTSUBSTANCEIDCODE)、初回届出受付番号(RECEPTNUMINITNOTE)、初回届出年月日(INITNOTEDATE)、治験の種類、開発状態</td><td>—</td></tr>
+          <tr><td><code>ctn_notification</code><br>治験届（子・中核）</td><td>届出分類(CLASSNOTE=種別)、届出区分(CATEGORYNOTE)、届出回数(SERIALNOTENUM)、届出年月日、当該受付番号、様式バージョン、30日判定、状態(下書き〜提出済み)</td><td>N:1 → series</td></tr>
+          <tr><td><code>ctn_useddrug</code><br>治験使用薬行</td><td>順序番号(SERIALNO・<b>突合キー型</b>)、記号/名称、区分、剤形/投与経路コード、成分分量、行STATUS</td><td>N:1 → notification</td></tr>
+          <tr><td><code>ctn_site</code><br>実施医療機関行</td><td>施設(→機関マスタ)、診療科、予定被験者数、被験者数実績、行STATUS</td><td>N:1 → notification</td></tr>
+          <tr><td><code>ctn_sitequantity</code><br>施設別数量（孫）</td><td>薬×施設、予定/交付/使用/回収/廃棄数量（順序番号を継承）</td><td>N:1 → site</td></tr>
+          <tr><td><code>ctn_doctorevent</code><br>医師アサイン/異動（孫）</td><td>順序番号(<b>イベント行型</b>)、異動区分(登録/追加/削除/変更)、日付、理由、医師(→医師マスタ)、責任/分担の別</td><td>N:1 → site</td></tr>
+          <tr><td><code>ctn_noteattachment</code><br>届の添付資料行</td><td>資料(→添付マスタ)、版、出力対象、行STATUS</td><td>N:1 → notification</td></tr>
+          <tr><td><code>ctn_reference</code><br>参照する治験届出情報</td><td>参照区分、参照成分記号、参照届出回数</td><td>N:1 → notification</td></tr>
+          <tr><td><code>ctn_changeitem</code><br>変更項目メタ</td><td>対象項目(XSD要素キー)、STATUS(UPDATE等)、変更年月日(CHANGEDATE)、変更理由(CHANGEREASON)</td><td>N:1 → notification</td></tr>
+          <tr><td><code>ctn_gaijimap</code><br>外字置換記録</td><td>原表記、届出用表記、判定種別(IVS/PUA等)、承認状態、説明資料</td><td>N:1 → notification</td></tr>
+        </tbody>
+      </table></div>
+      <div class="note"><b>STATUSの持ち方:</b> 繰り返し行（薬・医師イベント・施設・添付）は<b>行に STATUS 列</b>（NONE/UPDATE/APPEND/DELETE）。単票項目の変更届差分は <code>ctn_changeitem</code> に「項目キー＋STATUS＋変更日＋理由」で持つ。3.8固定NONE項目は STATUS を立てない（→ §6・マトリクス）。</div>
+
+      <h3>2.2 マスタ系</h3>
+      <div class="tbl"><table>
+        <thead><tr><th>マスタ</th><th>主な列</th></tr></thead>
+        <tbody>
+          <tr><td><code>ctn_doctor</code> 医師</td><td><b>不変ID</b>、原表記氏名、届出用表記、よみかな、大学番号、卒業年、所属、外字扱い、statecode</td></tr>
+          <tr><td><code>ctn_institution</code> 医療機関</td><td>施設名、診療科、所在地1/2、電話、IRB紐づけ</td></tr>
+          <tr><td><code>ctn_drug</code> 治験使用薬</td><td>記号/名称、名称種別、区分、剤形コード、投与経路コード、数量単位、承認状況</td></tr>
+          <tr><td><code>ctn_sponsor</code> 届出者/依頼者</td><td>種別、法人名、代表者、所在地、業者コード、担当者、連絡先</td></tr>
+          <tr><td><code>ctn_org</code> CRO/SMO/IRB</td><td>種別、名称、住所、委託範囲、IRB区分</td></tr>
+          <tr><td><code>ctn_attachment</code> 添付資料</td><td>資料名、版、種別、必須条件、SharePoint保管先、承認状態、出力対象</td></tr>
+          <tr><td><code>ctn_code</code> コード参照</td><td>剤形/投与経路/薬効分類/大学番号（手引き第6章・日本薬局方より初期取込）</td></tr>
+        </tbody>
+      </table></div>
+
+      <h3>2.3 キー・採番・削除ポリシー</h3>
+      <ul>
+        <li><b>届出回数</b>（notification）＝シリーズ内連番。プラグインで採番（→ §5）。開発中止届は不要（"00"）。</li>
+        <li><b>順序番号（治験薬）</b>＝突合キー型：計画→終了/中止まで継承・不変、削除は欠番許容（再連番禁止）。</li>
+        <li><b>順序番号（医師イベント）</b>＝イベント行型：届ごとに1から採番。同一性は順序番号でなく医師マスタの不変ID。</li>
+        <li><b>代替キー</b>を採番衝突検出に使用（例: notification内の順序番号、series内の届出回数）。</li>
+        <li><b>削除</b>：親リレーションは <code>Restrict</code> で物理削除抑止。マスタは <code>statecode</code> 論理削除。医師の「削除」は削除イベント行として残す。</li>
+        <li><b>日付</b>：規制上の日付は「日付のみ・タイムゾーン非依存」。</li>
+      </ul>
+    </section>
+
+    <section id="s3">
+      <h2>3. Power Automate フロー仕様</h2>
+      <div class="goal"><span class="ic">要点</span><p>経験者向けに<b>仕様のみ</b>（作り方は割愛）。承認は30日超を想定し <b>Dataverse永続化＋2フロー構成</b>（依頼／応答処理）。承認前は提出不可をシステムで強制。</p></div>
+
+      <h3>状態モデル（ctn_notification.状態）</h3>
+      <div class="flow"><span>下書き</span><span class="arr">→</span><span>入力完了</span><span class="arr">→</span><span>一次レビュー</span><span class="arr">→</span><span>薬事確認</span><span class="arr">→</span><span>承認待ち</span><span class="arr">→</span><span>承認済み</span><span class="arr">→</span><span>出力準備</span><span class="arr">→</span><span>提出済み</span></div>
+
+      <div class="tbl"><table>
+        <thead><tr><th>フロー</th><th>トリガー</th><th>処理概要</th></tr></thead>
+        <tbody>
+          <tr><td>A. 届起票</td><td>手動／シリーズから</td><td>届出種別を選択し下書き作成。種別は <code>CLASSNOTE</code> に設定。変更/終了/中止は最新届のデータを引き継いで複製（§6マトリクスの「継承」列）。</td></tr>
+          <tr><td>B. 変更届候補生成</td><td>Dataverse: マスタ行の更新</td><td>差分検出→該当項目を <code>ctn_changeitem</code> 化（STATUS=UPDATE＋変更日・理由）→ 30日起算で期限候補→ Teams/Outlook通知。3.8固定項目は除外。</td></tr>
+          <tr><td>C. レビュー・承認</td><td>状態遷移／承認応答</td><td>承認(v2)＋Dataverse永続化の2フロー。職務分離（起案者≠承認者）を強制。電子署名を記録に紐付け。</td></tr>
+          <tr><td>D. 提出準備</td><td>状態=出力準備</td><td>XML生成Functionを呼ぶ（§4）→XSD検証→エラーを画面の項目別に表示／添付不足チェック→提出パッケージ化（PDF＋XML＋添付＋命名規則）。</td></tr>
+        </tbody>
+      </table></div>
+      <div class="note"><b>HITL→HOTL:</b> 初期は全項目HITL（人が確認）。XML整形・XSD検証・コード引き・継承(NONE)の値繰越など決定的処理から順にHOTL（自動）へ。低信頼抽出・新規マスタ登録・STATUS/変更理由の妥当性はHITL維持。</div>
+    </section>
+
+    <section id="s4">
+      <h2>4. Cat5-A: XML生成＋XSD検証 Function</h2>
+      <div class="goal"><span class="ic">要点</span><p>PA標準でXSD検証はできない。<b>Azure Functions(.NET)</b>で「マッピング表駆動のXMLシリアライズ＋公式XSD検証」を実装し、<b>エラーを項目キーに逆マップして返す</b>。生成自体は均一構造なので軽い。</p></div>
+
+      <h3>I/F 契約</h3>
+      <pre><span class="c">// POST /api/generate-ctn-xml</span>
+Request  { "notificationId": "&lt;guid&gt;" }
+Response {
+  "xml": "&lt;?xml version=\"1.0\" encoding=\"utf-8\"?&gt;&lt;CLINTRIALPLANNOTE ...&gt;...",
+  "valid": false,
+  "issues": [
+    { "severity":"Error", "xpath":"/CLINTRIALPLANNOTE/PHASECLINTRIAL",
+      "itemKey":"PHASECLINTRIAL", "message":"必須項目が空です" }
+  ]
+}</pre>
+
+      <h3>生成（マッピング表駆動）</h3>
+      <ul>
+        <li>入力は <code>ctn_notification</code>＋子行。<a href="./outputs/ctn-xsd-mapping/ctn-xsd-mapping.json">マッピングJSON</a>の順序・要素名・STATUS規則に従い直列化。</li>
+        <li>各項目は <code>&lt;要素 STATUS="..."&gt;&lt;VARIABLELABEL&gt;…&lt;/VARIABLELABEL&gt;[&lt;CHANGEDATE&gt;…][&lt;CHANGEREASON&gt;…]値&lt;/要素&gt;</code>。<b>子要素は値より前</b>。</li>
+        <li>種別は <a href="./ctn-notification-matrix.html">種別マトリクス</a>で「記入/継承/不使用」を判定。3.8固定はSTATUS=NONE。</li>
+        <li>コード値変換（剤形・投与経路 等）は <code>ctn_code</code> 参照。</li>
+      </ul>
+
+      <h3>検証（.NET標準）</h3>
+      <pre>var schemas = new XmlSchemaSet { XmlResolver = null };   <span class="c">// 外部解決を無効化</span>
+schemas.Add(null, "iykckn_all_v3_0_0.xsd");             <span class="c">// noNamespace → 第1引数 null</span>
+var settings = new XmlReaderSettings {
+    ValidationType = ValidationType.Schema, Schemas = schemas,
+    DtdProcessing = DtdProcessing.Prohibit };           <span class="c">// XXE/DoS対策</span>
+settings.ValidationEventHandler += (s,e) =&gt; issues.Add(Map(e));
+using var r = XmlReader.Create(xmlStream, settings);
+while (r.Read()) { }                                    <span class="c">// 全件走査しエラー収集</span></pre>
+      <ul>
+        <li>必須/型/桁/コード値/出現順序に加え <code>xs:key/keyref/unique</code> の参照整合も検証対象。</li>
+        <li>エラーは <b>XPath→項目キー（XSD要素）</b>に逆マップし、画面の出力前チェックに項目別表示。</li>
+        <li>セキュリティ：公式XSDは構成管理。<code>XmlResolver=null</code>／<code>DtdProcessing.Prohibit</code>。</li>
+      </ul>
+      <div class="warn"><b>文字ガード（同居推奨）:</b> NFC正規化・半角/全角ルール・<b>バイト長（文字数≠バイト数）</b>・3.10の文字数超過時「（添付資料名）のとおり」スピル判定を、検証前段で行う。</div>
+    </section>
+
+    <section id="s5">
+      <h2>5. Cat5-B: 採番プラグイン</h2>
+      <div class="goal"><span class="ic">要点</span><p>Dataverse標準オートナンバーは<b>テーブル全体で一意</b>のため「届/シリーズ・スコープの1,2,3…」に使えない。<b>同期プラグイン(PreOperation Create)</b>で型別に採番し、同時実行衝突に備える。</p></div>
+
+      <h3>突合キー型（治験使用薬の順序番号）</h3>
+      <pre><span class="c">// PreOperation Create on ctn_useddrug</span>
+if (変更/終了/中止届 &amp;&amp; 前届に対応行あり)
+    順序番号 = 前届の対応行の順序番号;      <span class="c">// 継承・不変</span>
+else
+    順序番号 = max(同シリーズの順序番号) + 1; <span class="c">// 新規のみ加番</span>
+<span class="c">// 削除は欠番許容：再連番しない（突合が壊れるため）</span></pre>
+
+      <h3>イベント行型（医師異動の順序番号）</h3>
+      <pre><span class="c">// PreOperation Create on ctn_doctorevent</span>
+順序番号 = max(同一<b>届</b>内の順序番号) + 1;   <span class="c">// 届ごとに1から</span>
+<span class="c">// 同一人物は順序番号でなく ctn_doctor の不変ID で識別</span>
+<span class="c">// 「追加」「削除」は同一届で別行（医師IDは同一）になり得る</span></pre>
+
+      <h3>同時実行制御</h3>
+      <ul>
+        <li>採番キーに<b>代替キー（一意制約）</b>を設定し、重複時は <code>catch</code>→再採番リトライ。</li>
+        <li>重い処理はプラグインに置かない（実行時間目安2分）。<b>XML生成はFunctions側</b>へ。</li>
+        <li>届出区分判定・30日判定・外字正規化など複雑ロジックも<b>サーバー側に正本化</b>（PCF/クライアントに依存させない）。</li>
+      </ul>
+    </section>
+
+    <section id="s6">
+      <h2>6. 実装の入力仕様（参照）</h2>
+      <p>項目レベルの実装仕様は次の2つが正本です。コード/フロー/Functionはこれを入力として実装してください。</p>
+      <ul>
+        <li><a href="./ctn-xsd-mapping.html">XSDマッピング表</a> … 138要素 × ラベル × 取りうるSTATUS × 順序番号型（出現セクション付き）。機械可読は <code>outputs/ctn-xsd-mapping/ctn-xsd-mapping.json</code>。</li>
+        <li><a href="./ctn-notification-matrix.html">届出種別マトリクス</a> … 計画/変更/終了/中止/開発中止 × 各項目（記入/継承/△/—、3.8固定NONE）。機械可読は <code>outputs/ctn-xsd-mapping/ctn-notification-matrix.json</code>。</li>
+      </ul>
+      <div class="note"><b>種別の作り分け（再掲）:</b> 種別は <code>STATUS</code> ではなく <b>届出分類(CLASSNOTE)</b> で指定。終了/中止の実績（中止情報・数量・被験者数）は<b>3.8によりSTATUS=NONEで記入</b>。開発中止届は<b>抜粋フォーマット（22項目）</b>で引き継ぎではない。</div>
+    </section>
+
+    <section id="s7">
+      <h2>7. ハマりどころ（先回り）</h2>
+      <div class="tbl"><table>
+        <thead><tr><th>論点</th><th>問題</th><th>対応</th></tr></thead>
+        <tbody>
+          <tr><td>採番</td><td>標準オートナンバーはテーブル全体一意</td><td>同期プラグインでスコープ採番（§5）</td></tr>
+          <tr><td>文字数</td><td>列長=文字数だがPMDA制限はバイト数（ファイル名255byte、カナ氏名 全角50/半角100）。サロゲートペア注意</td><td>バイト換算の検証ロジックを別実装（§4）</td></tr>
+          <tr><td>日付</td><td>User Local 既定だと届出年月日が1日ずれる</td><td>「日付のみ・TZ非依存」設定</td></tr>
+          <tr><td>集計</td><td>ロールアップ列は非同期（即時反映されない）</td><td>即時性が要る集計は数式列/プラグインで補う</td></tr>
+          <tr><td>削除</td><td>物理削除で履歴・突合が崩れる</td><td>親はRestrict、マスタは論理削除、医師削除はイベント行で残す</td></tr>
+          <tr><td>PCF</td><td>クライアント検証は迂回され得る／Cat5で検証文書が重い</td><td>PCFはUX向上のみ、<b>同等の正本をサーバー側</b>に</td></tr>
+          <tr><td>ALM</td><td>Power Platformは月次更新</td><td>全部品をソリューション化、開発/検証/本番分離、本番はマネージド、回帰テストパックで再検証判断</td></tr>
+        </tbody>
+      </table></div>
+    </section>
+
+    <section id="s8">
+      <h2>8. 受入基準（OQ）とテストデータ</h2>
+      <div class="goal"><span class="ic">要点</span><p>「人が最終承認するからCSV不要」は不可。<b>人間の最終承認をコントロールとして登録</b>し、リスクベースで検証深度を配分。下記8項目はOQで必ず通す。</p></div>
+      <ol>
+        <li>承認前は提出に進めない（HITLの構造的強制）</li>
+        <li>監査証跡が記録され、一般ユーザーが無効化・改変できない</li>
+        <li>職務分離（起案者≠承認者）が強制される</li>
+        <li>電子署名が記録に紐づく</li>
+        <li>XMLがXSDスキーマ検証を通過する</li>
+        <li>外字が検出・置換・記録され、説明資料が生成される</li>
+        <li>治験薬の順序番号が終了届まで保持され、数量を突合できる（突合キー型）</li>
+        <li>分担医師の追加・削除がイベント行（番号＋区分＋日付＋理由）で正しく生成される（イベント行型）</li>
+      </ol>
+      <h3>テストデータ例（医師異動・イベント行型）</h3>
+      <div class="tbl"><table>
+        <thead><tr><th>届</th><th>順序番号</th><th>区分</th><th>医師ID</th><th>氏名</th></tr></thead>
+        <tbody>
+          <tr><td>初回計画届</td><td>1 / 2</td><td>登録</td><td>D001 / D002</td><td>佐藤 / 鈴木</td></tr>
+          <tr><td>第1回変更</td><td>1 / 2</td><td>追加 / 削除</td><td>D003 / D001</td><td>田中追加・佐藤削除</td></tr>
+          <tr><td>第2回変更</td><td>1〜3</td><td>追加/追加/削除</td><td>D004 / D005 / D005</td><td>同一届でD005が追加＋削除の2行</td></tr>
+          <tr><td>第3回変更</td><td>1</td><td>変更</td><td>D002</td><td>鈴木→高橋（IDは不変）</td></tr>
+        </tbody>
+      </table></div>
+      <p class="lead" style="font-size:13px">検証観点：番号は届ごとに振り直し／同一届で追加＋削除の2行可／同一性はIDが担保。詳細は <a href="./ctn-systemization-summary.html">検討まとめ Section 04</a>。</p>
+    </section>
+
+    <footer>
+      CTN 治験届システム化 — 実装ハンドオフ仕様 / 開発メンバー向け / noindex・社内共有用<br>
+      正本: 検討まとめ・XSDマッピング表・届出種別マトリクス。本書のスキーマ/フロー/Function契約は実装着手用のたたき台で、公式XSDとの突合・PoCでの確定を前提とする。
+    </footer>
+  </main>
+</div>
+</body>
+</html>
