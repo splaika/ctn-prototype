@@ -253,7 +253,9 @@ else
       <ul>
         <li><a href="./ctn-xsd-mapping.html">XSDマッピング表</a> … 138要素 × ラベル × 取りうるSTATUS × 順序番号型（出現セクション付き）。機械可読は <code>outputs/ctn-xsd-mapping/ctn-xsd-mapping.json</code>。</li>
         <li><a href="./ctn-notification-matrix.html">届出種別マトリクス</a> … 計画/変更/終了/中止/開発中止 × 各項目（記入/継承/△/—、3.8固定NONE）。機械可読は <code>outputs/ctn-xsd-mapping/ctn-notification-matrix.json</code>。</li>
+        <li><a href="./ctn-dataverse-columns.html">Dataverse 列定義（公式XSD準拠）</a> … <b>公式XSD v3.0.0 の要素ツリーから生成</b>した24テーブル・176項目（階層・型・必須・STATUS方式・順序番号キー）。<b>§2のスキーマはこれを正本とする。</b> 公式XSD実体は <code>outputs/ctn-xsd-mapping/iykckn_all_v3_0_0.xsd</code>、ツリーJSONは <code>ctn-xsd-tree.json</code>。</li>
       </ul>
+      <div class="note"><b>公式XSDで確定した重要事実:</b> ① STATUS属性は2系統 — <b>UPDATE型</b>(UPDATE/NONE)＝単票、<b>ADD型</b>(NONE/APPEND/DELETE)＝繰り返し行。② <b>桁・コード値はXSDに無い</b>（全て xsd:string、maxLength/列挙なし）。したがって §4 の文字数(バイト)・コード値検証は <b>XSD検証とは別に業務ロジックで必須</b>。</div>
       <div class="note"><b>種別の作り分け（再掲）:</b> 種別は <code>STATUS</code> ではなく <b>届出分類(CLASSNOTE)</b> で指定。終了/中止の実績（中止情報・数量・被験者数）は<b>3.8によりSTATUS=NONEで記入</b>。開発中止届は<b>抜粋フォーマット（22項目）</b>で引き継ぎではない。</div>
     </section>
 
