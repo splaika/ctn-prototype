@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="robots" content="noindex, nofollow" />
+<title>仕様（XSD準拠・統合） — CTN</title>
+<style>
+  :root{
+    --bg:#0b0f14; --panel:#10151c; --row:#121821; --rowh:#1b2531;
+    --border:#222b36; --border2:#2c3742; --fg:#e8eef4; --muted:#90a0b0; --faint:#5f6e7d;
+    --accent:#4aa3ff; --teal:#39c5b0;
+    --sans:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans","Yu Gothic UI",Meiryo,sans-serif;
+    --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%}
+  body{background:var(--bg);color:var(--fg);font-family:var(--sans);display:flex;flex-direction:column;height:100vh}
+  a{color:inherit;text-decoration:none}
+  .bar{flex:none;background:var(--panel);border-bottom:1px solid var(--border);padding:10px 16px 0}
+  .top{display:flex;align-items:center;gap:14px;margin-bottom:9px}
+  .back{color:var(--faint);font-size:12.5px}
+  .back:hover{color:var(--accent)}
+  .top h1{font-size:15px;font-weight:700;margin:0}
+  .top h1 small{color:var(--faint);font-weight:400;font-size:11px;margin-left:8px}
+  .open{margin-left:auto;color:var(--accent);font-size:12px;font-family:var(--mono)}
+  .tabs{display:flex;gap:4px;flex-wrap:wrap}
+  .tab{all:unset;cursor:pointer;font-size:13px;color:var(--muted);padding:8px 14px;border-radius:8px 8px 0 0;border:1px solid transparent;border-bottom:none}
+  .tab:hover{background:var(--rowh);color:var(--fg)}
+  .tab.active{background:var(--bg);color:#cfe6ff;border-color:var(--border);position:relative;top:1px}
+  iframe{flex:1;width:100%;border:0;background:var(--bg)}
+  @media(max-width:640px){.tab{font-size:12px;padding:7px 10px}}
+</style>
+</head>
+<body>
+  <div class="bar">
+    <div class="top">
+      <a class="back" href="./index.html">← ポータル</a>
+      <h1>仕様（公式XSD準拠・統合）<small>3 仕様表をタブで集約</small></h1>
+      <a class="open" id="openNew" href="./ctn-dataverse-columns.html" target="_blank" rel="noopener">↗ 別タブで開く</a>
+    </div>
+    <nav class="tabs" id="tabs">
+      <button class="tab active" data-src="./ctn-dataverse-columns.html">🗄 Dataverse 列定義（176項目）</button>
+      <button class="tab" data-src="./ctn-xsd-mapping.html">🔗 XSD マッピング表（138要素）</button>
+      <button class="tab" data-src="./ctn-notification-matrix.html">▦ 届出種別マトリクス</button>
+    </nav>
+  </div>
+  <iframe id="frame" title="仕様ドキュメント" src="./ctn-dataverse-columns.html"></iframe>
+<script>
+  var frame=document.getElementById('frame'), openNew=document.getElementById('openNew');
+  function pick(src){
+    frame.src=src; openNew.href=src;
+    document.querySelectorAll('.tab').forEach(function(t){t.classList.toggle('active', t.dataset.src===src);});
+    if(location.hash.slice(1)!==src) history.replaceState(null,'','#'+src);
+  }
+  document.getElementById('tabs').addEventListener('click',function(e){
+    var b=e.target.closest('.tab'); if(b) pick(b.dataset.src);
+  });
+  var h=decodeURIComponent(location.hash.slice(1));
+  if(h && document.querySelector('.tab[data-src="'+h+'"]')) pick(h);
+</script>
+</body>
+</html>

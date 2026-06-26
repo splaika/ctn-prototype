@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="robots" content="noindex, nofollow" />
+<title>CSV 最小統制 & ライセンス設計 — CTN</title>
+<style>
+  :root{
+    --bg:#0b0f14; --panel:#10151c; --panel2:#151b24; --row:#121821; --rowh:#1b2531;
+    --border:#222b36; --border2:#2c3742;
+    --fg:#e8eef4; --muted:#90a0b0; --faint:#5f6e7d;
+    --accent:#4aa3ff; --teal:#39c5b0; --green:#54d07f; --amber:#e3b341;
+    --sans:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans","Yu Gothic UI",Meiryo,sans-serif;
+    --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0}
+  body{background:var(--bg);color:var(--fg);font-family:var(--sans);font-size:15px;line-height:1.75}
+  .wrap{max-width:880px;margin:0 auto;padding:30px 26px 80px}
+  a{color:var(--accent);text-decoration:none}
+  a:hover{text-decoration:underline}
+  .back{display:inline-block;color:var(--faint);font-size:12.5px;margin-bottom:18px}
+  h1{font-size:23px;font-weight:700;margin:0 0 6px}
+  .sub{color:var(--muted);font-size:13px;margin:0 0 4px}
+  .meta{color:var(--faint);font-size:11.5px;font-family:var(--mono);margin-bottom:20px}
+  h2{font-size:17px;font-weight:700;margin:34px 0 10px;padding-top:14px;border-top:1px solid var(--border);color:#cfe6ff}
+  h2 .n{color:var(--teal);font-family:var(--mono);font-size:13px;margin-right:8px}
+  h3{font-size:14px;font-weight:700;margin:18px 0 6px;color:var(--fg)}
+  p{margin:8px 0}
+  ul,ol{margin:8px 0;padding-left:22px}
+  li{margin:4px 0}
+  strong{color:#fff}
+  code{font-family:var(--mono);background:var(--row);border:1px solid var(--border2);border-radius:5px;padding:1px 6px;font-size:12.5px;color:var(--teal)}
+  .lead{background:var(--panel2);border:1px solid var(--border2);border-left:3px solid var(--teal);border-radius:10px;padding:14px 18px;margin:18px 0;font-size:14px}
+  .lead b{color:var(--teal)}
+  .note{background:#bb800914;border:1px solid #bb800940;border-radius:10px;padding:11px 15px;font-size:13px;color:var(--amber);margin:14px 0}
+  .ok{color:var(--green)} .bad{color:#ff7b72}
+  table{border-collapse:collapse;width:100%;margin:14px 0;font-size:13px}
+  th,td{border:1px solid var(--border2);padding:8px 11px;text-align:left;vertical-align:top}
+  th{background:var(--panel2);color:#cfe6ff;font-weight:700}
+  tr:nth-child(even) td{background:#0e141c}
+  .flow{font-family:var(--mono);font-size:12.5px;color:var(--muted);background:var(--row);border:1px solid var(--border);border-radius:9px;padding:12px 15px;margin:14px 0;overflow:auto}
+  .src{font-size:12px;color:var(--muted)}
+  .src li{margin:3px 0}
+  .pill{display:inline-block;font-family:var(--mono);font-size:10.5px;font-weight:700;border-radius:6px;padding:1px 8px;background:#4aa3ff1f;color:var(--accent);margin-left:6px;vertical-align:middle}
+  footer{margin-top:40px;padding-top:16px;border-top:1px solid var(--border);color:var(--faint);font-size:11.5px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <a class="back" href="./index.html">← ポータルへ戻る</a>
+  <h1>CSV 最小統制 &amp; ライセンス設計 <span class="pill">検討・設計</span></h1>
+  <p class="sub">治験届システムに「本当に必要な CSV の重さ」と、Power Platform 実装時のライセンス実額</p>
+  <p class="meta">2026-06-26 設計討議サマリ / ©Seven to One / 社内共有用・noindex</p>
+
+  <div class="lead">
+    <b>結論の筋</b>：Cat4/5（GAMP）→ 人手承認のクレジット（CSA）→ 治験届 XML は既製ツールで作るのが業界標準 → <b>最小 CSV 統制セット</b>（ログイン帰属＋生成物一致記録）→ Power Platform 実装（Entra＋Dataverse 監査）→ <b>ライセンスは年 ¥10–15 万・1 アプリで足りる</b>。
+  </div>
+
+  <h2><span class="n">01</span>Cat 4 / Cat 5 は GAMP 5 のソフトカテゴリ</h2>
+  <p>このプロトタイプの「Cat 4 / Cat 5」は<strong>治験届の届出区分ではなく、GAMP 5 のソフトウェアカテゴリ</strong>。コンポーネントを「どう作ったか」で分類し、検証（CSV）の重さを決める枠組み。</p>
+  <ul>
+    <li><strong>Cat 4＝構成（設定）で作る製品</strong>（Dataverse／フォーム／Power Automate／SharePoint）→ 検証は構成仕様書＋OQ で軽い。</li>
+    <li><strong>Cat 5＝自社開発コード</strong>（Azure Functions の XSD 準拠 XML 生成等）→ 詳細設計＋単体テスト＋CSV 一式で重い。</li>
+  </ul>
+  <p>検証の重さ＝コンポーネントの作り方（カテゴリ）で決まる＝<strong>リスクベース配分</strong>。Cat 2 は GAMP 5 で廃止。</p>
+
+  <h2><span class="n">02</span>人手承認の「クレジット」で Cat 5 負荷は落とせる（CSA 的発想）</h2>
+  <p>人がレビュー・承認する＝<strong>検出コントロール</strong>が 1 枚噛む。ならば同じリスクをコードの網羅検証で二重に潰す必要はない（＝検証対象が"移動"する、CSA: Computer Software Assurance の考え方）。</p>
+  <p><strong>クレジットの成立条件</strong>：① その統制が本当にリスクを検出できる ② 統制自体が確実に効く（飛ばせない・記録が残る）。この 2 点を検証計画に根拠として書いて初めて、対応するソフト検証を正当に削れる。</p>
+  <div class="note">PDF は人が読めるので◎。ただし <strong>XML は人が読まない部分（外字・符号化）が△</strong> ＝ ここだけ残課題（後述の入力時バリデーションで入口に潰す）。</div>
+
+  <h2><span class="n">03</span>治験届 XML は「既製ツールで作る」のが業界標準</h2>
+  <p>JPMA「治験届の XML ファイル作成の手引き 第4版」別添5（2024-10 改訂）に <strong>XML データ作成システム提供会社一覧＝6 社</strong>が公式掲載されている。＝「XML は買って作る／CTMS の一機能で吐く」が業界の共通認識で、<strong>自前で生成エンジンを組む前提は業界にない</strong>。</p>
+  <table>
+    <tr><th>提供元</th><th>システム</th><th>系統</th></tr>
+    <tr><td>神戸医療産業都市推進機構（TRI）</td><td>新治験計画届作成システム</td><td>専用 Web・<strong>企業治験可・年¥20万/10ID・「CSV 対応で品質管理された環境」</strong></td></tr>
+    <tr><td>日立産業制御ソリューションズ</td><td>治験届 XML 作成ツール</td><td>専用ツール</td></tr>
+    <tr><td>ホライズン・データ・ワークス</td><td>治験届 XMLCreator</td><td>専用ツール（廉価帯）</td></tr>
+    <tr><td>富士通</td><td>tsClinical DDworks NX</td><td>GCP 管理システムの一機能</td></tr>
+    <tr><td>日本オラクル</td><td>Siebel CTMS</td><td>CTMS の一機能</td></tr>
+    <tr><td>Veeva Systems</td><td>Vault CTMS</td><td>CTMS の一機能</td></tr>
+  </table>
+  <ul>
+    <li><strong>医師主導治験は Excel 別紙様式（PDF 化）での提出を PMDA が正式許容</strong>＝提出物作成は軽量でも可。</li>
+    <li>実務は依然 <strong>8 割が Excel／Word／メール</strong>。富士通は DDworks に CSV を"別サービス"として付ける＝ベンダーがパッケージ化した適格性検証。</li>
+  </ul>
+  <div class="note"><strong>示唆</strong>：「Azure Functions で自前 XML 生成＝Cat5 最重」は<strong>設計判断が検証負荷を呼び込んでいる</strong>。既製ツール／TRI に委ねれば供給者評価（supplier assessment＝Cat3-4 相当）に格下げできる。</div>
+
+  <h2><span class="n">04</span>最小 CSV 統制セット（届出 prep システムに必要十分）</h2>
+  <p>治験届は<strong>届出制（実質審査付き）＋ PMDA 30 日調査＋人手ゲート多重</strong>のリスク階層。Cat5 のフル CSV ではなく、人手承認をクレジットして以下で「査察に説明可能」に成立する。</p>
+  <table>
+    <tr><th>統制</th><th>担保するもの</th><th>ALCOA+</th></tr>
+    <tr><td>ログイン／アクセス帰属（Entra ID）</td><td>誰が入力・確認・提出したか辿れる</td><td>Attributable</td></tr>
+    <tr><td>生成物の一致記録（承認済み原データ＝XML＝PDF、差分なし）</td><td>提出物が承認内容と一致＝中身が正しい</td><td>Accurate / Original</td></tr>
+    <tr><td>その記録が日時・担当者付きで残る</td><td>いつ誰が確認したか後から証明できる</td><td>Contemporaneous / Enduring</td></tr>
+  </table>
+  <p>治験届は<strong>令和2年8月改訂で社印捺印すら廃止</strong> → 電子署名は必須要件でなく「帰属ある承認＋記録」で代替可。</p>
+  <h3>本当に成立させる 3 条件</h3>
+  <ol>
+    <li><strong>差分は"承認済み原本"基準で比較</strong>（PDF-XML 相互一致だけでは不足＝両方同じ間違いをすり抜ける）。</li>
+    <li><strong>転記ステップが唯一の誤り混入点</strong> → Excel を廃止して直接入力にすれば発生源ごと消える。</li>
+    <li><strong>検証版＝提出版</strong>（差し替え防止・版固定）。</li>
+  </ol>
+
+  <h2><span class="n">05</span>実装（Power Platform）</h2>
+  <ul>
+    <li><strong>Entra ID</strong> = 認証・アクセス制御（認証エンジンは Microsoft 持ち＝インフラ Cat1、検証は設定のみ＝Cat4 的に軽い）。<strong>ただし「誰が承認したか」は Entra に残らない</strong> → Dataverse 側で記録する。</li>
+    <li><strong>承認記録は届出レコード自体に刻む</strong>（承認者・日時・対象版スナップショット/版ID）＋<strong>そのテーブルを Dataverse 監査 ON</strong>（管理者管理の追記型・利用者は消せない・保持年数設定可＝tamper-evident）。co-located＋retained＋version-pinned＋complete を同時充足。</li>
+    <li><strong class="bad">Power Automate の承認履歴"だけ"は不可</strong>：① 実行履歴は既定 <strong>28 日で削除</strong>（治験は年単位保管）② TTL で完全削除可・高負荷で欠落しうる＝改ざん耐性／全件性が監査証跡に不足 ③ どの版を承認したかに紐づかず別ストア。→ <strong>PA は"承認を回す道具"、原本は Dataverse レコード＋監査</strong>。</li>
+    <li><strong>入力画面化（Excel 廃止）の効き</strong>：転記ミス消滅＋<strong>入力時バリデーション強制</strong>（外字検出／文字数／コード辞書）＝人が読めない XML 部分の残課題も入口で潰せる。</li>
+  </ul>
+
+  <h2><span class="n">06</span>ライセンス試算<span class="pill">2026 価格・約¥155/$</span></h2>
+  <ul>
+    <li><strong>Power Apps Premium $20/人月</strong>（固定・割当）／ <strong>PAYG $10・その月にアプリを開いた実ユーザー・アプリ単位</strong>（使った月だけ・Azure 経由）／ Per App $5 は <strong>2026-01 新規終了</strong>。</li>
+    <li><strong>Dataverse アプリは閲覧でも有償エンタイトルメント必須・無料閲覧枠なし</strong>。Power BI 無料閲覧は <strong>F64+ 容量（~$5,257/月）のみ</strong>＝この規模は非現実的 → 見るだけの人は <strong>SharePoint／エクスポートで無料</strong>配信。</li>
+    <li><strong>モデル駆動アプリのネイティブ・ダッシュボードは Power Apps 権利に含む＝Power BI 不要</strong>（内部運用監視はこれで足りる）。</li>
+  </ul>
+  <p class="src">想定：入力 8＋承認 1＋管理 1＝10 名／年 1–10 件のバースト稼働／1 アプリ</p>
+  <table>
+    <tr><th>シナリオ</th><th>月額（平均）</th><th>年額</th></tr>
+    <tr><td><strong>本命 PAYG（実稼働・1アプリ）</strong></td><td><strong>約¥6,000–9,000</strong></td><td><strong>約¥7.5–11万</strong></td></tr>
+    <tr><td>＋maker/管理 1 席を Premium で固定</td><td>＋約¥3,100</td><td>＋約¥3.7万</td></tr>
+    <tr><td>（上限の参考）全員 Premium 10 席固定</td><td>約¥31,000</td><td>約¥37万</td></tr>
+    <tr><td>Power BI／Entra／SharePoint／Dataverse 容量</td><td class="ok">¥0</td><td class="ok">¥0</td></tr>
+  </table>
+  <p>→ <strong>本命＝月 1 万円弱・年 ¥10–15 万</strong>＝プロダクト価格（月 50–80 万円）の <strong>1–2% 未満</strong>＝誤差。<strong>ライセンスはコスト高騰の発生源にならない</strong>。膨らむ原因は「席の盛りすぎ」と「過剰 CSV」だけで、どちらもこの設計では避けている。</p>
+
+  <h2><span class="n">07</span>1 アプリで全スコープを通せる</h2>
+  <p>アプリ分割の 4 条件（別利用者層／別 UX・デバイス／独立ライフサイクル／商用パッケージング）は CTN で<strong>全否</strong>。同じ RA チーム・共有マスタ（治験成分 1:N）・同一ワークフロー＝1 つの入れ物に入れたい構造。</p>
+  <div class="flow">CTN（1 アプリ）
+├─ 届出：計画届 / 変更届 / 中止 / 終了 / 開発中止
+├─ マスタ：施設 / 医師 / 治験成分 / IRB
+└─ ダッシュボード：ステータス / 承認待ち / 期限アラート</div>
+  <ul>
+    <li>Phase 2（残り 4 届出＋AI 判定）・Phase 3（照会対応／PMDA Gateway 連携／eCTD v4 出力）も <strong>テーブル追加・裏側連携</strong>＝同一アプリで伸ばせる → PAYG は 1 ユーザー＝$10/月のまま。</li>
+    <li><strong class="bad">アンチパターン</strong>：届出種類ごとにアプリ分割（PAYG 倍々・メリットなし）。種類は"アプリ"でなく"テーブル/フォーム"で分ける。</li>
+    <li>商用の出し分けは<strong>セキュリティロール／機能フラグ</strong>で（アプリ分割不要）。</li>
+  </ul>
+
+  <h2><span class="n">08</span>残課題</h2>
+  <ol>
+    <li>外字／文字コード変換の入口バリデーション仕様の詳細化。</li>
+    <li>既製 XML ツール（TRI/日立/HORIZON 等）連携 vs 自前生成の最終判断。</li>
+    <li>実人数・年間届出件数・為替でのライセンス試算ピン留め。</li>
+  </ol>
+
+  <footer>
+    <strong>出典</strong>
+    <ul class="src">
+      <li>JPMA「治験届の XML ファイル作成の手引き 第4版」別添5 治験届XMLデータ作成システム提供会社一覧（2024-10）</li>
+      <li>新治験計画届作成システム（TRI 神戸医療産業都市推進機構）／ PMDA 治験計画届出制度・医師主導治験 別紙様式</li>
+      <li>Microsoft Learn：Power Platform licensing FAQs／Pay-as-you-go plan／Cloud flow run history in Dataverse（既定28日）／Microsoft Fabric licenses（F64+ 無料閲覧）</li>
+      <li>GAMP 5 第2版（ISPE）／ ER/ES 指針・コンピュータ化システム適正管理ガイドライン</li>
+    </ul>
+    本ページは 2026-06-26 の設計討議を要約した社内検討資料。確定値は一次情報・公式 XSD との突合で更新する。
+  </footer>
+</div>
+</body>
+</html>
