@@ -95,11 +95,13 @@
         </tbody>
       </table></div>
       <div class="warn"><b>規制前提:</b> 提出物の正本は <b>XML</b>（公式XSD <code>iykckn_all_v3_0_0.xsd</code> / noNamespace / UTF-8、ルート <code>&lt;CLINTRIALPLANNOTE&gt;</code>）。要素名・出現順・型・桁は最終的に <b>PMDA配布の公式XSD</b> と突合のこと。マッピング表はPDF抽出由来のたたき台。</div>
+      <div class="note"><b>費用・ライセンス前提は別資料が正本:</b> PAYG・<b>1アプリ</b>・年 ¥10–15 万、Dataverse アプリは<b>閲覧も有償</b>（無料閲覧枠なし）、ダッシュボードは<b>モデル駆動ネイティブで Power BI 不要</b> — これらの前提は <a href="./ctn-csv-licensing.html">『CSV最小統制 &amp; ライセンス設計』(ctn-csv-licensing.html)</a> を参照。</div>
     </section>
 
     <section id="s1">
       <h2>1. スコープと Cat4/Cat5 境界</h2>
       <div class="goal"><span class="ic">要点</span><p><b>大半は設定（Cat4）で作る。</b>PAで作れない2点だけがコード（Cat5）：<b>XSD検証付きXML生成</b>と<b>届スコープ採番</b>。ここの切り分けが工数とCSV負荷を決める。</p></div>
+      <p><b>単一モデル駆動アプリ</b>内でテーブル/フォーム/ビューにより全届出種別（計画/変更/終了/中止/開発中止）を扱う。<b>届出種別ごとのアプリ分割はアンチパターン</b>（PAYGがアプリ単位課金のため倍々／データ整合・トレーサビリティが分断される）。後述の複数の Power Automate フローは「1アプリ内の処理ステップ」であってアプリ分割ではない（→ <a href="./ctn-csv-licensing.html">ライセンス設計 §07</a>）。</p>
       <div class="tbl"><table>
         <thead><tr><th>レイヤー</th><th>技術</th><th>区分</th></tr></thead>
         <tbody>
@@ -173,17 +175,24 @@
         <tbody>
           <tr><td>A. 届起票</td><td>手動／シリーズから</td><td>届出種別を選択し下書き作成。種別は <code>CLASSNOTE</code> に設定。変更/終了/中止は最新届のデータを引き継いで複製（§6マトリクスの「継承」列）。</td></tr>
           <tr><td>B. 変更届候補生成</td><td>Dataverse: マスタ行の更新</td><td>差分検出→該当項目を <code>ctn_changeitem</code> 化（STATUS=UPDATE＋変更日・理由）→ 変更届ドラフトを起票→<b>提出期限を起算・算出しダッシュボード/通知</b>（起算日・期限ルールはシステム管理に保持）。3.8固定項目は除外。</td></tr>
-          <tr><td>C. レビュー・承認</td><td>状態遷移／承認応答</td><td>承認(v2)＋Dataverse永続化の2フロー。職務分離（起案者≠承認者）を強制。電子署名を記録に紐付け。</td></tr>
+          <tr><td>C. レビュー・承認</td><td>状態遷移／承認応答</td><td>承認(v2)＋Dataverse永続化の2フロー。職務分離（起案者≠承認者）を強制。<b>承認の帰属性＋改ざん耐性</b>を担保（Entra帰属＋Dataverse監査＋承認者/日時/対象版を届出レコードに刻印）。電子署名は任意の一手段で法的必須ではない（→ §3末の注記）。</td></tr>
           <tr><td>D. 提出準備</td><td>状態=出力準備</td><td>XML生成Functionを呼ぶ（§4）→XSD検証→エラーを画面の項目別に表示／添付不足チェック→提出パッケージ化（PDF＋XML＋添付＋命名規則）。</td></tr>
         </tbody>
       </table></div>
       <div class="warn"><b>期限のスコープ:</b> PMDA審査の30日/14日は<b>提出後の当局クロックでありシステム管理外</b>（提出で完了）。一方、<b>変更届の提出期限は管理する</b>（事象から起算→期限候補→ダッシュボード通知。起算日・期限ルールはシステム管理レイヤーに保持し、提出期限・起算日は内部管理列としてXSD項目外に持つ）。なお <code>CATEGTESTPRODUCTSUBJ30DAYREVIEW</code>（30日調査対象区分）は<b>届出区分の項目値判定</b>であって、フローの期限ゲートではない。</div>
       <div class="note"><b>HITL→HOTL:</b> 初期は全項目HITL（人が確認）。XML整形・XSD検証・コード引き・継承(NONE)の値繰越など決定的処理から順にHOTL（自動）へ。低信頼抽出・新規マスタ登録・STATUS/変更理由の妥当性はHITL維持。</div>
+      <div class="note"><b>電子署名は必須ではない（要件は承認の帰属性＋改ざん耐性）:</b> 提出物は<b>令和2年8月通知で社印捺印が廃止</b>されており、電子署名は法的必須要件ではない。要件の実体は「<b>誰が承認したか辿れる（帰属性）</b>」と「<b>後から書き換えられない（改ざん耐性）</b>」の2点。これを <b>Entra帰属</b>＋<b>Dataverse監査(tamper-evident)</b>＋承認者・日時・対象版の<b>届出レコード刻印</b>で担保する。電子署名はこれを満たす任意の一手段にすぎない（統制自体＝改ざん耐性ある承認記録は必須として残す）。</div>
+      <div class="warn"><b>承認の正本は Dataverse 刻印。PA履歴は補助:</b> Power Automate(v2)の<b>実行履歴は既定28日で削除</b>され（治験は年単位保管）、改ざん耐性・版紐付けが弱く、どの版を承認したかにも紐づかない。よって承認者・日時・対象版を<b>届出レコード(Dataverse)に永続刻印</b>し、当該テーブルの<b>監査をON</b>（管理者管理の追記型・利用者は消せない・保持年数設定可＝tamper-evident）にして<b>正本</b>とする。PA履歴はあくまで補助（→ <a href="./ctn-csv-licensing.html">ライセンス設計 §05</a>）。</div>
     </section>
 
     <section id="s4">
       <h2>4. Cat5-A: XML生成＋XSD検証 Function</h2>
       <div class="goal"><span class="ic">要点</span><p>PA標準でXSD検証はできない。<b>Azure Functions(.NET)</b>で「マッピング表駆動のXMLシリアライズ＋公式XSD検証」を実装し、<b>エラーを項目キーに逆マップして返す</b>。生成自体は均一構造なので軽い。</p></div>
+
+      <div class="warn"><b>XML生成は2系統。本格運用は①を優先検討:</b><br>
+      ① <b>既製ツールに委譲</b>（神戸TRI〔CSV対応・年¥20万〕／日立／HORIZON／富士通 DDworks NX／Oracle／Veeva ＝ JPMA 別添5の6社）→ 供給者評価（supplier assessment）で <b>Cat3-4 相当</b>に格下げできる。<br>
+      ② <b>自前 Azure Functions</b>（本章）→ <b>Cat5</b>（詳細設計＋単体テスト＋CSV 一式を自社負担）。<br>
+      本仕様は②前提のたたき台だが、自前生成は「設計判断が検証負荷を呼び込む」構造のため、<b>本格運用では①の委譲を優先検討</b>し、OQ に <b>supplier assessment</b> を追加する。なお<b>医師主導治験は Excel 別紙様式（PDF化）での提出も PMDA が正式許容</b>＝提出物作成は軽量でも可（→ <a href="./ctn-csv-licensing.html">ライセンス設計 §03</a>）。</div>
 
       <h3>I/F 契約</h3>
       <pre><span class="c">// POST /api/generate-ctn-xml</span>
@@ -283,11 +292,12 @@ else
         <li>承認前は提出に進めない（HITLの構造的強制）</li>
         <li>監査証跡が記録され、一般ユーザーが無効化・改変できない</li>
         <li>職務分離（起案者≠承認者）が強制される</li>
-        <li>電子署名が記録に紐づく</li>
+        <li>承認が帰属性つき・改ざん耐性ある記録として残る（Entra帰属＋Dataverse監査＋承認者/日時/対象版の届出レコード刻印。電子署名は任意の一手段で法的必須ではない＝令和2年8月通知で社印捺印廃止）</li>
         <li>XMLがXSDスキーマ検証を通過する</li>
         <li>外字が検出・置換・記録され、説明資料が生成される</li>
         <li>治験薬の順序番号が終了届まで保持され、数量を突合できる（突合キー型）</li>
         <li>分担医師の追加・削除がイベント行（番号＋区分＋日付＋理由）で正しく生成される（イベント行型）</li>
+        <li>XML生成を既製ツールに委譲する場合、<b>供給者評価（supplier assessment）</b>が実施・記録される（自前 Azure Functions 採用時のみ Cat5 のフル CSV を適用）</li>
       </ol>
       <h3>テストデータ例（医師異動・イベント行型）</h3>
       <div class="tbl"><table>

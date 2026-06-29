@@ -193,6 +193,7 @@ footer{border-top:1px solid var(--line);padding:18px 0;color:var(--sub);font-siz
     <div class="lcard" data-go="scope"><span class="id">CSV計画 §4</span><b>検証スコープ</b><span>3層の検証深度と軽さの3条件。</span></div>
     <div class="lcard" data-go="rtm"><span class="id">RTM</span><b>追跡マトリクス</b><span>URS↔FS↔RA↔OQを結ぶ中枢。</span></div>
   </div>
+  <p style="margin-top:14px;color:var(--sub);font-size:12.5px">※ ライセンス・コスト前提（PAYG／1アプリ／年¥10–15万）は <a href="ctn-csv-licensing.html">ctn-csv-licensing.html</a> を参照。電子署名の要否・XML生成の委譲は考慮ポイント <span class="note-chip" data-go="notes" data-id="N13">ⓘ N13</span><span class="note-chip" data-go="notes" data-id="N15">ⓘ N15</span> を参照。</p>
 </section>
 
 <!-- URS -->
@@ -273,6 +274,7 @@ footer{border-top:1px solid var(--line);padding:18px 0;color:var(--sub);font-siz
     (1) 独立した人間レビューが提出前に実際に行われる　(2) 正本値をサーバー側で再計算する　(3) 完全性コントロールがプラットフォーム層にありUIが迂回できない。<br>いずれか1つでも崩れた瞬間、UIは重いCat 5に戻る。<span class="note-chip" data-go="notes" data-id="N4">ⓘ 詳しく</span>
   </div>
   <p>重心の要点：完全性コントロールは「作る（設定）」が軽く「検証」が最も重い。React UIはその逆で、作るのは手間だが検証は軽い。XML生成は両方重いがPhase 2に隔離できる。</p>
+  <p style="color:var(--sub);font-size:12.5px">※ XML生成（FS-08）は既製ツール委譲でCat3–4相当に軽くできる <span class="note-chip" data-go="notes" data-id="N15">ⓘ N15</span>。完全性コントロールの「重」は電子署名そのものではなく帰属＋監査で担保する点に注意 <span class="note-chip" data-go="notes" data-id="N13">ⓘ N13</span><span class="note-chip" data-go="notes" data-id="N14">ⓘ N14</span>。ライセンス前提は <a href="ctn-csv-licensing.html">ctn-csv-licensing.html</a>。</p>
 </section>
 
 <!-- RTM -->
@@ -447,6 +449,10 @@ const notes=[
  {id:"N10",title:"埋め込みcode app＝ガバナンス継承",body:"MDAにWeb Resourceとして埋め込むと、ロール・Dataverse監査・条件付きアクセス・DLP・ALMを継承。全書き込みがDataverse経由・認証ID保持・バイパス不可になり、OQ⑥の立証が容易。",refs:["R-11","FS-01"]},
  {id:"N11",title:"人間最終承認はDを下げる",body:"RPN＝S×P×D。人間レビューはD（検出性）を改善してRPNを下げる。これが検証を軽量化できる数理的な根拠で、Dが下がらない故障モードは「重」のまま残る。",refs:["R-02","R-03"]},
  {id:"N12",title:"文書を分ける意図（V字・GAMP）",body:"規制（適正管理ガイドライン/ER-ES指針/GCP省令）は「検証して文書化」を要求。URS/FS/DS…OQ/PQの分割はGAMP 5のV字で、関心の分離・循環論法の防止・トレーサビリティ・独立性・変更管理・査察対応のために行う。",refs:[]},
+ {id:"N13",title:"電子署名は必須でない（帰属＋監査で代替）",body:"治験届の提出物は令和2年8月通知で社印捺印が廃止されており、規制が求めるのは承認の帰属性と改ざん耐性。これはEntraによる帰属＋Dataverse監査（tamper-evident）＋承認者・日時・対象版を刻む届出レコードで担保できる。電子署名（URS-RG-002/FS-06/OQ4）は要件を満たす任意の一手段であって、法的に必須なわけではない。最新の正しい方向性はctn-csv-licensing.htmlを参照。",refs:["URS-RG-002","FS-06","R-08","OQ4"]},
+ {id:"N14",title:"PA承認履歴は単独で証跡に不適",body:"Power Automateの実行履歴は既定28日で削除され、改ざん耐性も版への紐付けも弱い。規制証跡は届出レコードへの刻印＋Dataverse監査ON（tamper-evident）でリングフェンスする。PA履歴はシステムアクティビティであって規制記録の正本ではない。",refs:["URS-RG-001","R-07"]},
+ {id:"N15",title:"XML生成は既製ツール委譲も選択肢",body:"治験届XMLは既製6社ツール（神戸TRI／日立／HORIZON／富士通DDworks NX／Oracle／Veeva＝JPMA別添5）が業界標準。委譲すればsupplier assessment＝Cat3–4相当に検証負荷が軽くなる。自前のAzure Functions（FS-08）はCat5の検証負荷を自社で抱える。本格運用では既製委譲を優先検討する（医師主導治験はExcel別紙でも可）。",refs:["FS-08","URS-FN-080"]},
+ {id:"N16",title:"複数アプリ分割はアンチパターン",body:"FS-10（成分シリーズ＝親、各届＝子）により5種の届出を単一アプリ内のテーブルで管理する。届出種別ごとにアプリを分割すると、ライセンス（PAYGはアプリ単位課金）・データ整合・RTM追跡がいずれも破綻する。",refs:["URS-FN-001","FS-10"]},
 ];
 
 // ---- helpers ----
