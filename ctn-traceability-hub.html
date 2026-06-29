@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>CTN Suite — CSV文書 トレーサビリティ・ハブ</title>
+<style>
+:root{
+  --blue:#238CC5; --blue-deep:#1B6E9C; --navy:#15324A; --ink:#1f2d38; --sub:#5a6b78;
+  --line:#D9E2E8; --mist:#EAF4FA; --paper:#fff; --bg:#F5F8FB;
+  --ok:#2E9E6B; --warn:#B9820B; --high:#C0392B;
+  --sans:"Segoe UI",system-ui,"Hiragino Kaku Gothic ProN","Yu Gothic",Meiryo,sans-serif;
+  --mono:ui-monospace,"SF Mono",Consolas,Menlo,monospace;
+  --label:Verdana,system-ui,sans-serif;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:14px;line-height:1.7;-webkit-font-smoothing:antialiased}
+a{color:var(--blue-deep)}
+.wrap{max-width:1120px;margin:0 auto;padding:0 22px}
+.dbar{height:0}
+.dbar::before,.dbar::after{content:"";display:block;width:100%}
+.dbar::before{height:4px;background:var(--blue)}
+.dbar::after{height:3px;background:#c3ced6}
+
+/* header */
+header{background:linear-gradient(160deg,var(--navy),var(--blue-deep));color:#fff}
+.hd{padding:30px 0 26px}
+.eyebrow{font-family:var(--label);font-size:10.5px;font-weight:700;letter-spacing:.24em;text-transform:uppercase;color:#bfe0f2}
+header h1{margin:8px 0 6px;font-size:27px;font-weight:700;letter-spacing:.01em}
+header p{margin:0;color:#d7e7f1;font-size:13.5px;max-width:70ch}
+.hd .tag{display:inline-block;margin-top:12px;font-family:var(--label);font-size:10px;letter-spacing:.12em;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.25);padding:4px 10px;border-radius:4px}
+
+/* nav */
+nav{position:sticky;top:0;z-index:50;background:rgba(255,255,255,.96);backdrop-filter:blur(6px);border-bottom:1px solid var(--line)}
+nav .wrap{display:flex;gap:2px;overflow-x:auto}
+.tab{appearance:none;border:0;background:none;font-family:var(--sans);font-size:13px;font-weight:600;color:var(--sub);padding:13px 14px;cursor:pointer;white-space:nowrap;border-bottom:3px solid transparent}
+.tab:hover{color:var(--ink)}
+.tab[aria-selected="true"]{color:var(--blue-deep);border-bottom-color:var(--blue)}
+.tab:focus-visible{outline:2px solid var(--blue);outline-offset:-3px}
+
+main{padding:30px 0 80px}
+section[data-tab]{display:none}
+section[data-tab].on{display:block;animation:fade .25s ease}
+@keyframes fade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+
+.sec-head{margin:0 0 4px}
+.sec-head .eyebrow{color:var(--blue)}
+h2{font-size:21px;margin:6px 0 2px;color:var(--navy)}
+.lead{color:var(--sub);margin:0 0 18px;max-width:78ch}
+h3{font-size:15.5px;color:var(--navy);margin:26px 0 8px}
+p{margin:0 0 12px}
+
+/* chips & ids */
+.id{font-family:var(--mono);font-size:12px;font-weight:600;color:var(--navy)}
+.xref{font-family:var(--mono);font-size:11.5px;font-weight:600;display:inline-block;padding:1px 7px;margin:2px 3px 2px 0;border-radius:4px;border:1px solid var(--line);background:#fff;color:var(--blue-deep);cursor:pointer;text-decoration:none;transition:background .15s,border-color .15s}
+.xref:hover{background:var(--mist);border-color:var(--blue)}
+.xref.urs{color:#1B6E9C}
+.xref.fs{color:#6b3fa0;border-color:#e3d8f0}
+.xref.risk{color:#b34; }
+.xref.oq{color:#2E7D5B;border-color:#cfe9dd}
+.xref.note{color:#9a6a00;border-color:#f0e3c2;background:#fdf8ee}
+.note-chip{font-family:var(--sans);font-size:11px;font-weight:700;display:inline-flex;align-items:center;gap:3px;padding:1px 7px 1px 5px;border-radius:20px;border:1px solid #f0e3c2;background:#fdf8ee;color:#9a6a00;cursor:pointer}
+.note-chip:hover{background:#fbf0d8}
+.cat{font-family:var(--label);font-size:9.5px;font-weight:700;letter-spacing:.08em;padding:2px 7px;border-radius:3px;background:var(--mist);color:var(--blue-deep);white-space:nowrap}
+.pri{font-size:11px;font-weight:700;padding:1px 8px;border-radius:20px}
+.pri.req{background:#fdecea;color:var(--high)}
+.pri.rec{background:#eef6f1;color:var(--ok)}
+.ph{font-family:var(--mono);font-size:11px;color:var(--sub)}
+.badge{font-family:var(--mono);font-size:11px;font-weight:600;padding:1px 7px;border-radius:4px;background:#eef2f5;color:var(--sub)}
+
+/* flash on jump */
+.flash{animation:flash 1.6s ease}
+@keyframes flash{0%{background:#fff7da}30%{background:#fff2c2}100%{background:transparent}}
+
+/* tables */
+.tbl{width:100%;border-collapse:collapse;font-size:13px;background:#fff;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.tbl th{background:var(--blue);color:#fff;text-align:left;font-size:11.5px;font-weight:700;padding:9px 10px;letter-spacing:.02em}
+.tbl td{border-top:1px solid var(--line);padding:8px 10px;vertical-align:top}
+.tbl tr:nth-child(even) td{background:#f7fafc}
+.tbl tr:target td,.tbl tr.flash td{background:#fff5d6 !important}
+.tbl .c{text-align:center;white-space:nowrap}
+.scroll{overflow-x:auto;border-radius:8px}
+
+/* controls */
+.controls{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:6px 0 14px}
+.controls input{font-family:var(--sans);font-size:13px;padding:7px 11px;border:1px solid var(--line);border-radius:6px;min-width:230px}
+.controls input:focus-visible{outline:2px solid var(--blue);outline-offset:-1px;border-color:var(--blue)}
+.fbtn{appearance:none;border:1px solid var(--line);background:#fff;font-family:var(--mono);font-size:11.5px;font-weight:600;color:var(--sub);padding:6px 11px;border-radius:20px;cursor:pointer}
+.fbtn[aria-pressed="true"]{background:var(--navy);color:#fff;border-color:var(--navy)}
+.count{margin-left:auto;font-size:12px;color:var(--sub)}
+
+/* cards */
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:14px}
+.card{background:#fff;border:1px solid var(--line);border-radius:10px;padding:16px 16px 14px}
+.card.flash{animation:flash 1.6s ease}
+.card .top{display:flex;align-items:center;gap:8px;margin-bottom:6px;flex-wrap:wrap}
+.card h4{margin:0;font-size:14px;color:var(--navy)}
+.card .body{font-size:13px;color:var(--ink)}
+.card .refs{margin-top:9px;padding-top:9px;border-top:1px dashed var(--line)}
+.card .refs .lbl{font-family:var(--label);font-size:9px;letter-spacing:.12em;color:var(--sub);text-transform:uppercase;display:block;margin-bottom:3px}
+
+/* depth coloring */
+.depth{font-weight:700;font-size:11px;padding:1px 8px;border-radius:4px}
+.d-heavy{background:#fdecea;color:var(--high)}
+.d-mid{background:#fbf2dc;color:var(--warn)}
+.d-light{background:#eef6f1;color:var(--ok)}
+.rpn{font-family:var(--mono);font-weight:700;text-align:center}
+
+/* overview vmodel */
+.vbox{background:#fff;border:1px solid var(--line);border-radius:10px;padding:20px;margin:14px 0}
+.vgrid{display:grid;grid-template-columns:1fr auto 1fr;gap:10px 18px;align-items:center}
+.vstage{background:var(--mist);border:1px solid #cfe2ee;border-radius:7px;padding:9px 12px;font-size:12.5px}
+.vstage .n{font-family:var(--mono);font-size:10px;color:var(--blue-deep);font-weight:700}
+.vstage b{display:block;color:var(--navy);font-size:13px}
+.vmid{font-family:var(--label);font-size:10px;letter-spacing:.1em;color:var(--sub);text-align:center}
+.vlink{font-family:var(--mono);font-size:10px;color:var(--sub);text-align:center;border-top:1px dashed var(--line);padding-top:3px}
+.vcenter{grid-column:1 / -1;text-align:center;background:var(--navy);color:#fff;border-radius:7px;padding:8px;font-size:12.5px;font-weight:600;margin-top:4px}
+.legend{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px;margin-top:14px}
+.lcard{border:1px solid var(--line);border-radius:8px;padding:11px 13px;background:#fff;cursor:pointer}
+.lcard:hover{border-color:var(--blue);background:var(--mist)}
+.lcard .id{font-size:11px}
+.lcard b{display:block;color:var(--navy);font-size:13px;margin-top:2px}
+.lcard span{font-size:12px;color:var(--sub)}
+
+.callout{background:var(--mist);border-left:3px solid var(--blue);border-radius:0 8px 8px 0;padding:12px 16px;margin:14px 0;font-size:13px}
+.note-banner{background:#fdf8ee;border:1px solid #f0e3c2;border-radius:8px;padding:10px 14px;font-size:12.5px;color:#7a5800;margin:16px 0}
+footer{border-top:1px solid var(--line);padding:18px 0;color:var(--sub);font-size:12px}
+@media (max-width:680px){
+  .vgrid{grid-template-columns:1fr}
+  .vmid,.vlink{display:none}
+  header h1{font-size:22px}
+}
+@media (prefers-reduced-motion:reduce){
+  *{animation:none !important;scroll-behavior:auto}
+}
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap hd">
+    <span class="eyebrow">CTN Suite · CSV Documentation</span>
+    <h1>トレーサビリティ・ハブ</h1>
+    <p>治験計画届システムの設計文書を一つの場所で横断する。要求（URS）→ 機能（FS）→ リスク（RA）→ 検証（OQ）を、クリックで相互にたどれる。各IDは押せる。考慮ポイントは <span style="color:#ffe08a">ⓘ</span> から該当箇所へ飛ぶ。</p>
+    <span class="tag">社内検討用ドラフト ｜ 規制根拠・期限値は原典で確定のこと</span>
+  </div>
+</header>
+<div class="dbar"></div>
+<nav><div class="wrap" role="tablist" id="tabs">
+  <button class="tab" data-go="overview" role="tab" aria-selected="true">概要</button>
+  <button class="tab" data-go="urs" role="tab" aria-selected="false">URS 要求</button>
+  <button class="tab" data-go="fs" role="tab" aria-selected="false">FS 機能</button>
+  <button class="tab" data-go="ra" role="tab" aria-selected="false">RA リスク</button>
+  <button class="tab" data-go="scope" role="tab" aria-selected="false">検証スコープ</button>
+  <button class="tab" data-go="rtm" role="tab" aria-selected="false">RTM 追跡</button>
+  <button class="tab" data-go="notes" role="tab" aria-selected="false">考慮ポイント</button>
+</div></nav>
+
+<main class="wrap">
+
+<!-- OVERVIEW -->
+<section data-tab="overview" class="on">
+  <div class="sec-head"><span class="eyebrow">Overview</span><h2>文書を分けて、鎖でつなぐ</h2></div>
+  <p class="lead">CSVの文書は、別々に作って相互に結ぶ。左側で「何が要るか」を定義し、右側で「要求どおりか」を検証する。この対応関係（V字）が、ゴールドプレーティングも未検証の要求も無くす。</p>
+
+  <div class="vbox">
+    <div class="vgrid">
+      <div class="vstage"><span class="n">①</span><b>URS ユーザー要求</b>何が要るか（業務・規制）</div>
+      <div class="vmid">検証で対応 →</div>
+      <div class="vstage"><span class="n">⑦</span><b>PQ / UAT</b>実業務で目的達成を確認</div>
+      <div class="vlink"></div><div></div><div class="vlink">URS ↔ PQ</div>
+      <div class="vstage"><span class="n">②</span><b>FS 機能仕様</b>どう実現するか</div>
+      <div class="vmid">→</div>
+      <div class="vstage"><span class="n">⑥</span><b>OQ 運転時適格性</b>仕様どおり動く証明</div>
+      <div class="vlink"></div><div></div><div class="vlink">FS ↔ OQ</div>
+      <div class="vstage"><span class="n">③</span><b>DS 設計仕様</b>設定値・コード設計</div>
+      <div class="vmid">→</div>
+      <div class="vstage"><span class="n">⑤</span><b>IQ 据付時適格性</b>環境が仕様どおり構築</div>
+      <div class="vcenter">④ 実装（構成 Cat 4 ／ 自社開発コード Cat 5）　＋　RA リスクアセスメントが全体を貫いて検証の深さを決める</div>
+    </div>
+  </div>
+
+  <h3>これは何かに規定されているのか</h3>
+  <p>結論を分けると、<b>「検証して文書で示すこと」は規制で義務</b>、<b>「URS/FS/DS…OQ/PQ という分け方」は業界標準（GAMP 5）</b>で、両者が噛み合って事実上の標準になっている。日本では厚労省「コンピュータ化システム適正管理ガイドライン」がCSVの実施と文書化されたライフサイクルを求め、ER/ES指針（電子記録・署名）、治験ならGCP省令が重なる。これらは多くの場合「URSという名前の文書を作れ」とは書かず、要求を定め・設計を示し・要求に照らして検証し・トレーサビリティと証跡を保て、という到達すべき状態を定める。その実装の型がGAMP 5のV字で、適正管理ガイドラインがこれに整合する形で書かれている。</p>
+  <p>分ける<b>意図</b>は5つ。<b>関心の分離</b>（URSは業務/QA、FS/DSは作り手、IQ/OQ/PQは検証者が別の立場で答える）／<b>循環論法の防止</b>（テストは実装ではなく独立に書かれた要求に照らす）／<b>トレーサビリティ</b>（要求→設計→テストが追え、漏れも過剰も可視化）／<b>変更管理</b>（RTMで影響範囲を局所化）／<b>査察対応</b>（鎖を一本辿れる）。<span class="note-chip" data-go="notes" data-id="N12">ⓘ 詳しく</span></p>
+
+  <h3>収録している文書</h3>
+  <div class="legend">
+    <div class="lcard" data-go="urs"><span class="id">CTN-URS-001</span><b>URS 要求</b><span>60件の要求。ID付きでRTMの起点。</span></div>
+    <div class="lcard" data-go="fs"><span class="id">CTN-FS-001</span><b>FS 機能仕様</b><span>必須差分・XSDマッピングを収録。</span></div>
+    <div class="lcard" data-go="ra"><span class="id">CTN-RA-001</span><b>RA リスク</b><span>FMEAと検証深度の正当化。</span></div>
+    <div class="lcard" data-go="scope"><span class="id">CSV計画 §4</span><b>検証スコープ</b><span>3層の検証深度と軽さの3条件。</span></div>
+    <div class="lcard" data-go="rtm"><span class="id">RTM</span><b>追跡マトリクス</b><span>URS↔FS↔RA↔OQを結ぶ中枢。</span></div>
+  </div>
+</section>
+
+<!-- URS -->
+<section data-tab="urs">
+  <div class="sec-head"><span class="eyebrow">CTN-URS-001</span><h2>ユーザー要求（URS）</h2></div>
+  <p class="lead">業務・規制の言葉で「何ができる必要があるか」を記述。区分で絞り込み、IDから関連する機能・リスク・考慮ポイントへ飛べる。</p>
+  <div class="controls" id="ursControls">
+    <input id="ursSearch" type="text" placeholder="要求を検索（例：順序番号、外字、署名）">
+    <button class="fbtn" data-f="ALL" aria-pressed="true">すべて</button>
+    <button class="fbtn" data-f="BG">BG</button>
+    <button class="fbtn" data-f="FN">FN</button>
+    <button class="fbtn" data-f="DT">DT</button>
+    <button class="fbtn" data-f="RG">RG</button>
+    <button class="fbtn" data-f="PF">PF</button>
+    <button class="fbtn" data-f="SC">SC</button>
+    <button class="fbtn" data-f="IF">IF</button>
+    <span class="count" id="ursCount"></span>
+  </div>
+  <div class="scroll"><table class="tbl"><thead><tr>
+    <th style="width:108px">ID</th><th style="width:150px">カテゴリ</th><th>要求内容</th>
+    <th class="c" style="width:60px">優先</th><th class="c" style="width:64px">Phase</th><th style="width:170px">関連</th>
+  </tr></thead><tbody id="ursBody"></tbody></table></div>
+</section>
+
+<!-- FS -->
+<section data-tab="fs">
+  <div class="sec-head"><span class="eyebrow">CTN-FS-001</span><h2>機能仕様（FS）</h2></div>
+  <p class="lead">URSを「どう実現するか」に翻訳。各機能カードの URS チップは対応要求へ、★の2表は届出種別ごとの差分とXSDマッピング。</p>
+  <div class="cards" id="fsCards"></div>
+
+  <h3>★ 届出種別ごとの必須項目差分マトリクス <span class="note-chip" data-go="notes" data-id="N6">ⓘ 6/12か月</span></h3>
+  <p class="lead" style="margin-bottom:8px">◎必須／○該当時・条件付き／△変更箇所のみ／—対象外。<b>ドラフト。手引きで各セルを確定。</b></p>
+  <div class="scroll"><table class="tbl"><thead><tr>
+    <th>項目グループ</th><th class="c">新規計画</th><th class="c">変更</th><th class="c">終了</th><th class="c">中止</th><th class="c">開発中止</th>
+  </tr></thead><tbody id="matrixBody"></tbody></table></div>
+
+  <h3>★ XML出力フィールド ↔ PMDA XSD マッピング</h3>
+  <div class="note-banner">論理項目（データ元）は確定済み。<b>XSD要素名・型・多重度は『XMLファイル作成の手引き 第4版』と公式XSDで確定する</b>（本表は枠組みと変換規則のテンプレート）。</div>
+  <div class="scroll"><table class="tbl"><thead><tr>
+    <th style="width:54px">#</th><th>論理項目</th><th>データ元</th><th>XSD要素</th><th>変換規則</th><th style="width:110px">対応URS</th>
+  </tr></thead><tbody id="mapBody"></tbody></table></div>
+</section>
+
+<!-- RA -->
+<section data-tab="ra">
+  <div class="sec-head"><span class="eyebrow">CTN-RA-001</span><h2>リスクアセスメント（RA）</h2></div>
+  <p class="lead">RPN＝重大性 S × 発生 P × 検出性 D。<b>人間レビューはDを下げてRPNを下げる＝軽量化の根拠</b>。監査改ざん等はDが下がらず「重」が残る。<span class="note-chip" data-go="notes" data-id="N11">ⓘ なぜDが効く</span></p>
+
+  <h3>リスク低減コントロール</h3>
+  <div class="cards" id="rcCards"></div>
+
+  <h3>機能別リスク評価（FMEA）</h3>
+  <div class="scroll"><table class="tbl"><thead><tr>
+    <th style="width:54px">ID</th><th>機能 / 故障モード</th><th class="c">S</th><th class="c">P</th><th class="c">D</th><th class="c">RPN</th><th class="c">深さ</th><th style="width:200px">関連</th>
+  </tr></thead><tbody id="raBody"></tbody></table></div>
+
+  <h3>OQ 必須テスト</h3>
+  <div class="scroll"><table class="tbl"><thead><tr><th style="width:60px">ID</th><th>確認内容</th><th style="width:120px">対象リスク</th></tr></thead><tbody id="oqBody"></tbody></table></div>
+</section>
+
+<!-- SCOPE -->
+<section data-tab="scope">
+  <div class="sec-head"><span class="eyebrow">CSV計画 §4</span><h2>UI殻＝埋め込み code app の検証スコープ</h2></div>
+  <p class="lead">UI殻の選択は正本の置き場所に影響しない。code appはモデル駆動アプリに <b>Web Resourceとして埋め込み</b>、ロール・Dataverse監査・条件付きアクセス・DLP・ALMを継承する。<span class="note-chip" data-go="notes" data-id="N10">ⓘ 埋め込みの効果</span></p>
+
+  <h3>検証深度は3層（均一ではない）</h3>
+  <div class="scroll"><table class="tbl"><thead><tr>
+    <th>層</th><th>対象</th><th class="c">カテゴリ</th><th class="c">深さ</th><th>根拠</th>
+  </tr></thead><tbody>
+    <tr><td>完全性コントロール</td><td>監査・署名・職務分離・アクセス制御・提出ゲート</td><td class="c"><span class="badge">Cat 1〜4＋少数Plugin</span></td><td class="c"><span class="depth d-heavy">重</span></td><td>人間レビューで代替不能 <span class="note-chip" data-go="notes" data-id="N5">ⓘ</span></td></tr>
+    <tr><td>サーバー側 正本ロジック</td><td>区分・期限・採番・外字・ダブルブラインド</td><td class="c"><span class="badge">Cat 5＋数式列</span></td><td class="c"><span class="depth d-mid">中</span></td><td>RC-01/02が後ろ盾。主要＋境界値</td></tr>
+    <tr><td>React UI（code app）</td><td>描画・遷移・バインド・条件付き表示/必須</td><td class="c"><span class="badge">Cat 5（軽）</span></td><td class="c"><span class="depth d-light">軽</span></td><td>三重の後ろ盾。スモーク＋帰属性確認 <span class="note-chip" data-go="notes" data-id="N3">ⓘ</span></td></tr>
+    <tr><td>XML生成（Phase 2）</td><td>PMDA XSD準拠XMLの生成</td><td class="c"><span class="badge">Cat 5</span></td><td class="c"><span class="depth d-heavy">重</span></td><td>規制提出物。Phase 2に隔離</td></tr>
+  </tbody></table></div>
+
+  <div class="callout">
+    <b>「軽さ」が成立する3条件（設計の固定点）</b><br>
+    (1) 独立した人間レビューが提出前に実際に行われる　(2) 正本値をサーバー側で再計算する　(3) 完全性コントロールがプラットフォーム層にありUIが迂回できない。<br>いずれか1つでも崩れた瞬間、UIは重いCat 5に戻る。<span class="note-chip" data-go="notes" data-id="N4">ⓘ 詳しく</span>
+  </div>
+  <p>重心の要点：完全性コントロールは「作る（設定）」が軽く「検証」が最も重い。React UIはその逆で、作るのは手間だが検証は軽い。XML生成は両方重いがPhase 2に隔離できる。</p>
+</section>
+
+<!-- RTM -->
+<section data-tab="rtm">
+  <div class="sec-head"><span class="eyebrow">Traceability Matrix</span><h2>RTM ― 文書をつなぐ中枢</h2></div>
+  <p class="lead">機能（FS）を軸に、対応する要求・リスク・OQ・考慮ポイントを横一列で結ぶ。どのチップも押せる。これが「鎖を一本辿る」ビュー。</p>
+  <div class="scroll"><table class="tbl"><thead><tr>
+    <th style="width:64px">FS</th><th style="width:220px">機能</th><th>対応URS</th><th style="width:130px">リスク</th><th style="width:110px">OQ</th><th style="width:130px">考慮</th>
+  </tr></thead><tbody id="rtmBody"></tbody></table></div>
+  <p style="margin-top:14px;color:var(--sub);font-size:12.5px">※ 規制要求（URS-RG-001〜006）は監査・署名・職務分離に対応し、OQ②③④に必ず紐づく。XSDマッピング（FS-08）はOQ⑤の根拠表。</p>
+</section>
+
+<!-- NOTES -->
+<section data-tab="notes">
+  <div class="sec-head"><span class="eyebrow">Design Decisions</span><h2>考慮ポイント</h2></div>
+  <p class="lead">検討の過程で確定した、誤りやすい・効いてくる論点。各カードの参照チップから該当する要求・機能・リスクへ飛べる。</p>
+  <div class="cards" id="notesCards"></div>
+</section>
+
+</main>
+
+<div class="dbar"></div>
+<footer><div class="wrap">Confidential ｜ © Seven to One, Inc. ｜ CTN Suite CSV文書ハブ（社内検討用ドラフト）。本ハブの内容は『治験届の手引き』2024年3月版および本検討に基づくたたき台で、最新通知と原典で確定すること。</div></footer>
+
+<script>
+const requirements=[
+["URS-BG-001","BG","業務概要","治験計画届のライフサイクル（新規計画届→社内レビュー→承認→PMDA提出→変更/中止/終了/開発中止）を一貫して管理できること。","必須","P1"],
+["URS-BG-002","BG","業務概要","同一治験成分記号に係る一連の届出を「治験成分（シリーズ）」配下に束ね、初回計画届と後続の各届出を親子関係で関連付けて参照できること。","必須","P1"],
+["URS-BG-003","BG","業務概要","利用者が順序番号・XML・外字・医師IDといった内部仕様を意識せずに業務操作を遂行できること（SaaS型導線）。","推奨","P1"],
+["URS-FN-001","FN","届出種別","5種の届出（新規計画・変更・中止・終了・開発中止）を作成・管理できること。","必須","P1"],
+["URS-FN-002","FN","届出種別","届出種別に応じて入力対象セクション・必須項目・記載要否が切り替わること。","必須","P1"],
+["URS-FN-003","FN","届出種別","届出回数（通算）を治験成分シリーズ単位で管理し変動させず、変更回数は変更届ごとに採番できること。","必須","P1"],
+["URS-FN-004","FN","届出種別","過去の届を引き継いで起票できること（コピー・差分入力支援）。","推奨","P1"],
+["URS-FN-010","FN","区分・期限","届出区分（1/2/3）を判定・提示でき、最終的な区分は利用者が確認・確定できること。","必須","P1"],
+["URS-FN-011","FN","区分・期限","30日調査の対象判定（区分1）を行い、起算日を記録・管理できること。","必須","P1"],
+["URS-FN-012","FN","区分・期限","提出期限を自動算出できること（区分1は開始30日前、その他は2週間前）。先回りリマインドを行えること。","必須","P1"],
+["URS-FN-013","FN","区分・期限","6か月を目安とするまとめ届の対象（施設の名称等変更・契約に至らなかった施設削除・責任医師氏名変更・施設削除に伴う責任医師削除）を識別できること。","必須","P1"],
+["URS-FN-014","FN","区分・期限","12か月を目安とするまとめ届の対象を、治験分担医師の氏名変更・追加・削除のみに限定して識別できること。","必須","P1"],
+["URS-FN-015","FN","区分・期限","中止・終了・開発中止を遅滞なく提出すべき事象として識別し、事象発生時に6/12か月の保留カウンタを早期に締めること。","必須","P1"],
+["URS-FN-016","FN","区分・期限","6/12か月の期限は超過フラグ付きのアラートとし、ハードな提出ブロックとはしないこと。","推奨","P1"],
+["URS-FN-020","FN","順序番号","治験使用薬の順序番号を突合キー型として扱うこと（含量・剤形別に初回付番、変更・終了をまたいで不変、欠番可）。","必須","P1"],
+["URS-FN-021","FN","順序番号","責任/分担医師の順序番号をイベント行型として扱うこと（届・異動イベントごとに付番、同一医師が複数行）。","必須","P1"],
+["URS-FN-022","FN","順序番号","利用者のロスター操作から順序番号のイベント行（順序番号＋異動区分＋日付＋理由）を自動生成すること。","必須","P1"],
+["URS-FN-023","FN","順序番号","終了・中止届で治験使用薬の順序番号が保持され、施設別の数量が突合できること。","必須","P1"],
+["URS-FN-030","FN","施設・医師","医師を届をまたいで不変の同一性キー（医師マスタ）で管理し、改名後も連続性を追跡できること。","必須","P1"],
+["URS-FN-031","FN","施設・医師","役割入替や施設の統廃合・閉院・承継など、手引きの「その他」欄記載を要するケースを記録できること。","推奨","P1"],
+["URS-FN-032","FN","施設・医師","実施医療機関ごとの予定被験者数・治験使用薬数量を管理し、終了・中止時の数量を入力できること。","必須","P1"],
+["URS-FN-040","FN","外字","氏名等を原表記と届出用表記（JIS第1・第2水準への正規化）の対で保持できること。","必須","P1"],
+["URS-FN-041","FN","外字","外字・旧字・機種依存文字を検出し置換要否を提示でき、置換内容を記録できること。","必須","P1"],
+["URS-FN-042","FN","外字","外字対応を医師単位の確認履歴として扱い、新規医師または氏名変更時のみ確認を要求すること。確認責任は薬事。","必須","P1"],
+["URS-FN-043","FN","外字","置換時に提出用の置換説明資料を生成できること。","必須","P2"],
+["URS-FN-050","FN","ダブルブラインド","二重盲検は初回届を順序番号1・薬剤名空欄・数量「1式」で記載し、終了・中止時に構成薬剤へ展開できること。","必須","P1"],
+["URS-FN-060","FN","承認WF","起票→レビュー→承認→提出のステータスを管理し状態遷移を記録できること。","必須","P1"],
+["URS-FN-061","FN","承認WF","起案者と承認者が分離され、自己承認をシステムが禁止すること。","必須","P1"],
+["URS-FN-062","FN","承認WF","承認完了まで提出操作に進めないこと（承認後ゲート）。","必須","P1"],
+["URS-FN-063","FN","承認WF","承認時に電子署名を記録に紐づけられること。","必須","P1"],
+["URS-FN-070","FN","通知","提出期限への先回り通知を関係者に行えること。","必須","P1"],
+["URS-FN-071","FN","通知","ワークフロー状態変化を関係者に通知できること。","推奨","P1"],
+["URS-FN-080","FN","提出物","承認後にのみPMDA XSD準拠のXMLと所定形式のPDFを生成できること。","必須","P2"],
+["URS-FN-081","FN","提出物","生成XMLをXSDでバリデーションしエラーがないことを確認でき、過去XML取り込み互換を備えること。","必須","P2"],
+["URS-FN-082","FN","提出物","ファイル命名規則に従い半角英数字・記号で命名できること。","必須","P2"],
+["URS-FN-083","FN","提出物","PDFはテキスト含有とししおりを付与でき、ZIP内フルパス長等の制約に適合すること。","必須","P2"],
+["URS-FN-084","FN","提出物","GW提出後、GW受付番号と受付完了の控えを記録・保管できること。","必須","P2"],
+["URS-FN-085","FN","提出物","Phase 1は生成物の手動アップロードを手順統制で運用できること（提出は承認完了後に限る）。","必須","P1"],
+["URS-FN-090","FN","文書管理","Protocol・IB・ICF・添付資料・置換説明資料等を管理し届との関連付け・版管理ができること。","必須","P1"],
+["URS-FN-091","FN","文書管理","PMDAからの照会・回答を記録・追跡できること。","推奨","P1"],
+["URS-DT-001","DT","データ","治験届の構造化項目をPMDA XSDスキーマ要素へ対応づけて保持できること。","必須","P1"],
+["URS-DT-002","DT","データ","規制記録を法定保存期間にわたり保持し消失しないこと。","必須","P1"],
+["URS-DT-003","DT","データ","Unicodeで保持しつつPMDAのバイト数制限をバイト換算で検証できること。","必須","P1"],
+["URS-DT-004","DT","データ","規制上の日付を日付のみ・タイムゾーン非依存で扱い時差ずれが起きないこと。","必須","P1"],
+["URS-DT-005","DT","データ","治験成分記号は禁則文字を許容せず重複防止・突合のキーとして扱えること。","必須","P1"],
+["URS-RG-001","RG","規制","監査証跡を記録し、一般ユーザーが無効化・改変・削除できないこと（ALCOA+）。","必須","P1"],
+["URS-RG-002","RG","規制","電子署名を記録および署名者に確実に紐づけ事後に改ざんできないこと（ER/ES指針）。","必須","P1"],
+["URS-RG-003","RG","規制","職務分離（起案者≠承認者）をシステムで強制すること。","必須","P1"],
+["URS-RG-004","RG","規制","役割に応じたアクセス制御を行い、提出後不変の項目を保護できること。","必須","P1"],
+["URS-RG-005","RG","規制","30日調査の起算日、初回届と変更届の親子関係を規制要求として明示的に管理・追跡できること。","必須","P1"],
+["URS-RG-006","RG","規制","変更履歴・タイムスタンプを記録に紐づけ版間の追跡ができること。","必須","P1"],
+["URS-PF-001","PF","性能可用性","通常業務で実用上支障のない応答性を確保すること。","必須","P1"],
+["URS-PF-002","PF","性能可用性","規制記録のバックアップとリストアができ可用性を確保すること。","必須","P1"],
+["URS-PF-003","PF","性能可用性","基盤の月次更新に対し検証状態を維持できる運用を前提とできること。","必須","P1"],
+["URS-SC-001","SC","セキュリティ","Entra IDによる認証を行い未認証アクセスを排除できること。","必須","P1"],
+["URS-SC-002","SC","セキュリティ","条件付きアクセス・多要素認証等の組織ポリシーに適合できること。","必須","P1"],
+["URS-SC-003","SC","セキュリティ","機密情報の取り扱いについて最小権限・データ保護の方針に適合できること。","必須","P1"],
+["URS-IF-001","IF","インターフェース","PMDAゲートウェイへの提出物投入に適合する形式で出力できること（P1手動/P2連携）。","必須","P1·P2"],
+["URS-IF-002","IF","インターフェース","電子署名サービスと連携し署名を記録に紐づけられること。","必須","P1"],
+["URS-IF-003","IF","インターフェース","将来の社内CTMS/eTMF連携に向けデータ構造を相互運用可能に保てること。","推奨","P2"],
+];
+
+const fs=[
+ {id:"FS-01",name:"届出種別による表示・必須の出し分け",urs:["URS-FN-002"],gamp:"Cat 4",impl:"ビジネスルール＋フォームスクリプト",notes:["N3"]},
+ {id:"FS-02",name:"届出区分の判定（30日調査）",urs:["URS-FN-010","URS-FN-011"],gamp:"Cat 5/4",impl:"プラグイン（正本）＋UIサジェスト"},
+ {id:"FS-03",name:"提出期限の算出・リマインド",urs:["URS-FN-012","URS-FN-013","URS-FN-014","URS-FN-015","URS-FN-016","URS-FN-070"],gamp:"Cat 4/5",impl:"数式列/プラグイン＋Power Automate",notes:["N6","N7"]},
+ {id:"FS-04",name:"順序番号の採番（2類型）",urs:["URS-FN-020","URS-FN-021","URS-FN-022","URS-FN-023"],gamp:"Cat 5",impl:"同期プラグイン",notes:["N1","N8"]},
+ {id:"FS-05",name:"外字の検出・正規化・確認履歴",urs:["URS-FN-040","URS-FN-041","URS-FN-042","URS-FN-043"],gamp:"Cat 5/4",impl:"プラグイン＋GaijiMap",notes:["N2"]},
+ {id:"FS-06",name:"承認WF・職務分離・電子署名・提出ゲート",urs:["URS-FN-060","URS-FN-061","URS-FN-062","URS-FN-063","URS-RG-002","URS-RG-003"],gamp:"Cat 4/5",impl:"BPF＋Power Automate＋プラグイン＋ロール",notes:["N5"]},
+ {id:"FS-07",name:"通知・リマインダー",urs:["URS-FN-070","URS-FN-071"],gamp:"Cat 4",impl:"Power Automate"},
+ {id:"FS-08",name:"XML/PDF生成・バリデーション・提出",urs:["URS-FN-080","URS-FN-081","URS-FN-082","URS-FN-083","URS-FN-084","URS-FN-085"],gamp:"Cat 5",impl:"Azure Functions（Phase 2）"},
+ {id:"FS-09",name:"文書管理・照会対応",urs:["URS-FN-090","URS-FN-091"],gamp:"Cat 4",impl:"SharePoint＋Dataverse"},
+ {id:"FS-10",name:"データモデル（成分シリーズ＝親、各届＝子）",urs:["URS-BG-002","URS-DT-001","URS-DT-002","URS-DT-003","URS-DT-004","URS-DT-005"],gamp:"Cat 4",impl:"Dataverse",notes:["N9"]},
+];
+
+const matrix=[
+ ["治験届出者情報","◎","◎","◎","◎","◎"],["治験成分記号","◎","◎","◎","◎","◎"],
+ ["届出回数（通算）","◎","◎","◎","◎","◎"],["当該届出受付番号","—","◎","◎","◎","◎"],
+ ["当該届出年月日","◎","◎","◎","◎","◎"],["届出区分（1/2/3）","○","◎","—","—","—"],
+ ["治験計画概要（相/目的/期間）","◎","△","○","○","—"],["予定被験者数","◎","△","○","○","—"],
+ ["治験使用薬（名称/分量/用法）","◎","△","◎","◎","—"],["実施医療機関","◎","△","○","○","—"],
+ ["責任医師・分担医師","◎","△","○","○","—"],["施設別数量・予定交付","◎","△","—","—","—"],
+ ["施設別数量・実績（交付/使用/回収/廃棄）","—","—","◎","◎","—"],["中止日・理由・その後の対応","—","—","—","◎","—"],
+ ["終了に関する情報","—","—","◎","—","—"],["開発中止の理由・経緯","—","—","—","—","◎"],
+ ["変更箇所・変更理由・変更年月日","—","◎","—","—","—"],["添付資料","◎","○","○","○","○"],
+];
+
+const mapping=[
+ ["M-01","治験成分記号","治験成分.治験成分記号","禁則文字「&」不可・スペース識別",["URS-DT-005","URS-BG-002"]],
+ ["M-02","届出回数（通算）","治験届.届出回数","整数",["URS-FN-003"]],
+ ["M-03","変更回数","治験届.変更回数","変更届のみ",["URS-FN-003"]],
+ ["M-04","届出区分","治験届.届出区分","1/2/3・区分1=30日調査",["URS-FN-010"]],
+ ["M-05","当該届出受付番号","治験届.受付番号","新規計画届は空欄",["URS-FN-001"]],
+ ["M-06","当該届出年月日","治験届.届出年月日","日付のみ・TZ非依存・YYYYMMDD",["URS-DT-004"]],
+ ["M-07","治験使用薬：順序番号","治験使用薬.順序番号","突合キー型（不変）",["URS-FN-020"]],
+ ["M-08","治験使用薬：名称","治験使用薬.名称","二重盲検初回は空欄",["URS-FN-050"]],
+ ["M-10","治験使用薬：実績数量","施設別数量.各列","終了・中止届で必須",["URS-FN-023"]],
+ ["M-12","医師：氏名（届出用）","医師.氏名_届出用","外字正規化後・カナのバイト制限",["URS-FN-040","URS-DT-003"]],
+ ["M-13","医師：順序番号/異動","医師.順序番号ほか","イベント行型（追加/削除/変更）",["URS-FN-021","URS-FN-022"]],
+ ["M-14","中止日・中止理由","治験届.中止年月日ほか","中止・開発中止届",["URS-FN-001"]],
+];
+
+const rc=[
+ {id:"RC-01",title:"人間の最終承認",body:"独立した承認者が出力を確認し電子署名で承認、承認前は提出を禁止。出力の正しさに関する誤りのD（検出性）を改善。監査改ざん・職務分離・アクセス制御には効かない。"},
+ {id:"RC-02",title:"サーバー側 正本再計算",body:"区分・期限・採番・外字を保存時にサーバー側で再計算・確定し、クライアント値を信頼しない。UI側ロジックの欠陥を上書きで吸収。"},
+ {id:"RC-03",title:"プラットフォーム完全性（埋め込みで構造化）",body:"Dataverse監査＋削除制限、FLS、ロール、Entra、code appの埋め込みで全書き込みをDataverse経由・認証ID保持・迂回不可に。改ざん・なりすまし・バイパスに効く。"},
+];
+
+const risks=[
+ {id:"R-01",f:"治験届データ入力",mode:"必須欠落・誤入力のまま保存",S:3,P:2,D:1,rpn:6,depth:"中",rc:["RC-01","RC-02","RC-03"],urs:[],fs:["FS-01","FS-10"],oq:[],notes:[]},
+ {id:"R-02",f:"区分判定",mode:"誤った届出区分で提出",S:3,P:1,D:1,rpn:3,depth:"中",rc:["RC-01","RC-02"],urs:["URS-FN-010"],fs:["FS-02"],oq:[],notes:["N11"]},
+ {id:"R-03",f:"提出期限計算",mode:"期限誤算・リマインド漏れ",S:2,P:2,D:1,rpn:4,depth:"中",rc:["RC-01","RC-02"],urs:["URS-FN-012"],fs:["FS-03"],oq:[],notes:["N6"]},
+ {id:"R-04",f:"順序番号採番",mode:"採番衝突・型取り違え",S:3,P:2,D:1,rpn:6,depth:"中",rc:["RC-02"],urs:["URS-FN-020","URS-FN-021"],fs:["FS-04"],oq:[],notes:["N1"]},
+ {id:"R-05",f:"外字検出・正規化",mode:"外字未検出・置換記録欠落",S:2,P:2,D:2,rpn:8,depth:"中",rc:["RC-01","RC-02"],urs:["URS-FN-040","URS-FN-041"],fs:["FS-05"],oq:[],notes:["N2"]},
+ {id:"R-06",f:"承認ワークフロー",mode:"承認前に提出が可能",S:3,P:1,D:1,rpn:3,depth:"中〜重",rc:["RC-01","RC-03"],urs:["URS-FN-062"],fs:["FS-06"],oq:["OQ1"],notes:[]},
+ {id:"R-07",f:"監査証跡",mode:"一般ユーザーが無効化・改変・削除可",S:3,P:2,D:3,rpn:18,depth:"重",rc:["RC-03"],urs:["URS-RG-001"],fs:["FS-06"],oq:["OQ2"],notes:["N5"]},
+ {id:"R-08",f:"電子署名",mode:"署名が記録/人に紐づかない・改ざん可",S:3,P:1,D:3,rpn:9,depth:"重",rc:["RC-03"],urs:["URS-RG-002"],fs:["FS-06"],oq:["OQ4"],notes:["N5"]},
+ {id:"R-09",f:"職務分離（SoD）",mode:"起案者が自己承認できる",S:3,P:2,D:2,rpn:12,depth:"重",rc:["RC-03"],urs:["URS-RG-003"],fs:["FS-06"],oq:["OQ3"],notes:["N5"]},
+ {id:"R-10",f:"アクセス制御",mode:"ロール逸脱・過剰権限",S:3,P:1,D:2,rpn:6,depth:"中〜重",rc:["RC-03"],urs:["URS-RG-004"],fs:[],oq:[],notes:[]},
+ {id:"R-11",f:"React UI 書き込み",mode:"Dataverse非到達・認証ID欠落・迂回経路",S:3,P:1,D:2,rpn:6,depth:"中",rc:["RC-03"],urs:["URS-RG-001"],fs:["FS-01"],oq:["OQ6"],notes:["N10","N4"]},
+ {id:"R-12",f:"React UI 表示・入力支援",mode:"条件付き表示/必須の不具合・表示崩れ",S:1,P:2,D:2,rpn:4,depth:"軽",rc:["RC-01","RC-02","RC-03"],urs:["URS-FN-002"],fs:["FS-01"],oq:[],notes:["N3","N4"]},
+ {id:"R-13",f:"文書管理",mode:"添付資料の取り違え・版混在",S:2,P:2,D:2,rpn:8,depth:"中",rc:["RC-01"],urs:["URS-FN-090"],fs:["FS-09"],oq:[],notes:[]},
+ {id:"R-14",f:"バックアップ・保持",mode:"保持期間内の消失",S:3,P:1,D:2,rpn:6,depth:"中",rc:["RC-03"],urs:["URS-DT-002"],fs:[],oq:[],notes:[]},
+ {id:"R-15",f:"XML生成",mode:"XSD不適合・マッピング誤り",S:3,P:2,D:2,rpn:12,depth:"重",rc:["RC-01"],urs:["URS-FN-080","URS-FN-081"],fs:["FS-08"],oq:["OQ5"],notes:[]},
+];
+
+const oq=[
+ {id:"OQ1",text:"承認前は提出に進めない",covers:["R-06"]},
+ {id:"OQ2",text:"監査証跡が記録され一般ユーザーが無効化・改変できない",covers:["R-07"]},
+ {id:"OQ3",text:"職務分離（起案者≠承認者）が強制される",covers:["R-09"]},
+ {id:"OQ4",text:"電子署名が記録に紐づく",covers:["R-08"]},
+ {id:"OQ5",text:"XML出力がXSDスキーマで妥当",covers:["R-15"]},
+ {id:"OQ6",text:"code app書き込みがDataverseに到達し帰属性を保持（非バイパス）",covers:["R-11"]},
+];
+
+const notes=[
+ {id:"N1",title:"順序番号は2類型",body:"治験使用薬＝突合キー型（初回付番・不変・欠番可）、責任/分担医師＝イベント行型（届・イベントごとに付番、同一医師が複数行）。当初「治験薬のみ」と整理したのは誤りで、手引きpp.69–70／100–101で確認。",refs:["URS-FN-020","URS-FN-021","FS-04","R-04"]},
+ {id:"N2",title:"外字は確認履歴（辞書ではない）",body:"GaijiMapは医師単位の確認履歴。新規医師または氏名変更時のみ確認を要求し、辞書を一律再適用しない。確認責任は薬事担当。",refs:["URS-FN-042","FS-05","R-05"]},
+ {id:"N3",title:"Cat 5は「重さの置き場所が動く」",body:"code app化でUIのほぼ全部がCat 5になるが、検証深度は均一でなく完全性コントロールに集中する。UIは入力支援として軽い。",refs:["FS-01","R-12"]},
+ {id:"N4",title:"「軽さ」が成立する3条件",body:"(1)独立した人間レビュー (2)サーバー側で正本再計算 (3)完全性がプラットフォーム層・UI迂回不可。1つでも崩れると重いCat 5に戻る。",refs:["R-11","R-12"]},
+ {id:"N5",title:"完全性コントロールは人間レビューで代替不能",body:"監査改ざん・職務分離不成立・署名の検証は、レビューでD（検出性）が下がらないため「重」のまま残り、軽量化の対象外。",refs:["R-07","R-08","R-09"]},
+ {id:"N6",title:"6か月 と 12か月の切り分け",body:"6か月＝施設の名称等変更・契約に至らなかった施設削除・責任医師氏名変更・施設削除に伴う責任医師削除。12か月＝治験分担医師の氏名変更・追加・削除のみ。",refs:["URS-FN-013","URS-FN-014","FS-03"]},
+ {id:"N7",title:"遅滞なく事象で保留カウンタを締める",body:"中止・終了・開発中止の発生時に、6か月・12か月のまとめ届カウンタを早期にクローズする。",refs:["URS-FN-015","FS-03"]},
+ {id:"N8",title:"ダブルブラインドの初回表現",body:"初回届は順序番号1・薬剤名空欄・数量「1式」。終了/中止時に構成薬剤へ個別順序番号で展開する。",refs:["URS-FN-050","FS-04"]},
+ {id:"N9",title:"親子関係と30日起算",body:"治験成分シリーズ＝親、各届＝子。届出回数の通算・初回↔変更の親子・30日起算を規制要求として明示的に管理する。",refs:["URS-BG-002","URS-RG-005","FS-10"]},
+ {id:"N10",title:"埋め込みcode app＝ガバナンス継承",body:"MDAにWeb Resourceとして埋め込むと、ロール・Dataverse監査・条件付きアクセス・DLP・ALMを継承。全書き込みがDataverse経由・認証ID保持・バイパス不可になり、OQ⑥の立証が容易。",refs:["R-11","FS-01"]},
+ {id:"N11",title:"人間最終承認はDを下げる",body:"RPN＝S×P×D。人間レビューはD（検出性）を改善してRPNを下げる。これが検証を軽量化できる数理的な根拠で、Dが下がらない故障モードは「重」のまま残る。",refs:["R-02","R-03"]},
+ {id:"N12",title:"文書を分ける意図（V字・GAMP）",body:"規制（適正管理ガイドライン/ER-ES指針/GCP省令）は「検証して文書化」を要求。URS/FS/DS…OQ/PQの分割はGAMP 5のV字で、関心の分離・循環論法の防止・トレーサビリティ・独立性・変更管理・査察対応のために行う。",refs:[]},
+];
+
+// ---- helpers ----
+const tabOf=id=>id.startsWith("URS")?"urs":id.startsWith("FS")?"fs":id.startsWith("OQ")?"ra":id.startsWith("R")?"ra":id.startsWith("N")?"notes":"overview";
+const cls=id=>id.startsWith("URS")?"urs":id.startsWith("FS")?"fs":id.startsWith("OQ")?"oq":id.startsWith("R")?"risk":"note";
+function xref(id,label){return `<a class="xref ${cls(id)}" data-id="${id}">${label||id}</a>`;}
+function noteChip(id){const n=notes.find(x=>x.id===id);return `<span class="note-chip" data-go="notes" data-id="${id}" title="${n?n.title:''}">ⓘ ${n?n.title:id}</span>`;}
+
+// reverse maps URS -> fs/risk/note
+const ursRel={};
+requirements.forEach(r=>ursRel[r[0]]={fs:[],risk:[],note:[]});
+fs.forEach(f=>f.urs.forEach(u=>{if(ursRel[u])ursRel[u].fs.push(f.id)}));
+risks.forEach(r=>r.urs.forEach(u=>{if(ursRel[u])ursRel[u].risk.push(r.id)}));
+notes.forEach(n=>n.refs.forEach(u=>{if(ursRel[u])ursRel[u].note.push(n.id)}));
+
+// ---- render URS ----
+function renderURS(filter="ALL",q=""){
+  const body=document.getElementById("ursBody");q=q.trim();
+  const rows=requirements.filter(r=>(filter==="ALL"||r[1]===filter)&&(q===""||r[3].includes(q)||r[0].includes(q)||r[2].includes(q)));
+  body.innerHTML=rows.map(r=>{
+    const rel=ursRel[r[0]];
+    const chips=[...rel.fs.map(x=>xref(x)),...rel.risk.map(x=>xref(x)),...rel.note.map(x=>xref(x,"ⓘ"+x))].join("");
+    return `<tr id="${r[0]}"><td><span class="id">${r[0]}</span></td>
+      <td><span class="cat">${r[1]}</span> ${r[2]}</td>
+      <td>${r[3]}</td>
+      <td class="c"><span class="pri ${r[4]==="必須"?"req":"rec"}">${r[4]}</span></td>
+      <td class="c"><span class="ph">${r[5]}</span></td>
+      <td>${chips||"<span style='color:#aab'>—</span>"}</td></tr>`;
+  }).join("");
+  document.getElementById("ursCount").textContent=rows.length+" / "+requirements.length+" 件";
+}
+
+// ---- render FS ----
+function renderFS(){
+  document.getElementById("fsCards").innerHTML=fs.map(f=>`
+   <div class="card" id="${f.id}">
+     <div class="top"><span class="id">${f.id}</span><span class="badge">${f.gamp}</span></div>
+     <h4>${f.name}</h4>
+     <div class="body" style="color:var(--sub);font-size:12px">${f.impl}</div>
+     <div class="refs"><span class="lbl">対応URS</span>${f.urs.map(u=>xref(u)).join("")}
+     ${f.notes?("<div style='margin-top:6px'>"+f.notes.map(n=>noteChip(n)).join("")+"</div>"):""}</div>
+   </div>`).join("");
+  document.getElementById("matrixBody").innerHTML=matrix.map(m=>`<tr><td>${m[0]}</td>${m.slice(1).map(c=>`<td class="c">${c}</td>`).join("")}</tr>`).join("");
+  document.getElementById("mapBody").innerHTML=mapping.map(m=>`<tr><td><span class="id">${m[0]}</span></td><td>${m[1]}</td><td style="color:var(--sub)">${m[2]}</td><td style="color:#9a6a00">${'※要確定'}</td><td style="font-size:12px">${m[3]}</td><td>${m[4].map(u=>xref(u)).join("")}</td></tr>`).join("");
+}
+
+// ---- render RA ----
+function depthClass(d){return d.includes("重")?"d-heavy":d.includes("軽")?"d-light":"d-mid";}
+function renderRA(){
+  document.getElementById("rcCards").innerHTML=rc.map(c=>`
+    <div class="card" id="${c.id}"><div class="top"><span class="id">${c.id}</span></div>
+    <h4>${c.title}</h4><div class="body">${c.body}</div></div>`).join("");
+  document.getElementById("raBody").innerHTML=risks.map(r=>{
+    const rel=[...r.urs.map(x=>xref(x)),...r.fs.map(x=>xref(x)),...r.oq.map(x=>xref(x)),...r.notes.map(x=>xref(x,"ⓘ"+x))].join("");
+    return `<tr id="${r.id}"><td><span class="id">${r.id}</span></td>
+      <td><b>${r.f}</b><br><span style="color:var(--sub);font-size:12px">${r.mode}</span></td>
+      <td class="c">${r.S}</td><td class="c">${r.P}</td><td class="c">${r.D}</td>
+      <td class="rpn"><span class="depth ${depthClass(r.depth)}">${r.rpn}</span></td>
+      <td class="c"><span class="depth ${depthClass(r.depth)}">${r.depth}</span></td>
+      <td>${rel}<div style="margin-top:3px">${r.rc.map(x=>xref(x)).join("")}</div></td></tr>`;
+  }).join("");
+  document.getElementById("oqBody").innerHTML=oq.map(o=>`<tr id="${o.id}"><td><span class="id">${o.id}</span></td><td>${o.text}</td><td>${o.covers.map(x=>xref(x)).join("")}</td></tr>`).join("");
+}
+
+// ---- render RTM ----
+function renderRTM(){
+  document.getElementById("rtmBody").innerHTML=fs.map(f=>{
+    const rr=risks.filter(r=>r.fs.includes(f.id));
+    const oo=[...new Set(rr.flatMap(r=>r.oq))];
+    const nn=[...new Set([...(f.notes||[]),...rr.flatMap(r=>r.notes)])];
+    return `<tr><td><span class="id">${f.id}</span></td><td>${f.name}</td>
+      <td>${f.urs.map(u=>xref(u)).join("")}</td>
+      <td>${rr.map(r=>xref(r.id)).join("")||"<span style='color:#aab'>—</span>"}</td>
+      <td>${oo.map(o=>xref(o)).join("")||"<span style='color:#aab'>—</span>"}</td>
+      <td>${nn.map(n=>xref(n,"ⓘ"+n)).join("")||"<span style='color:#aab'>—</span>"}</td></tr>`;
+  }).join("");
+}
+
+// ---- render NOTES ----
+function renderNotes(){
+  document.getElementById("notesCards").innerHTML=notes.map(n=>`
+   <div class="card" id="${n.id}"><div class="top"><span class="id">${n.id}</span></div>
+   <h4>${n.title}</h4><div class="body">${n.body}</div>
+   ${n.refs.length?`<div class="refs"><span class="lbl">参照</span>${n.refs.map(r=>xref(r)).join("")}</div>`:""}</div>`).join("");
+}
+
+// ---- tabs ----
+function showTab(name){
+  document.querySelectorAll('section[data-tab]').forEach(s=>s.classList.toggle('on',s.dataset.tab===name));
+  document.querySelectorAll('.tab').forEach(t=>t.setAttribute('aria-selected',String(t.dataset.go===name)));
+}
+function jump(id){
+  const el=document.getElementById(id);if(!el)return;
+  showTab(tabOf(id));
+  setTimeout(()=>{el.scrollIntoView({behavior:'smooth',block:'center'});el.classList.remove('flash');void el.offsetWidth;el.classList.add('flash');},60);
+}
+
+document.addEventListener('click',e=>{
+  const tab=e.target.closest('.tab,[data-go]');
+  const xr=e.target.closest('.xref');
+  if(xr){e.preventDefault();jump(xr.dataset.id);return;}
+  if(tab){
+    if(tab.dataset.id){jump(tab.dataset.id);}
+    else if(tab.dataset.go){showTab(tab.dataset.go);window.scrollTo({top:0,behavior:'smooth'});}
+  }
+});
+
+// URS controls
+document.getElementById('ursSearch').addEventListener('input',e=>{
+  const f=document.querySelector('#ursControls .fbtn[aria-pressed="true"]').dataset.f;
+  renderURS(f,e.target.value);
+});
+document.querySelectorAll('#ursControls .fbtn').forEach(b=>b.addEventListener('click',()=>{
+  document.querySelectorAll('#ursControls .fbtn').forEach(x=>x.setAttribute('aria-pressed','false'));
+  b.setAttribute('aria-pressed','true');
+  renderURS(b.dataset.f,document.getElementById('ursSearch').value);
+}));
+
+// init
+renderURS();renderFS();renderRA();renderRTM();renderNotes();
+</script>
+</body>
+</html>

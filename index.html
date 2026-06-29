@@ -78,6 +78,7 @@
     <div class="navlbl">グループ</div>
     <nav class="nav" id="nav">
       <button data-g="all" class="active">すべて<span class="c" data-cnt="all"></span></button>
+      <button data-g="trace">トレーサビリティ<span class="c" data-cnt="trace"></span></button>
       <button data-g="proto">プロトタイプ<span class="c" data-cnt="proto"></span></button>
       <button data-g="design">検討・設計<span class="c" data-cnt="design"></span></button>
       <button data-g="spec">仕様（XSD準拠）<span class="c" data-cnt="spec"></span></button>
@@ -99,8 +100,9 @@
 </div>
 
 <script>
-const GROUPS={proto:'プロトタイプ',design:'検討・設計',spec:'仕様（公式XSD準拠）',verify:'検証・参照データ',other:'その他'};
+const GROUPS={trace:'トレーサビリティ',proto:'プロトタイプ',design:'検討・設計',spec:'仕様（公式XSD準拠）',verify:'検証・参照データ',other:'その他'};
 const DOCS=[
+ {g:'trace', ic:'🔗', t:'トレーサビリティ・ハブ', d:'URS↔FS↔RA↔OQを相互リンクで横断。考慮ポイントもⓘから連結（CSV文書一式）', tag:'TRACE', main:true, href:'./ctn-traceability-hub.html'},
  {g:'proto', ic:'▶', t:'UX モック (React)', d:'治験届管理のメイン画面。操作可能なインタラクティブ版', tag:'MAIN', main:true, href:'./ctn-ux-react-standalone.html'},
  {g:'proto', ic:'📘', t:'操作マニュアル', d:'UX モックの構造と使い方の解説', tag:'GUIDE', href:'./ctn-ux-manual.html'},
  {g:'design', ic:'🧭', t:'検討・設計（統合）', d:'検討まとめ／実装ハンドオフ／PoCバックログ／CSV最小統制&ライセンスをタブで集約', tag:'統合', href:'./ctn-design.html'},
