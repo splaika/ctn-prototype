@@ -3,23 +3,25 @@
   font-family: Segoe UI, Yu Gothic UI, Meiryo, sans-serif;
   background: var(--app-bg);
   color: #242424;
-  /* デザイントークン: Power Apps モデル駆動型の既定テーマ (theme テーブル公式既定値) に準拠
-     NavBarBackgroundColor #002050 / MainColor #3B79B7 / HoverLinkEffect #E7EFF7
-     SelectedLinkEffect #F8FAFC / GlobalLinkColor #1160B7 / ControlBorder #BDC3C7 */
-  --accent: #3b79b7;
-  --accent-strong: #2f6295;
-  --accent-soft: #e7eff7;
-  --accent-border: #b8cfe4;
-  --link: #1160b7;
-  --header-bg: #002050;
-  --app-bg: #faf9f8;
-  --sidebar-bg: #f3f3f3;
-  --selected: #f8fafc;
-  --line: #e0e0e0;
-  --control-border: #bdc3c7;
-  --text-muted: #605e5c;
-  --radius-card: 4px;
-  --radius-control: 2px;
+  /* デザイントークン: モデル駆動型の New Look (Fluent 2, 2026 Wave 1 で必須化) +
+     モダンテーマ override (modern-theme-overrides) で実現可能な範囲に準拠。
+     ブランド色は Fluent 2 既定 brand ramp (#0f6cbd 系)。旧 classic テーマ (#002050) は廃止済み */
+  --accent: #0f6cbd;
+  --accent-strong: #115ea3;
+  --accent-soft: #ebf3fc;
+  --accent-border: #b4d6fa;
+  --link: #115ea3;
+  --header-bg: #ffffff;
+  --app-bg: #fafafa;
+  --sidebar-bg: #f7f7f7;
+  --selected: #ebf3fc;
+  --hover: #f0f0f0;
+  --line: #e4e4e4;
+  --control-border: #d1d1d1;
+  --text-muted: #616161;
+  --radius-card: 8px;
+  --radius-control: 4px;
+  --shadow-card: 0 1px 3px rgba(0, 0, 0, .06), 0 1px 2px rgba(0, 0, 0, .04);
 }
 
 body {
@@ -43,7 +45,20 @@ body {
   flex: 0 0 48px;
   padding: 0 12px;
   background: var(--header-bg);
-  color: #fff
+  color: #242424;
+  border-bottom: 1px solid var(--line)
+}
+
+.app-tile {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  background: var(--accent);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700
 }
 
 .app-topbar-left {
@@ -65,13 +80,13 @@ body {
   width: 32px;
   height: 32px;
   border: 0;
-  border-radius: 2px;
+  border-radius: var(--radius-control);
   background: transparent;
-  color: #fff
+  color: #424242
 }
 
 .topbar-icon:hover {
-  background: #ffffff1f
+  background: var(--hover)
 }
 
 .app-topbar-search {
@@ -80,10 +95,11 @@ body {
   display: flex;
   align-items: center;
   gap: 8px;
-  height: 30px;
+  height: 32px;
   padding: 0 10px;
-  border-radius: 2px;
-  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-control);
+  background: #f5f5f5;
   color: var(--text-muted)
 }
 
@@ -111,7 +127,7 @@ body {
   height: 30px;
   margin-left: 8px;
   border-radius: 50%;
-  background: #3b79b7;
+  background: var(--accent);
   color: #fff;
   font-size: 12px;
   font-weight: 700
@@ -199,7 +215,7 @@ nav {
 }
 
 .nav-group button:hover {
-  background: var(--accent-soft)
+  background: var(--hover)
 }
 
 .nav-group button.active {
@@ -292,7 +308,7 @@ h3 {
 }
 
 .ghost-button:hover {
-  background: var(--accent-soft)
+  background: var(--hover)
 }
 
 .primary-button {
@@ -326,7 +342,8 @@ h3 {
   padding: 18px;
   border: 1px solid var(--line);
   border-radius: var(--radius-card);
-  background: #fff
+  background: #fff;
+  box-shadow: var(--shadow-card)
 }
 
 .section-title {
@@ -364,7 +381,8 @@ h3 {
   padding: 15px;
   border: 1px solid var(--line);
   border-radius: var(--radius-card);
-  background: #fff
+  background: #fff;
+  box-shadow: var(--shadow-card)
 }
 
 .metric span {
@@ -433,7 +451,7 @@ th {
 }
 
 tbody tr:hover td {
-  background: var(--accent-soft)
+  background: var(--hover)
 }
 
 tr:last-child td {
@@ -702,7 +720,7 @@ tr:last-child td {
   flex: 1;
   min-height: 32px;
   border: 0;
-  border-bottom: 2px solid transparent;
+  border-bottom: 3px solid transparent;
   border-radius: 0;
   background: transparent;
   color: var(--text-muted);
@@ -711,7 +729,7 @@ tr:last-child td {
 }
 
 .tabs button:hover {
-  background: var(--accent-soft)
+  background: var(--hover)
 }
 
 .tabs button.active {

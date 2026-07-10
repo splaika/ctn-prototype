@@ -1230,6 +1230,7 @@ function Uy() {
           { className: "topbar-icon", title: "アプリ" },
           f.createElement(PaGrip, { size: 16 }),
         ),
+        f.createElement("span", { className: "app-tile" }, "CTN"),
         f.createElement("strong", null, "CTN 治験届管理"),
       ),
       f.createElement(
