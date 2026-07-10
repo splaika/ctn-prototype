@@ -172,6 +172,30 @@ const Oy = Et("Workflow", [
       { width: "8", height: "8", x: "13", y: "13", rx: "2", key: "1cgmvn" },
     ],
   ]),
+  PaGrip = Et("Grip", [
+    ["circle", { cx: "5", cy: "5", r: "1", key: "pg1" }],
+    ["circle", { cx: "12", cy: "5", r: "1", key: "pg2" }],
+    ["circle", { cx: "19", cy: "5", r: "1", key: "pg3" }],
+    ["circle", { cx: "5", cy: "12", r: "1", key: "pg4" }],
+    ["circle", { cx: "12", cy: "12", r: "1", key: "pg5" }],
+    ["circle", { cx: "19", cy: "12", r: "1", key: "pg6" }],
+    ["circle", { cx: "5", cy: "19", r: "1", key: "pg7" }],
+    ["circle", { cx: "12", cy: "19", r: "1", key: "pg8" }],
+    ["circle", { cx: "19", cy: "19", r: "1", key: "pg9" }],
+  ]),
+  PaSearch = Et("Search", [
+    ["circle", { cx: "11", cy: "11", r: "8", key: "ps1" }],
+    ["path", { d: "m21 21-4.3-4.3", key: "ps2" }],
+  ]),
+  PaPlus = Et("Plus", [
+    ["path", { d: "M5 12h14", key: "pp1" }],
+    ["path", { d: "M12 5v14", key: "pp2" }],
+  ]),
+  PaHelp = Et("CircleHelp", [
+    ["circle", { cx: "12", cy: "12", r: "10", key: "ph1" }],
+    ["path", { d: "M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3", key: "ph2" }],
+    ["path", { d: "M12 17h.01", key: "ph3" }],
+  ]),
   C1 = [
     {
       label: "ワークスペース",
@@ -1194,23 +1218,60 @@ function Uy() {
     R = St.useMemo(() => _1.find((y) => y.id === b) ?? _1[0], [b]);
   return f.createElement(
     "div",
-    { className: "ctn-shell" },
+    { className: "app-frame" },
     f.createElement(
-      "aside",
-      { className: "side-nav" },
+      "header",
+      { className: "app-topbar" },
       f.createElement(
         "div",
-        { className: "brand" },
-        f.createElement("span", null, "CTN"),
+        { className: "app-topbar-left" },
         f.createElement(
-          "div",
-          null,
-          f.createElement("strong", null, "治験届管理"),
-          f.createElement("small", null, "作成・確認・提出準備"),
+          "button",
+          { className: "topbar-icon", title: "アプリ" },
+          f.createElement(PaGrip, { size: 16 }),
         ),
+        f.createElement("strong", null, "CTN 治験届管理"),
       ),
       f.createElement(
-        "nav",
+        "div",
+        { className: "app-topbar-search" },
+        f.createElement(PaSearch, { size: 14 }),
+        f.createElement("input", { placeholder: "検索" }),
+      ),
+      f.createElement(
+        "div",
+        { className: "app-topbar-actions" },
+        f.createElement(
+          "button",
+          { className: "topbar-icon", title: "新規作成" },
+          f.createElement(PaPlus, { size: 16 }),
+        ),
+        f.createElement(
+          "button",
+          { className: "topbar-icon", title: "通知" },
+          f.createElement(Sy, { size: 16 }),
+        ),
+        f.createElement(
+          "button",
+          { className: "topbar-icon", title: "設定" },
+          f.createElement(U1, { size: 16 }),
+        ),
+        f.createElement(
+          "button",
+          { className: "topbar-icon", title: "ヘルプ" },
+          f.createElement(PaHelp, { size: 16 }),
+        ),
+        f.createElement("span", { className: "topbar-avatar" }, "田"),
+      ),
+    ),
+    f.createElement(
+      "div",
+      { className: "ctn-shell" },
+      f.createElement(
+        "aside",
+        { className: "side-nav" },
+        f.createElement(
+          "nav",
         null,
         C1.map((y) =>
           f.createElement(
@@ -1251,12 +1312,6 @@ function Uy() {
           { className: "toolbar" },
           f.createElement(
             "button",
-            { className: "ghost-button" },
-            f.createElement(Sy, { size: 16 }),
-            "通知",
-          ),
-          f.createElement(
-            "button",
             { className: "primary-button" },
             f.createElement(R1, { size: 16 }),
             "レビュー用に保存",
@@ -1264,6 +1319,7 @@ function Uy() {
         ),
       ),
       Cy(b, D),
+      ),
     ),
   );
 }

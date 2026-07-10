@@ -9,18 +9,119 @@
   color-scheme: light;
   font-family: Segoe UI, Yu Gothic UI, Meiryo, sans-serif;
   background: var(--app-bg);
-  color: #232733;
-  /* デザイントークン: アクセントと面はここだけで調整する */
-  --accent: #6d4df0;
-  --accent-strong: #5b3ee0;
-  --accent-soft: #eeeafd;
-  --accent-border: #ddd4fb;
-  --app-bg: #f6f6fa;
-  --sidebar-bg: #fbfbfd;
-  --line: #e8e8f0;
-  --text-muted: #8a8fa3;
-  --radius-card: 12px;
-  --radius-control: 10px;
+  color: #242424;
+  /* デザイントークン: Power Apps モデル駆動型の既定テーマ (theme テーブル公式既定値) に準拠
+     NavBarBackgroundColor #002050 / MainColor #3B79B7 / HoverLinkEffect #E7EFF7
+     SelectedLinkEffect #F8FAFC / GlobalLinkColor #1160B7 / ControlBorder #BDC3C7 */
+  --accent: #3b79b7;
+  --accent-strong: #2f6295;
+  --accent-soft: #e7eff7;
+  --accent-border: #b8cfe4;
+  --link: #1160b7;
+  --header-bg: #002050;
+  --app-bg: #faf9f8;
+  --sidebar-bg: #f3f3f3;
+  --selected: #f8fafc;
+  --line: #e0e0e0;
+  --control-border: #bdc3c7;
+  --text-muted: #605e5c;
+  --radius-card: 4px;
+  --radius-control: 2px;
+}
+
+body {
+  font-size: 14px
+}
+
+.app-frame {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh
+}
+
+.app-topbar {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  height: 48px;
+  flex: 0 0 48px;
+  padding: 0 12px;
+  background: var(--header-bg);
+  color: #fff
+}
+
+.app-topbar-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 236px
+}
+
+.app-topbar-left strong {
+  font-size: 14px;
+  font-weight: 600;
+  white-space: nowrap
+}
+
+.topbar-icon {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border: 0;
+  border-radius: 2px;
+  background: transparent;
+  color: #fff
+}
+
+.topbar-icon:hover {
+  background: #ffffff1f
+}
+
+.app-topbar-search {
+  flex: 1;
+  max-width: 470px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 30px;
+  padding: 0 10px;
+  border-radius: 2px;
+  background: #fff;
+  color: var(--text-muted)
+}
+
+.app-topbar-search input {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  outline: none;
+  background: transparent;
+  font-size: 13px;
+  color: #242424
+}
+
+.app-topbar-actions {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 2px
+}
+
+.topbar-avatar {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  margin-left: 8px;
+  border-radius: 50%;
+  background: #3b79b7;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700
 }
 
 * {
@@ -51,103 +152,67 @@ p {
 
 .ctn-shell {
   display: grid;
-  grid-template-columns: 264px minmax(820px, 1fr);
-  min-height: 100vh;
+  grid-template-columns: 236px minmax(820px, 1fr);
+  flex: 1;
   background: var(--app-bg)
 }
 
 .side-nav {
   position: sticky;
-  top: 0;
-  height: 100vh;
+  top: 48px;
+  height: calc(100vh - 48px);
   overflow: auto;
-  padding: 22px 16px;
+  padding: 14px 8px;
   background: var(--sidebar-bg);
-  color: #232733;
+  color: #242424;
   border-right: 1px solid var(--line)
-}
-
-.brand {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 0 6px 22px
-}
-
-.brand>span {
-  display: grid;
-  place-items: center;
-  width: 40px;
-  height: 40px;
-  border-radius: 12px;
-  background: linear-gradient(135deg, #7c5cfc, #5b3ee0);
-  color: #fff;
-  font-size: 13px;
-  font-weight: 800
-}
-
-.brand strong,
-.brand small {
-  display: block
-}
-
-.brand strong {
-  font-size: 15px
-}
-
-.brand small {
-  margin-top: 2px;
-  color: var(--text-muted);
-  font-size: 11px
 }
 
 nav {
   display: grid;
-  gap: 20px
+  gap: 16px
 }
 
 .nav-group p {
-  margin: 0 10px 8px;
+  margin: 0 10px 4px;
   color: var(--text-muted);
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: .06em
+  font-size: 12px;
+  font-weight: 600
 }
 
 .nav-group {
   display: grid;
-  gap: 2px
+  gap: 1px
 }
 
 .nav-group button {
   display: flex;
   align-items: center;
-  gap: 11px;
+  gap: 10px;
   width: 100%;
-  min-height: 41px;
-  padding: 9px 12px;
+  min-height: 36px;
+  padding: 7px 10px;
   border: 0;
   border-radius: var(--radius-control);
   background: transparent;
-  color: #4b5063;
-  font-weight: 600;
-  text-align: left;
-  transition: background .12s, color .12s
+  color: #242424;
+  font-size: 13px;
+  font-weight: 400;
+  text-align: left
 }
 
 .nav-group button svg {
-  color: #9aa0b4;
-  transition: color .12s
+  color: var(--text-muted)
 }
 
 .nav-group button:hover {
-  background: #f1f0f7;
-  color: #232733
+  background: var(--accent-soft)
 }
 
 .nav-group button.active {
-  background: var(--accent-soft);
-  color: var(--accent)
+  background: var(--selected);
+  box-shadow: inset 3px 0 var(--accent);
+  font-weight: 600
 }
 
 .nav-group button.active svg {
@@ -174,7 +239,7 @@ nav {
 .rule-list span,
 .field small,
 .check-card p {
-  color: #65777f
+  color: var(--text-muted)
 }
 
 .topbar small {
@@ -182,18 +247,20 @@ nav {
 }
 
 h1 {
-  margin-top: 4px;
-  font-size: 26px;
+  margin-top: 2px;
+  font-size: 20px;
+  font-weight: 600;
   letter-spacing: 0
 }
 
 h2 {
-  font-size: 20px;
+  font-size: 16px;
+  font-weight: 600;
   letter-spacing: 0
 }
 
 h3 {
-  font-size: 15px
+  font-size: 14px
 }
 
 .toolbar,
@@ -217,19 +284,32 @@ h3 {
   align-items: center;
   justify-content: center;
   gap: 8px;
-  min-height: 38px;
-  padding: 0 14px;
+  min-height: 32px;
+  padding: 0 12px;
   border-radius: var(--radius-control);
-  border: 1px solid var(--line);
-  background: #fff;
-  color: #232733;
-  font-weight: 700
+  border: 0;
+  background: transparent;
+  color: #242424;
+  font-size: 13px;
+  font-weight: 400
+}
+
+.ghost-button svg {
+  color: var(--accent)
+}
+
+.ghost-button:hover {
+  background: var(--accent-soft)
 }
 
 .primary-button {
-  border-color: var(--accent-strong);
-  background: linear-gradient(135deg, #7c5cfc, #5b3ee0);
-  color: #fff
+  background: var(--accent);
+  color: #fff;
+  font-weight: 600
+}
+
+.primary-button:hover {
+  background: var(--accent-strong)
 }
 
 .wide-button {
@@ -270,12 +350,12 @@ h3 {
 
 .tag {
   width: fit-content;
-  padding: 3px 9px;
-  border-radius: 6px;
-  background: var(--accent-soft);
-  color: var(--accent);
-  font-size: 12px;
-  font-weight: 800
+  padding: 2px 8px;
+  border-radius: 2px;
+  background: #f3f3f3;
+  color: var(--text-muted);
+  font-size: 11px;
+  font-weight: 600
 }
 
 .metric-strip {
@@ -299,7 +379,7 @@ h3 {
 }
 
 .metric strong {
-  font-size: 28px
+  font-size: 24px
 }
 
 .metric.danger,
@@ -345,17 +425,22 @@ table {
 
 th,
 td {
-  padding: 11px 12px;
-  border-bottom: 1px solid #e7eef0;
+  padding: 9px 12px;
+  border-bottom: 1px solid var(--line);
   text-align: left;
   vertical-align: middle;
   white-space: nowrap
 }
 
 th {
-  background: #f6f8f9;
-  color: #52676f;
-  font-size: 12px
+  background: #fff;
+  color: var(--text-muted);
+  font-size: 12px;
+  font-weight: 600
+}
+
+tbody tr:hover td {
+  background: var(--accent-soft)
 }
 
 tr:last-child td {
@@ -373,8 +458,8 @@ tr:last-child td {
   display: grid;
   gap: 7px;
   padding: 13px;
-  border: 1px solid #dfe8ea;
-  border-radius: 8px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-card);
   background: #fbfcfc
 }
 
@@ -400,8 +485,8 @@ tr:last-child td {
   display: grid;
   gap: 3px;
   padding: 12px;
-  border: 1px solid #dfe8ea;
-  border-radius: 8px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-card);
   background: #fbfcfc
 }
 
@@ -419,14 +504,14 @@ tr:last-child td {
   gap: 4px 10px;
   margin-bottom: 14px;
   padding: 14px;
-  border: 1px dashed #9eb8bf;
-  border-radius: 8px;
-  background: #f8fbfc
+  border: 1px dashed var(--control-border);
+  border-radius: var(--radius-card);
+  background: var(--selected)
 }
 
 .upload-box span {
   grid-column: 2;
-  color: #65777f;
+  color: var(--text-muted);
   font-size: 13px
 }
 
@@ -443,7 +528,7 @@ tr:last-child td {
 .inspector {
   padding: 16px;
   border: 1px solid #dce6e9;
-  border-radius: 8px;
+  border-radius: var(--radius-card);
   background: #fff
 }
 
@@ -463,10 +548,10 @@ tr:last-child td {
   gap: 3px;
   width: 100%;
   padding: 10px;
-  border: 1px solid #e0e8ea;
-  border-radius: 7px;
-  background: #fbfcfc;
-  color: #1c2a30;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-control);
+  background: #fff;
+  color: #242424;
   text-align: left
 }
 
@@ -483,7 +568,7 @@ tr:last-child td {
 }
 
 .chapter-list small {
-  color: #65777f
+  color: var(--text-muted)
 }
 
 .field-grid {
@@ -509,11 +594,18 @@ tr:last-child td {
 .field select,
 .field textarea {
   width: 100%;
-  min-height: 38px;
-  padding: 10px;
-  border: 1px solid #cbd8dc;
-  border-radius: 7px;
+  min-height: 32px;
+  padding: 6px 8px;
+  border: 1px solid var(--control-border);
+  border-radius: var(--radius-control);
   background: #fff
+}
+
+.field input:focus,
+.field select:focus,
+.field textarea:focus {
+  outline: 1px solid var(--accent);
+  border-color: var(--accent)
 }
 
 .field textarea {
@@ -541,7 +633,7 @@ tr:last-child td {
   gap: 8px;
   padding: 16px;
   border: 1px solid #dce6e9;
-  border-radius: 8px;
+  border-radius: var(--radius-card);
   background: #fff
 }
 
@@ -554,10 +646,10 @@ tr:last-child td {
   gap: 4px;
   width: 100%;
   padding: 11px;
-  border: 1px solid #e0e8ea;
-  border-radius: 7px;
-  background: #fbfcfc;
-  color: #1c2a30;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-control);
+  background: #fff;
+  color: #242424;
   text-align: left
 }
 
@@ -566,15 +658,15 @@ tr:last-child td {
 }
 
 .master-menu button small {
-  color: #65777f;
+  color: var(--text-muted);
   line-height: 1.5
 }
 
 .sub-panel {
   margin-top: 18px;
   padding: 14px;
-  border: 1px solid #dfe8ea;
-  border-radius: 8px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-card);
   background: #fbfcfc
 }
 
@@ -586,8 +678,8 @@ tr:last-child td {
   border: 0;
   padding: 0;
   background: transparent;
-  color: var(--accent);
-  font-weight: 800;
+  color: var(--link);
+  font-weight: 600;
   text-decoration: underline;
   text-underline-offset: 3px
 }
@@ -609,20 +701,29 @@ tr:last-child td {
   margin-bottom: 12px
 }
 
+.tabs {
+  border-bottom: 1px solid var(--line)
+}
+
 .tabs button {
   flex: 1;
-  min-height: 30px;
-  border: 1px solid #d7e2e5;
-  border-radius: 6px;
-  background: #fff;
+  min-height: 32px;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  border-radius: 0;
+  background: transparent;
+  color: var(--text-muted);
   font-size: 12px;
-  font-weight: 800
+  font-weight: 600
+}
+
+.tabs button:hover {
+  background: var(--accent-soft)
 }
 
 .tabs button.active {
-  border-color: var(--accent-strong);
-  background: var(--accent);
-  color: #fff
+  border-bottom-color: var(--accent);
+  color: #242424
 }
 
 .mini-panel {
@@ -630,8 +731,8 @@ tr:last-child td {
   gap: 10px;
   margin-bottom: 14px;
   padding: 12px;
-  border: 1px solid #dfe8ea;
-  border-radius: 8px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-card);
   background: #fbfcfc
 }
 
@@ -647,7 +748,7 @@ tr:last-child td {
   display: flex;
   gap: 7px;
   align-items: center;
-  color: #52676f;
+  color: var(--text-muted);
   font-size: 13px
 }
 
@@ -669,8 +770,8 @@ tr:last-child td {
   display: grid;
   gap: 10px;
   padding: 13px;
-  border: 1px solid #dfe8ea;
-  border-radius: 8px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-card);
   background: #fbfcfc
 }
 
@@ -678,8 +779,8 @@ tr:last-child td {
   display: grid;
   gap: 10px;
   padding: 13px;
-  border: 1px solid #dfe8ea;
-  border-radius: 8px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-card);
   background: #f8fbfc
 }
 
@@ -717,7 +818,7 @@ tr:last-child td {
 
 .source-title {
   margin-bottom: 12px;
-  color: #52676f;
+  color: var(--text-muted);
   font-weight: 800
 }
 
@@ -758,8 +859,9 @@ tr:last-child td {
   background: #fff4d6
 }
 
+/* BPF (ビジネスプロセスフロー) 風シェブロン */
 .workflow-bar {
-  gap: 10px;
+  gap: 3px;
   overflow: auto
 }
 
@@ -767,25 +869,39 @@ tr:last-child td {
   flex: 1;
   min-width: 140px;
   display: grid;
-  gap: 7px;
-  padding: 13px;
-  border: 1px solid #dfe8ea;
-  border-radius: 8px;
-  background: #fbfcfc
+  gap: 5px;
+  padding: 10px 18px 10px 24px;
+  border: 0;
+  border-radius: 0;
+  background: #f3f3f3;
+  clip-path: polygon(0 0, calc(100% - 13px) 0, 100% 50%, calc(100% - 13px) 100%, 0 100%, 13px 50%)
+}
+
+.workflow-bar article:first-child {
+  padding-left: 16px;
+  clip-path: polygon(0 0, calc(100% - 13px) 0, 100% 50%, calc(100% - 13px) 100%, 0 100%)
 }
 
 .workflow-bar article.done {
-  border-color: #cfe5df;
-  background: #f1f9f6
+  background: var(--accent-soft)
 }
 
 .workflow-bar article.current {
-  border-color: #e5cf83;
-  background: #fff9e6
+  background: var(--accent);
+  color: #fff
+}
+
+.workflow-bar article.current small {
+  color: #dce8f5
+}
+
+.workflow-bar article.current span {
+  background: #fff;
+  color: var(--accent)
 }
 
 .workflow-bar small {
-  color: #65777f
+  color: var(--text-muted)
 }
 
 .review-artifact {
@@ -811,8 +927,8 @@ tr:last-child td {
   display: grid;
   gap: 6px;
   padding: 14px;
-  border: 1px solid #dfe8ea;
-  border-radius: 8px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-card);
   background: #fbfcfc
 }
 
@@ -842,6 +958,7 @@ tr:last-child td {
   .chapter-list,
   .master-menu {
     position: static;
+    top: auto;
     height: auto
   }
 
@@ -13606,6 +13723,30 @@ const Oy = Et("Workflow", [
       { width: "8", height: "8", x: "13", y: "13", rx: "2", key: "1cgmvn" },
     ],
   ]),
+  PaGrip = Et("Grip", [
+    ["circle", { cx: "5", cy: "5", r: "1", key: "pg1" }],
+    ["circle", { cx: "12", cy: "5", r: "1", key: "pg2" }],
+    ["circle", { cx: "19", cy: "5", r: "1", key: "pg3" }],
+    ["circle", { cx: "5", cy: "12", r: "1", key: "pg4" }],
+    ["circle", { cx: "12", cy: "12", r: "1", key: "pg5" }],
+    ["circle", { cx: "19", cy: "12", r: "1", key: "pg6" }],
+    ["circle", { cx: "5", cy: "19", r: "1", key: "pg7" }],
+    ["circle", { cx: "12", cy: "19", r: "1", key: "pg8" }],
+    ["circle", { cx: "19", cy: "19", r: "1", key: "pg9" }],
+  ]),
+  PaSearch = Et("Search", [
+    ["circle", { cx: "11", cy: "11", r: "8", key: "ps1" }],
+    ["path", { d: "m21 21-4.3-4.3", key: "ps2" }],
+  ]),
+  PaPlus = Et("Plus", [
+    ["path", { d: "M5 12h14", key: "pp1" }],
+    ["path", { d: "M12 5v14", key: "pp2" }],
+  ]),
+  PaHelp = Et("CircleHelp", [
+    ["circle", { cx: "12", cy: "12", r: "10", key: "ph1" }],
+    ["path", { d: "M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3", key: "ph2" }],
+    ["path", { d: "M12 17h.01", key: "ph3" }],
+  ]),
   C1 = [
     {
       label: "ワークスペース",
@@ -14628,23 +14769,60 @@ function Uy() {
     R = St.useMemo(() => _1.find((y) => y.id === b) ?? _1[0], [b]);
   return f.createElement(
     "div",
-    { className: "ctn-shell" },
+    { className: "app-frame" },
     f.createElement(
-      "aside",
-      { className: "side-nav" },
+      "header",
+      { className: "app-topbar" },
       f.createElement(
         "div",
-        { className: "brand" },
-        f.createElement("span", null, "CTN"),
+        { className: "app-topbar-left" },
         f.createElement(
-          "div",
-          null,
-          f.createElement("strong", null, "治験届管理"),
-          f.createElement("small", null, "作成・確認・提出準備"),
+          "button",
+          { className: "topbar-icon", title: "アプリ" },
+          f.createElement(PaGrip, { size: 16 }),
         ),
+        f.createElement("strong", null, "CTN 治験届管理"),
       ),
       f.createElement(
-        "nav",
+        "div",
+        { className: "app-topbar-search" },
+        f.createElement(PaSearch, { size: 14 }),
+        f.createElement("input", { placeholder: "検索" }),
+      ),
+      f.createElement(
+        "div",
+        { className: "app-topbar-actions" },
+        f.createElement(
+          "button",
+          { className: "topbar-icon", title: "新規作成" },
+          f.createElement(PaPlus, { size: 16 }),
+        ),
+        f.createElement(
+          "button",
+          { className: "topbar-icon", title: "通知" },
+          f.createElement(Sy, { size: 16 }),
+        ),
+        f.createElement(
+          "button",
+          { className: "topbar-icon", title: "設定" },
+          f.createElement(U1, { size: 16 }),
+        ),
+        f.createElement(
+          "button",
+          { className: "topbar-icon", title: "ヘルプ" },
+          f.createElement(PaHelp, { size: 16 }),
+        ),
+        f.createElement("span", { className: "topbar-avatar" }, "田"),
+      ),
+    ),
+    f.createElement(
+      "div",
+      { className: "ctn-shell" },
+      f.createElement(
+        "aside",
+        { className: "side-nav" },
+        f.createElement(
+          "nav",
         null,
         C1.map((y) =>
           f.createElement(
@@ -14685,12 +14863,6 @@ function Uy() {
           { className: "toolbar" },
           f.createElement(
             "button",
-            { className: "ghost-button" },
-            f.createElement(Sy, { size: 16 }),
-            "通知",
-          ),
-          f.createElement(
-            "button",
             { className: "primary-button" },
             f.createElement(R1, { size: 16 }),
             "レビュー用に保存",
@@ -14698,6 +14870,7 @@ function Uy() {
         ),
       ),
       Cy(b, D),
+      ),
     ),
   );
 }
