@@ -435,6 +435,12 @@ h3 {
   border-radius: var(--radius-control)
 }
 
+.matrix-foot {
+  margin-top: 10px;
+  color: var(--text-muted);
+  font-size: 12px
+}
+
 table {
   width: 100%;
   min-width: 780px;
@@ -13849,44 +13855,121 @@ const Oy = Et("Workflow", [
   _1 = C1.flatMap((b) => b.items),
   My = [
     {
-      task: "分担医師追加の変更届候補",
-      trial: "CTN-03 試験薬C",
-      source: "医師マスタ変更",
-      baseDate: "2025-12-12",
-      due: "2026-06-12",
+      event: "治験責任医師の交代（阪都大学病院）",
+      kind: "医師",
+      date: "2026-07-08",
+      impact: "6届・2プロトコル",
+      progress: "1/6",
+      due: "2026-08-07",
+      status: "対応中",
+      tone: "watch",
+    },
+    {
+      event: "実施医療機関の住所表記変更（北里総合病院）",
+      kind: "施設",
+      date: "2026-07-09",
+      impact: "9届・試験薬A系",
+      progress: "0/9",
+      due: "要判定",
+      status: "要否判定待ち",
+      tone: "danger",
+    },
+    {
+      event: "分担医師の氏名変更（高橋・旧姓鈴木）",
+      kind: "医師",
+      date: "2026-07-05",
+      impact: "3届・1プロトコル",
+      progress: "3/3",
+      due: "—",
+      status: "反映済",
+      tone: "",
+    },
+    {
+      event: "CRO 委託業務範囲の変更（モニタリング追加）",
+      kind: "CRO",
+      date: "2026-07-02",
+      impact: "4届・1プロトコル",
+      progress: "2/4",
+      due: "2026-07-24",
+      status: "対応中",
+      tone: "watch",
+    },
+    {
+      event: "SMO 連絡先変更",
+      kind: "SMO",
+      date: "2026-06-28",
+      impact: "12届・3薬剤",
+      progress: "軽微",
+      due: "2027-01 まとめ",
+      status: "まとめ届出枠",
+      tone: "",
+    },
+  ],
+  MyStall = [
+    {
+      notif: "変更届（第3回）",
+      series: "試験薬A・P-301",
+      due: "2026-07-15",
+      left: "残4日",
+      owner: "佐々木",
+      state: "6日間更新なし",
+      tone: "danger",
+    },
+    {
+      notif: "変更届（第1回）",
+      series: "試験薬C・CTN-03",
+      due: "2026-07-22",
+      left: "残11日",
       owner: "田中",
-      status: "期限注意",
-      tone: "danger",
+      state: "判定済・未着手",
+      tone: "watch",
     },
     {
-      task: "PDF取込値の確認",
-      trial: "CTN-08 試験薬H",
-      source: "既存PDF 000270151",
-      baseDate: "2026-06-18",
-      due: "2026-06-25",
+      notif: "終了届",
+      series: "試験薬H・CTN-08",
+      due: "2026-07-25",
+      left: "残14日",
       owner: "佐藤",
-      status: "取込確認",
+      state: "レビュー滞留3日",
       tone: "watch",
     },
+  ],
+  MyMatrix = [
     {
-      task: "外字説明資料の承認",
-      trial: "CTN-03 試験薬C",
-      source: "渡邊/髙橋",
-      baseDate: "2026-06-17",
-      due: "2026-06-21",
-      owner: "医学レビュー",
-      status: "外字確認",
-      tone: "watch",
+      bucket: "期限超過",
+      cells: [
+        ["1", "danger"],
+        ["0", ""],
+        ["0", ""],
+        ["0", ""],
+      ],
     },
     {
-      task: "XML XSDエラー修正",
-      trial: "CTN-17 試験薬A",
-      source: "出力検証",
-      baseDate: "2026-06-19",
-      due: "2026-06-19",
-      owner: "薬事",
-      status: "出力エラー",
-      tone: "danger",
+      bucket: "7日以内",
+      cells: [
+        ["3", "danger"],
+        ["4", ""],
+        ["2", ""],
+        ["1", ""],
+      ],
+    },
+    {
+      bucket: "14日以内",
+      cells: [
+        ["2", "watch"],
+        ["5", ""],
+        ["3", ""],
+        ["1", ""],
+      ],
+    },
+    {
+      bucket: "30日以内",
+      cells: [
+        ["4", ""],
+        ["6", ""],
+        ["2", ""],
+        ["3", ""],
+      ],
     },
   ],
   _y = [
@@ -14918,63 +15001,146 @@ function Hy({ setActiveId: b }) {
       "div",
       { className: "metric-strip" },
       f.createElement(Du, {
-        label: "期限注意",
-        value: "5",
-        tone: "danger",
-        note: "マスタ変更から算出",
-      }),
-      f.createElement(Du, {
-        label: "レビュー待ち",
-        value: "8",
-        tone: "watch",
-        note: "一次/薬事/QA",
-      }),
-      f.createElement(Du, {
-        label: "取込未確認",
-        value: "3",
-        note: "PDF抽出候補",
-      }),
-      f.createElement(Du, {
-        label: "外字確認",
+        label: "未判定のマスタ変更",
         value: "2",
-        tone: "watch",
-        note: "説明資料候補",
+        tone: "danger",
+        note: "影響届の展開待ち",
       }),
       f.createElement(Du, {
-        label: "出力エラー",
-        value: "1",
+        label: "反映待ちの届",
+        value: "14",
+        tone: "watch",
+        note: "4薬剤・9プロトコル",
+      }),
+      f.createElement(Du, {
+        label: "自分の反映タスク",
+        value: "6",
+        note: "うち期限7日以内 2",
+      }),
+      f.createElement(Du, {
+        label: "あなたの承認待ち",
+        value: "3",
+        tone: "watch",
+        note: "レビュー2 / 最終承認1",
+      }),
+      f.createElement(Du, {
+        label: "提出ブロッカー",
+        value: "3",
         tone: "danger",
-        note: "XSD検証",
+        note: "外字2 / XSD検証1",
       }),
     ),
     f.createElement(
       "section",
       { className: "panel" },
       f.createElement(Xl, {
-        tag: "Priority Queue",
-        title: "今対応すべき届出・確認事項",
-        text: "期限候補、レビュー、取込、外字、出力検証を同じキューに集約します。",
+        tag: "担当者ビュー",
+        title: "マスタ変更 → 届出への反映",
       }),
       f.createElement(It, {
         headers: [
-          "タスク",
-          "対象試験",
-          "発生元",
-          "起算日",
-          "期限候補",
-          "担当",
+          "変更イベント",
+          "種別",
+          "変更日",
+          "影響範囲",
+          "反映状況",
+          "最短期限",
           "状態",
         ],
         rows: My.map((D) => [
-          D.task,
-          D.trial,
-          D.source,
-          D.baseDate,
+          D.event,
+          D.kind,
+          D.date,
+          D.impact,
+          D.progress,
           D.due,
-          D.owner,
           f.createElement("span", { className: `pill ${D.tone}` }, D.status),
         ]),
       }),
+      f.createElement(
+        "button",
+        {
+          className: "link-button",
+          onClick: () => b("masters"),
+          style: { marginTop: "12px" },
+        },
+        "マスタ管理で変更履歴を確認",
+      ),
+    ),
+    f.createElement(
+      "div",
+      { className: "two-col" },
+      f.createElement(
+        "section",
+        { className: "panel" },
+        f.createElement(Xl, {
+          tag: "管理者ビュー",
+          title: "期限接近・アクション未実行",
+        }),
+        f.createElement(It, {
+          headers: ["対象届", "薬剤・プロトコル", "期限", "残", "担当", "停滞状況"],
+          rows: MyStall.map((D) => [
+            D.notif,
+            D.series,
+            D.due,
+            D.left,
+            D.owner,
+            f.createElement("span", { className: `pill ${D.tone}` }, D.state),
+          ]),
+        }),
+      ),
+      f.createElement(
+        "section",
+        { className: "panel" },
+        f.createElement(Xl, {
+          tag: "管理者ビュー",
+          title: "期限 × 対応状況",
+        }),
+        f.createElement(
+          "div",
+          { className: "table-wrap" },
+          f.createElement(
+            "table",
+            { style: { minWidth: 0 } },
+            f.createElement(
+              "thead",
+              null,
+              f.createElement(
+                "tr",
+                null,
+                ["期限", "未着手", "対応中", "承認中", "提出準備"].map((D) =>
+                  f.createElement("th", { key: D }, D),
+                ),
+              ),
+            ),
+            f.createElement(
+              "tbody",
+              null,
+              MyMatrix.map((D) =>
+                f.createElement(
+                  "tr",
+                  { key: D.bucket },
+                  f.createElement("td", null, D.bucket),
+                  D.cells.map(([R, y], H) =>
+                    f.createElement(
+                      "td",
+                      { key: H },
+                      y
+                        ? f.createElement("span", { className: `pill ${y}` }, R)
+                        : R,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+        f.createElement(
+          "p",
+          { className: "matrix-foot" },
+          "期限内実行率（直近90日）: 96% ・ 超過1件",
+        ),
+      ),
     ),
   );
 }

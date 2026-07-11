@@ -428,6 +428,12 @@ h3 {
   border-radius: var(--radius-control)
 }
 
+.matrix-foot {
+  margin-top: 10px;
+  color: var(--text-muted);
+  font-size: 12px
+}
+
 table {
   width: 100%;
   min-width: 780px;
