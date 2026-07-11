@@ -532,15 +532,18 @@ tr:last-child td {
   font-size: 13px
 }
 
+.authoring-page {
+  margin-top: 20px
+}
+
 .authoring {
   display: grid;
-  grid-template-columns: 230px minmax(420px, 1fr) 330px;
+  grid-template-columns: minmax(420px, 1fr) 330px;
   gap: 16px;
-  margin-top: 20px;
+  margin-top: 14px;
   align-items: start
 }
 
-.chapter-list,
 .editor-panel,
 .inspector {
   padding: 16px;
@@ -549,43 +552,60 @@ tr:last-child td {
   background: #fff
 }
 
-.chapter-list {
-  position: sticky;
-  top: 20px;
-  display: grid;
-  gap: 7px
+/* 章メニュー: 上部横並びのセグメント型タブ */
+.chapter-tabs {
+  display: flex;
+  gap: 4px;
+  padding: 4px;
+  border-radius: var(--radius-card);
+  background: #f0f0f0;
+  overflow-x: auto
 }
 
-.chapter-list h2 {
-  margin-bottom: 6px
-}
-
-.chapter-list button {
+.chapter-tabs button {
   display: grid;
-  gap: 3px;
-  width: 100%;
-  padding: 10px;
-  border: 1px solid var(--line);
-  border-radius: var(--radius-control);
-  background: #fff;
+  gap: 2px;
+  padding: 7px 14px;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  background: transparent;
   color: #242424;
-  text-align: left
+  text-align: left;
+  white-space: nowrap
 }
 
-.chapter-list button.has-issue {
-  border-color: #e5cf83;
-  background: #fff9e6
+.chapter-tabs button span {
+  font-size: 13px;
+  font-weight: 600
 }
 
-.chapter-list button.selected,
+.chapter-tabs button small {
+  color: var(--text-muted);
+  font-size: 11px
+}
+
+.chapter-tabs button:hover {
+  background: #e6e6e6
+}
+
+.chapter-tabs button.has-issue small {
+  color: #8a6a00
+}
+
+.chapter-tabs button.selected {
+  border-color: var(--line);
+  background: #fff;
+  box-shadow: var(--shadow-card)
+}
+
+.chapter-tabs button.selected span {
+  color: var(--accent-strong)
+}
+
 .master-menu button.selected {
   border-color: var(--accent-border);
   background: var(--accent-soft);
   box-shadow: inset 3px 0 var(--accent)
-}
-
-.chapter-list small {
-  color: var(--text-muted)
 }
 
 .field-grid {
@@ -972,7 +992,6 @@ tr:last-child td {
   }
 
   .side-nav,
-  .chapter-list,
   .master-menu {
     position: static;
     top: auto;

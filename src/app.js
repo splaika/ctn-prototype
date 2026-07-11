@@ -1651,12 +1651,11 @@ function qy() {
     H = Ke.findIndex((j) => j.id === b),
     G = Ke[H] ?? Ke[0];
   return f.createElement(
-    "section",
-    { className: "authoring" },
+    "div",
+    { className: "authoring-page" },
     f.createElement(
-      "aside",
-      { className: "chapter-list" },
-      f.createElement("h2", null, "届出作成"),
+      "div",
+      { className: "chapter-tabs" },
       Ke.map((j) =>
         f.createElement(
           "button",
@@ -1676,8 +1675,11 @@ function qy() {
       ),
     ),
     f.createElement(
-      "main",
-      { className: "editor-panel" },
+      "section",
+      { className: "authoring" },
+      f.createElement(
+        "main",
+        { className: "editor-panel" },
       f.createElement(Xl, {
         tag: "Submission Fields",
         title: G.title,
@@ -1733,6 +1735,7 @@ function qy() {
       R === "diff" && f.createElement(Y1, { compact: !0 }),
       R === "gaiji" && f.createElement(xy, null),
       R === "master" && f.createElement(Ly, { chapter: G }),
+    ),
     ),
   );
 }
