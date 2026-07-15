@@ -26,3 +26,7 @@ npm run build:demo              # ../index.html（この自己完結デモ）を
 ```
 
 単一ソースは [`app/src/ctn/ctn-schema.json`](app/src/ctn/ctn-schema.json)（14テーブル・154列・16選択肢・サーバーロジック16件）。設計の引き渡しは [`app/docs/CTN_ハンドオフ.md`](app/docs/CTN_ハンドオフ.md)。
+
+## 実装まとめ（言語化）
+
+要件の変遷（R1〜R5）と最終実装の設計判断を言語化した記録は [`IMPLEMENTATION.md`](IMPLEMENTATION.md) を参照。
