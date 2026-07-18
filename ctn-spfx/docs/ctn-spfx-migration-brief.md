@@ -8,9 +8,9 @@
 > ドメインロジックの仕様はリポジトリ内文書が正となる。
 
 
-> **リポジトリ体制の注記(ctn-spfx 版)**: 本リポジトリ(`ctn-spfx`)を SPFx 側の新設リポジトリとする。
-> 本文中の「`spfx/` に新設」は「本リポジトリ直下」に読み替えること。共有コードの同期元は
-> 隣接クローン `../ctn-prototype/demo/app/src`(パスは `scripts/sync-from-demo.mjs` の引数で変更可)。
+> **リポジトリ体制の注記(ctn-spfx 版)**: 本フォルダ `ctn-spfx/` を SPFx 側の作業ディレクトリとする(`ctn-prototype` リポジトリ内に同梱)。
+> 本文中の「`spfx/` に新設」は「`ctn-spfx/` 直下」に読み替えること。共有コードの同期元は
+> 同リポジトリの `../demo/app/src`(パスは `scripts/sync-from-demo.mjs` の引数で変更可)。
 > 方式の背景・設計判断は [`spfx-methodology.md`](spfx-methodology.md) を先に読むこと。
 
 ## 1. ゴール

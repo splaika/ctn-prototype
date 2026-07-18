@@ -3,8 +3,9 @@
 治験届管理システム **CTN Suite** を、追加ライセンス¥0(Microsoft 365 のみ)で運用するための
 **SPFx Web パーツ + SharePoint リスト**実装リポジトリ。
 
-- UI・ドメインロジックの単一ソースは [`splaika/ctn-prototype`](https://github.com/splaika/ctn-prototype) の `demo/app`(無変更を維持)
-- 本リポジトリは SPFx 側の実装・プロビジョニング・ドキュメントを保持する
+- 本フォルダ `ctn-spfx/` は `ctn-prototype` リポジトリ内に同梱(旧構想では別リポジトリ)
+- UI・ドメインロジックの単一ソースは同リポジトリの [`demo/app`](../demo/app)(無変更を維持)
+- 本フォルダは SPFx 側の実装・プロビジョニング・ドキュメントを保持する
 
 ## ドキュメント
 
@@ -17,8 +18,9 @@
 ## クイックスタート(実装)
 
 ```bash
-# 隣接ディレクトリに単一ソースをクローン
-git clone https://github.com/splaika/ctn-prototype.git ../ctn-prototype
+# このリポジトリ(単一ソース demo/app を同梱)を clone
+git clone https://github.com/splaika/ctn-prototype.git
+cd ctn-prototype/ctn-spfx
 
 # あとは Claude Code に:
 #   「CLAUDE.md と docs/ を読んで Phase 0 から実装して」
