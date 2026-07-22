@@ -145,15 +145,15 @@ export function NotificationDetail({
   // ---------- 実施医療機関 ----------
   const addSite = () =>
     set((n) => {
-      const inst = activeInstitutions[0];
+      // 追加直後はブランク（施設・IRB 未選択）。ユーザーが明示的に選ぶ。
       const nsite: Site = {
         id: `site-${Math.random().toString(36).slice(2, 8)}`,
-        institutionId: inst?.id ?? "",
+        institutionId: "",
         serialNo: 0, // サーバー（finalizeSerials）が SERIALNO1 を確定
 
         department: "",
         plannedSubjects: 0,
-        irbId: activeIrbs[0]?.id ?? "",
+        irbId: "",
         investigators: [],
         quantities: n.studyDrugs.map((d) => ({ studyDrugId: d.id, serialNo: d.serialNo, qtyPlanned: 0 })),
       };
@@ -255,7 +255,7 @@ export function NotificationDetail({
         <div className="detail-title">
           <div className="dt-code">{compound.compoundCode}</div>
           <TypeBadge type={draft.notifType} full />
-          <span className="dt-count">#{draft.filingCount}{draft.changeCount != null ? ` ・変更${draft.changeCount}` : ""}</span>
+          <span className="dt-count">第{draft.filingCount}回{draft.changeCount != null ? `・変更${draft.changeCount}回` : ""}</span>
           <StatusPill status={draft.status} />
         </div>
         <div className="detail-actions">
@@ -633,6 +633,7 @@ function SiteCard({
       <div className="sitecard-h">
         <div className="site-serial">{t("Site", "施設")} {site.serialNo > 0 ? `#${site.serialNo}` : t("(new)", "（採番前）")}</div>
         <select className="sel sel-sm" value={site.institutionId} disabled={!editable} onChange={(e) => onField((s) => (s.institutionId = e.target.value))}>
+          <option value="">{t("Select institution…", "医療機関を選択…")}</option>
           {activeInstitutions.map((i) => <option key={i.id} value={i.id}>{i.name}</option>)}
         </select>
         {editable && <button className="icon-btn danger" onClick={onRemoveSite} title="施設を削除">{Icon.trash}</button>}
@@ -640,7 +641,7 @@ function SiteCard({
       <div className="site-grid">
         <Field label={t("Department", "実施診療科")} mark="always"><input className="tin tin-sm" value={site.department} disabled={!editable} onChange={(e) => onField((s) => (s.department = e.target.value))} /></Field>
         <Field label={t("Planned subjects", "予定被験者数")} mark="always"><input type="number" className="tin tin-sm" value={site.plannedSubjects} disabled={!editable} onChange={(e) => onField((s) => (s.plannedSubjects = Number(e.target.value)))} /></Field>
-        <Field label={t("IRB", "IRB")} mark="always"><select className="sel sel-sm" value={site.irbId} disabled={!editable} onChange={(e) => onField((s) => (s.irbId = e.target.value))}>{activeIrbs.map((i) => <option key={i.id} value={i.id}>{i.ownerName}</option>)}</select></Field>
+        <Field label={t("IRB", "IRB")} mark="always"><select className="sel sel-sm" value={site.irbId} disabled={!editable} onChange={(e) => onField((s) => (s.irbId = e.target.value))}><option value="">{t("Select IRB…", "IRBを選択…")}</option>{activeIrbs.map((i) => <option key={i.id} value={i.id}>{i.ownerName}</option>)}</select></Field>
         <Field label={t("CRC", "CRC")}><select className="sel sel-sm" value={site.crcStaffId ?? ""} disabled={!editable} onChange={(e) => onField((s) => (s.crcStaffId = e.target.value || undefined))}><option value="">—</option>{activeStaff.filter((st) => st.institutionId === site.institutionId).map((st) => <option key={st.id} value={st.id}>{st.name}（{st.role}）</option>)}</select></Field>
         {terminal && <Field label={t("Enrolled subjects", "実施医療機関被験者数")} mark="always"><input type="number" className="tin tin-sm" value={site.enrolledSubjects ?? ""} disabled={!editable} onChange={(e) => onField((s) => (s.enrolledSubjects = Number(e.target.value)))} /></Field>}
         <Field label={t("SMO name", "SMO名称")}><input className="tin tin-sm" value={site.smoName ?? ""} disabled={!editable} onChange={(e) => onField((s) => (s.smoName = e.target.value))} placeholder={t("If SMO is used", "SMOありの場合")} /></Field>
