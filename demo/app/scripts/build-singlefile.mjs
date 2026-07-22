@@ -4,10 +4,13 @@
 // Google Fonts links are kept (load online, fall back to system fonts offline).
 // Run via `npm run build:demo`.
 import { readFileSync, writeFileSync, readdirSync } from "node:fs";
+import { fileURLToPath } from "node:url";
 
-const root = new URL("..", import.meta.url).pathname; // = demo/app/
+// fileURLToPath は Windows でも正しいネイティブパスを返す（`.pathname` は
+// `/C:/…` を返し Windows で `C:\C:\…` に化けるため使わない）。
+const root = fileURLToPath(new URL("..", import.meta.url)); // = demo/app/
 const dist = `${root}dist`;
-const outFile = new URL("../../index.html", import.meta.url).pathname; // = demo/index.html
+const outFile = fileURLToPath(new URL("../../index.html", import.meta.url)); // = demo/index.html
 let html = readFileSync(`${dist}/index.html`, "utf8");
 
 const assets = readdirSync(`${dist}/assets`);
