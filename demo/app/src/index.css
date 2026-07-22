@@ -248,8 +248,8 @@
 .brand b{font-size:14.5px;display:block;line-height:1.1}
 .brand span{display:block;font-size:10px;color:#9db4d6;font-weight:400}
 .nav a{position:relative}
-/* メニュー項目のラベルは折り返さない（「ロジカルチェック設定」等の長い項目対策） */
-.nav a>span:not(.nav-badge){white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+/* メニュー項目のラベルは折り返さず、省略もせず全文表示（「ロジカルチェック設定」対策） */
+.nav a>span:not(.nav-badge){white-space:nowrap;overflow:visible;text-overflow:clip}
 .nav-badge{position:absolute;right:11px;background:var(--blue);color:#fff;font-size:10px;font-weight:700;min-width:18px;height:18px;border-radius:9px;display:grid;place-items:center;padding:0 5px}
 .nav a.on .nav-badge{background:#fff;color:var(--navy)}
 
