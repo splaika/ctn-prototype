@@ -248,6 +248,8 @@
 .brand b{font-size:14.5px;display:block;line-height:1.1}
 .brand span{display:block;font-size:10px;color:#9db4d6;font-weight:400}
 .nav a{position:relative}
+/* メニュー項目のラベルは折り返さない（「ロジカルチェック設定」等の長い項目対策） */
+.nav a>span:not(.nav-badge){white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .nav-badge{position:absolute;right:11px;background:var(--blue);color:#fff;font-size:10px;font-weight:700;min-width:18px;height:18px;border-radius:9px;display:grid;place-items:center;padding:0 5px}
 .nav a.on .nav-badge{background:#fff;color:var(--navy)}
 
@@ -314,8 +316,14 @@
 .stpill{display:inline-flex;align-items:center;gap:6px;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;white-space:nowrap;color:#fff}
 .stpill::before{content:"";width:6px;height:6px;border-radius:50%;background:#fff;opacity:.9}
 .st-draft{background:var(--st-draft)} .st-review{background:var(--st-review)} .st-approved{background:var(--st-approved)} .st-submitted{background:var(--st-submitted)}
-.tybadge{display:inline-block;font-size:10.5px;font-weight:700;padding:3px 8px;border-radius:6px;color:#fff;white-space:nowrap}
+.tybadge{display:inline-block;font-size:10.5px;font-weight:700;padding:3px 8px;border-radius:6px;white-space:nowrap}
+/* 一覧・詳細のバッジは「淡色 tint + 枠線」。ソリッド塗り＋白文字のステータスピルと明確に差別化し、彩度を抑える */
 .ty-plan{background:var(--ty-plan)} .ty-change{background:var(--ty-change)} .ty-termination{background:var(--ty-term)} .ty-completion{background:var(--ty-comp)} .ty-devDiscontinuation{background:var(--ty-dev)}
+.tybadge.ty-plan{color:var(--blue);background:color-mix(in srgb,var(--blue) 12%,transparent);border:1px solid color-mix(in srgb,var(--blue) 26%,transparent)}
+.tybadge.ty-change{color:var(--amber);background:color-mix(in srgb,var(--amber) 15%,transparent);border:1px solid color-mix(in srgb,var(--amber) 30%,transparent)}
+.tybadge.ty-termination{color:var(--red);background:color-mix(in srgb,var(--red) 12%,transparent);border:1px solid color-mix(in srgb,var(--red) 26%,transparent)}
+.tybadge.ty-completion{color:var(--green);background:color-mix(in srgb,var(--green) 12%,transparent);border:1px solid color-mix(in srgb,var(--green) 26%,transparent)}
+.tybadge.ty-devDiscontinuation{color:var(--ink-3);background:color-mix(in srgb,var(--ink) 8%,transparent);border:1px solid color-mix(in srgb,var(--ink) 16%,transparent)}
 
 /* search input */
 .search{padding:8px 12px;border:1px solid var(--line);border-radius:9px;font-size:13px;min-width:180px}
@@ -718,8 +726,8 @@
 /* tinted hovers / alert & reminder cards keep their hue but go dark */
 .app.mode-dark .drugcard-h:hover{background:var(--line-2)}
 .app.mode-dark .grow:hover{background:#16222e}
-.app.mode-dark .sect-alert{background:#2a1a1d;border-color:#5b2f36}
-.app.mode-dark .sect-reminder{background:#2a2616;border-color:#5a4f2a}
+.app.mode-dark .sect-alert,.app.mode-dark .kpi-red{background:#2a1a1d;border-color:#5b2f36}
+.app.mode-dark .sect-reminder,.app.mode-dark .kpi-amber{background:#2a2616;border-color:#5a4f2a}
 .app.mode-dark .btn-danger:hover{background:#3a2320}
 .app.mode-dark .a-submit{background:#16283f} .app.mode-dark .a-xml{background:#241a38}
 /* scrollbars */
@@ -778,14 +786,12 @@ textarea:focus-visible,
   box-shadow:0 0 0 3px color-mix(in srgb, var(--focus) 42%, transparent);
 }
 
-/* --- P1改: 強調KPI（カード全体を"やや薄めの意味色"で塗り＋白文字） --- */
-/* トーンは border-top ではなくカード全面塗りに変更 */
-.kpi-red{background:var(--kpi-crit);border-color:transparent;box-shadow:var(--sh-2)}
-.kpi-amber{background:var(--kpi-warn);border-color:transparent;box-shadow:var(--sh-2)}
-.kpi-red .l,.kpi-red .v,.kpi-red .m,
-.kpi-amber .l,.kpi-amber .v,.kpi-amber .m{color:#fff}
-.kpi-red .l,.kpi-amber .l{opacity:.92}
-.kpi-red .v small,.kpi-amber .v small{color:rgba(255,255,255,.75)}
+/* --- P1改: 強調KPI（アラート／リマインダ カードは、直下の一覧ボックスと同じ淡色に統一） --- */
+/* sect-alert / sect-reminder と同じ tint を使い、数値のみ意味色で強調 */
+.kpi-red{background:#fdf1f2;border:1px solid #f3d3d6}
+.kpi-amber{background:#fdf9ec;border:1px solid #efe4bf}
+.kpi-red .v{color:var(--red)}
+.kpi-amber .v{color:var(--amber)}
 
 /* --- P2/P3: データテーブルの走査性（数値右寄せ・薄zebra・行密度） --- */
 .ntbl td{padding:10px 16px}                                   /* やや高密度 */
