@@ -135,9 +135,28 @@ export interface StudyDrug {
   drugRole: number; // 主従区分（主たる被験薬/その他治験使用薬）
   serialNo: number; // 順序番号（突合キー型・シリーズ内不変）
   drugName: string;
+  productCategory?: number; // 医薬品/医療機器/再生医療等製品の別（COMB_PRODUCTCATEGORY・その他のみ）
   idType?: string; // 記号・名称等の種類（その他のみ）
+  idTypeDetail?: string; // 記号・名称等の種類「その他」の詳述（DETAIL・その他のみ）
   combCategory?: number; // 区別（被験薬/対照薬…）その他のみ
+  combCategoryOther?: string; // 区別「その他」の詳述（OTHERCOMBINATIONCATEGORY）
   applicationStatus?: string; // 国内における承認状況
+  drugSubj30dayReview?: number; // 30日調査対応被験薬区分（薬別・COMB_CATEGTESTPRODUCTSUBJ30DAYREVIEW）
+  drugTargetDisease?: string; // 対象疾患（薬別・COMB_TARGETDISEASE）
+  drugApplicCartagena?: number; // カルタヘナ法 該当有無（薬別・COMB_INFOCLINTRIALWITHDRUGCARTAGENA）
+  drugApplicBiological?: number; // 生物由来製品 該当有無（薬別・COMB_INFOCLINTRIALWITHBIOLOGICALPROD）
+  drugApplicCodx?: number; // コンパニオン診断薬等の開発 該当有無（薬別・COMB_INFORESEARCHFORCODX）
+  drugApplicCombinationProd?: number; // コンビネーション製品に関する治験 該当有無（薬別・COMB_INFOCLINTRIALFORCOMBINATIONPROD）
+  drugRemarks?: string; // その他備考（薬別・COMB_REMARKS）
+  // ---- 海外依頼者・外国製造業者（薬別・COMB_INFOFOREIGNMANUFACTURER・本デモは単数） ----
+  foreignName?: string; // 名称（邦文・COMB_FOREIGN_SPONSOR_NAME）
+  foreignRepName?: string; // 代表者氏名（邦文・COMB_FOREIGN_SPONSOR_REP_NAME）
+  foreignAddress1?: string; // 所在地1（邦文・COMB_FOREIGN_SPONSOR_ADDRESS1）
+  foreignAddress2?: string; // 所在地2（邦文・COMB_FOREIGN_SPONSOR_ADDRESS2）
+  foreignNameFrgn?: string; // 名称（外国文・COMB_FOREIGN_NAME_FRGNLNG）
+  foreignRepNameFrgn?: string; // 代表者氏名（外国文・COMB_FOREIGN_SPOMSPR_REP_NAME_FRGNLNG）
+  foreignAddress1Frgn?: string; // 所在地1（外国文・COMB_FOREIGN_ADDRESS1_FRGNLNG）
+  foreignAddress2Frgn?: string; // 所在地2（外国文・COMB_FOREIGN_ADDRESS2_FRGNLNG）
   adrReport?: string; // 副作用報告の有無
   plantName: string; // 製造所名称
   plantAddress1: string;
@@ -276,6 +295,24 @@ export interface Notification {
   applicExpandedAccessDetail?: string;
   otherCommentsPrimary?: string; // その他コメント・主たる被験薬（OTHERCOMMENTS_PRIMARY）
   otherCommentsProtocol?: string; // その他コメント・治験計画書（OTHERCOMMENTS_PROTOCOL）
+  // ---- 「その他の情報」該当性トグル（INFONOTE配下・XSD v3.0.0。カルタヘナ/生物由来と兄弟要素） ----
+  applicCodx?: number; // 対応するコンパニオン診断薬等の開発（INFORESEARCHFORCODX/APPLICABLEORNOT）
+  applicCombinationProd?: number; // コンビネーション製品に関する治験（INFOCLINTRIALFORCOMBINATIONPROD/APPLICABLEORNOT）
+  applicGeneTest?: number; // ゲノム検査等を含む治験（INFOCLINTRIALINCLUDINGGENETEST/APPLICABLEORNOT）
+  applicMicrodose?: number; // マイクロドーズ臨床試験を利用した開発品目（INFOPRODUSINGMDCLINTRIAL/APPLICABLEORNOT）
+  applicCombEquipment?: number; // 併用する機械器具等の記載 該当有無（INFOCOMBEQUIPMENT/APPLICABLEORNOT）
+  combEquipmentContents?: string; // 併用する機械器具等 内容（INFOCOMBEQUIPMENT/CONTENTS）
+  globalContents?: string; // 国際共同治験の内容（INFOGLOBALCLINTRIAL/CONTENTS）
+  formVersion?: string; // 様式等のバージョン情報（INFOFORMVERSION）
+  // ---- 海外依頼者・外国製造業者（INFOFOREIGNMANUFACTURER・本デモは単数入力） ----
+  foreignName?: string; // 名称（邦文・FOREIGN_SPONSOR_NAME）
+  foreignRepName?: string; // 代表者氏名（邦文・FOREIGN_SPONSOR_REP_NAME）
+  foreignAddress1?: string; // 所在地1（邦文・FOREIGN_SPONSOR_ADDRESS1）
+  foreignAddress2?: string; // 所在地2（邦文・FOREIGN_SPONSOR_ADDRESS2）
+  foreignNameFrgn?: string; // 名称（外国文・FOREIGN_NAME_FRGNLNG）
+  foreignRepNameFrgn?: string; // 代表者氏名（外国文・FOREIGN_SPOMSPR_REP_NAME_FRGNLNG）
+  foreignAddress1Frgn?: string; // 所在地1（外国文・FOREIGN_ADDRESS1_FRGNLNG）
+  foreignAddress2Frgn?: string; // 所在地2（外国文・FOREIGN_ADDRESS2_FRGNLNG）
   croName?: string; // CRO 名称（CRO_NAME・繰り返し可＝要確認）
   croAddress1?: string; // CRO 所在地1（CRO_ADDRESS1）
   croAddress2?: string; // CRO 所在地2（CRO_ADDRESS2）

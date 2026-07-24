@@ -74,6 +74,8 @@ export function generateCtnXml(n: Notification, ctx: XmlContext): string {
     STATUS: "UPDATE", // 単票項目はUPDATE型
   });
 
+  // ---- 様式等のバージョン情報（INFOFORMVERSION） ----
+  x.leaf("INFOFORMVERSION", n.formVersion ?? "医薬品治験届 令和２年８月改正版");
   // ---- ルート共通（成分・回数・受付番号） ----
   x.leaf("COMPOUNDCODE", ctx.compound.compoundCode);
   // 開発中止届は届出回数不要（"00"）。それ以外は対象プロトコールの届出回数。
@@ -96,6 +98,24 @@ export function generateCtnXml(n: Notification, ctx: XmlContext): string {
   if (n.applicBiological != null) x.leaf("TYPEBIOLOGICALPROD", n.applicBiological);
   if (n.applicCartagena != null) x.leaf("TYPECLINTRIALWITHDRUGCARTAGENA", n.applicCartagena);
   if (n.applicExpandedAccess != null) x.leaf("TYPEEXPANDEDACCESSPROG", n.applicExpandedAccess);
+  // その他の情報（該当性トグル・XSD v3.0.0）。APPLICABLEORNOT のリーフ値として出力（サブセット）。
+  if (n.applicCodx != null) x.leaf("INFORESEARCHFORCODX_APPLICABLEORNOT", n.applicCodx);
+  if (n.applicCombinationProd != null) x.leaf("INFOCLINTRIALFORCOMBINATIONPROD_APPLICABLEORNOT", n.applicCombinationProd);
+  if (n.applicGeneTest != null) x.leaf("INFOCLINTRIALINCLUDINGGENETEST_APPLICABLEORNOT", n.applicGeneTest);
+  if (n.applicMicrodose != null) x.leaf("INFOPRODUSINGMDCLINTRIAL_APPLICABLEORNOT", n.applicMicrodose);
+  if (n.applicCombEquipment != null) {
+    x.open("INFOCOMBEQUIPMENT", { SERIALNO1: 1, STATUS: "ADD" });
+    x.leaf("APPLICABLEORNOT", n.applicCombEquipment);
+    if (n.combEquipmentContents) x.leaf("CONTENTS", n.combEquipmentContents);
+    x.close("INFOCOMBEQUIPMENT");
+  }
+  // 国際共同治験（該当有無＋内容）
+  if (n.isGlobal || n.globalContents) {
+    x.open("INFOGLOBALCLINTRIAL", {});
+    x.leaf("APPLICABLEORNOT", n.isGlobal ? 1 : 0);
+    if (n.globalContents) x.leaf("CONTENTS", n.globalContents);
+    x.close("INFOGLOBALCLINTRIAL");
+  }
   if (n.chargeOutPersonName) {
     x.open("CHARGEOUTPERSONCLINTRIAL", { SERIALNO1: 1, STATUS: "ADD" });
     x.leaf("CHARGEOUTPERSONNAME", n.chargeOutPersonName);
@@ -129,6 +149,20 @@ export function generateCtnXml(n: Notification, ctx: XmlContext): string {
   x.leaf("TELNO", ctx.sponsor.telNo);
   x.close("INFOPERSONFILLNOTE");
 
+  // ---- 海外依頼者・外国製造業者（INFOFOREIGNMANUFACTURER・該当時のみ・単数） ----
+  if (n.foreignName || n.foreignNameFrgn) {
+    x.open("INFOFOREIGNMANUFACTURER", { SERIALNO1: 1, STATUS: "ADD" });
+    if (n.foreignName) x.leaf("FOREIGN_SPONSOR_NAME", n.foreignName);
+    if (n.foreignRepName) x.leaf("FOREIGN_SPONSOR_REP_NAME", n.foreignRepName);
+    if (n.foreignAddress1) x.leaf("FOREIGN_SPONSOR_ADDRESS1", n.foreignAddress1);
+    if (n.foreignAddress2) x.leaf("FOREIGN_SPONSOR_ADDRESS2", n.foreignAddress2);
+    if (n.foreignNameFrgn) x.leaf("FOREIGN_NAME_FRGNLNG", n.foreignNameFrgn);
+    if (n.foreignRepNameFrgn) x.leaf("FOREIGN_SPOMSPR_REP_NAME_FRGNLNG", n.foreignRepNameFrgn);
+    if (n.foreignAddress1Frgn) x.leaf("FOREIGN_ADDRESS1_FRGNLNG", n.foreignAddress1Frgn);
+    if (n.foreignAddress2Frgn) x.leaf("FOREIGN_ADDRESS2_FRGNLNG", n.foreignAddress2Frgn);
+    x.close("INFOFOREIGNMANUFACTURER");
+  }
+
   // ---- 治験使用薬：主たる→ルート直下 / その他→INFOCOMBINATION ----
   const main = n.studyDrugs.find((d) => d.drugRole === DRUG_ROLE.main);
   if (main) {
@@ -143,10 +177,35 @@ export function generateCtnXml(n: Notification, ctx: XmlContext): string {
   }
   for (const d of n.studyDrugs.filter((d) => d.drugRole === DRUG_ROLE.other)) {
     x.open("INFOCOMBINATION", { SERIALNO1: d.serialNo, STATUS: "ADD" });
-    x.leaf("DRUGNAME", d.drugName);
-    if (d.combCategory != null) x.leaf("COMBCATEGORY", d.combCategory);
+    if (d.productCategory != null) x.leaf("COMB_PRODUCTCATEGORY", d.productCategory);
+    x.leaf("COMBINATION_ID", d.drugName);
+    if (d.idType) x.leaf("TYPECOMBINATION_ID", d.idType);
+    if (d.idTypeDetail) x.leaf("DETAIL", d.idTypeDetail);
+    if (d.combCategory != null) x.leaf("COMBINATIONCATEGORY", d.combCategory);
+    if (d.combCategoryOther) x.leaf("OTHERCOMBINATIONCATEGORY", d.combCategoryOther);
+    if (d.applicationStatus) x.leaf("COMB_APPLICATIONSTATUS", d.applicationStatus);
+    if (d.drugSubj30dayReview != null) x.leaf("COMB_CATEGTESTPRODUCTSUBJ30DAYREVIEW", d.drugSubj30dayReview);
     x.leaf("PLANTNAME", d.plantName);
     x.leaf("PLANTCODE", d.plantCode);
+    if (d.drugTargetDisease) x.leaf("COMB_TARGETDISEASE", d.drugTargetDisease);
+    if (d.drugApplicCartagena != null) x.leaf("COMB_TYPECLINTRIALWITHDRUGCARTAGENA", d.drugApplicCartagena);
+    if (d.drugApplicBiological != null) x.leaf("COMB_TYPEBIOLOGICALPROD", d.drugApplicBiological);
+    if (d.drugApplicCodx != null) x.leaf("COMB_INFORESEARCHFORCODX_APPLICABLEORNOT", d.drugApplicCodx);
+    if (d.drugApplicCombinationProd != null) x.leaf("COMB_INFOCLINTRIALFORCOMBINATIONPROD_APPLICABLEORNOT", d.drugApplicCombinationProd);
+    if (d.foreignName || d.foreignNameFrgn) {
+      x.open("COMB_INFOFOREIGNMANUFACTURER", { SERIALNO1: 1, STATUS: "ADD" });
+      if (d.foreignName) x.leaf("COMB_FOREIGN_SPONSOR_NAME", d.foreignName);
+      if (d.foreignRepName) x.leaf("COMB_FOREIGN_SPONSOR_REP_NAME", d.foreignRepName);
+      if (d.foreignAddress1) x.leaf("COMB_FOREIGN_SPONSOR_ADDRESS1", d.foreignAddress1);
+      if (d.foreignAddress2) x.leaf("COMB_FOREIGN_SPONSOR_ADDRESS2", d.foreignAddress2);
+      if (d.foreignNameFrgn) x.leaf("COMB_FOREIGN_NAME_FRGNLNG", d.foreignNameFrgn);
+      if (d.foreignRepNameFrgn) x.leaf("COMB_FOREIGN_SPOMSPR_REP_NAME_FRGNLNG", d.foreignRepNameFrgn);
+      if (d.foreignAddress1Frgn) x.leaf("COMB_FOREIGN_ADDRESS1_FRGNLNG", d.foreignAddress1Frgn);
+      if (d.foreignAddress2Frgn) x.leaf("COMB_FOREIGN_ADDRESS2_FRGNLNG", d.foreignAddress2Frgn);
+      x.close("COMB_INFOFOREIGNMANUFACTURER");
+    }
+    if (d.drugRemarks) x.leaf("COMB_REMARKS", d.drugRemarks);
+    if (d.adrReport) x.leaf("COMB_PRESENCEADRREPORT", d.adrReport);
     x.close("INFOCOMBINATION");
   }
 
