@@ -101,6 +101,8 @@ export const GAIJI_TYPE = {
   pua: 100001503,
 } as const;
 export const ATTACH_STATUS = { attached: 100001300, checking: 100001301, optional: 100001302 } as const;
+// 資料種別のうち分岐で使うもの（検査キット/パッキングリストは提出パッケージで実PDFを同梱）
+export const DOC_TYPE = { packingList: 100001208 } as const;
 // 薬剤区別（被験薬/対照薬/併用薬/レスキュー薬/その他）
 export const COMB = { subject: 100001100, control: 100001101, concomitant: 100001102, rescue: 100001103, other: 100001104 } as const;
 export const COMB_PLACEHOLDER = COMB.control; // プラセボ＝対照薬
