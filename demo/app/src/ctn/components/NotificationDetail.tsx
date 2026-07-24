@@ -637,6 +637,17 @@ function StudyDrugCard({ drug, editable, onField, onRemove }: { drug: StudyDrug;
               <Field label={t("Combination product", "コンビネーション製品に関する治験")}><select className="sel" value={drug.drugApplicCombinationProd ?? ""} disabled={!editable} onChange={(e) => onField((d) => (d.drugApplicCombinationProd = e.target.value === "" ? undefined : Number(e.target.value)))}><option value="">—</option>{APPLICABILITY_OPTIONS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}</select></Field>
             </div>
             <Field label={t("Other remarks (drug)", "その他備考（薬別）")} wide><textarea className="ta" value={drug.drugRemarks ?? ""} disabled={!editable} onChange={(e) => onField((d) => (d.drugRemarks = e.target.value))} placeholder={t("e.g. imported product note", "例：海外輸入品の記載 等")} /></Field>
+            <div className="form-sub">{t("Foreign sponsor / manufacturer (per drug) — only when applicable", "海外依頼者・外国製造業者（薬別・該当時のみ）")}</div>
+            <div className="form-grid">
+              <Field label={t("Name (JP)", "名称（邦文）")}><input className="tin" value={drug.foreignName ?? ""} disabled={!editable} onChange={(e) => onField((d) => (d.foreignName = e.target.value))} /></Field>
+              <Field label={t("Representative (JP)", "代表者氏名（邦文）")}><input className="tin" value={drug.foreignRepName ?? ""} disabled={!editable} onChange={(e) => onField((d) => (d.foreignRepName = e.target.value))} /></Field>
+              <Field label={t("Address 1 (JP)", "所在地1（邦文）")}><input className="tin" value={drug.foreignAddress1 ?? ""} disabled={!editable} onChange={(e) => onField((d) => (d.foreignAddress1 = e.target.value))} /></Field>
+              <Field label={t("Address 2 (JP)", "所在地2（邦文）")}><input className="tin" value={drug.foreignAddress2 ?? ""} disabled={!editable} onChange={(e) => onField((d) => (d.foreignAddress2 = e.target.value))} /></Field>
+              <Field label={t("Name (foreign)", "名称（外国文）")}><input className="tin" value={drug.foreignNameFrgn ?? ""} disabled={!editable} onChange={(e) => onField((d) => (d.foreignNameFrgn = e.target.value))} /></Field>
+              <Field label={t("Representative (foreign)", "代表者氏名（外国文）")}><input className="tin" value={drug.foreignRepNameFrgn ?? ""} disabled={!editable} onChange={(e) => onField((d) => (d.foreignRepNameFrgn = e.target.value))} /></Field>
+              <Field label={t("Address 1 (foreign)", "所在地1（外国文）")}><input className="tin" value={drug.foreignAddress1Frgn ?? ""} disabled={!editable} onChange={(e) => onField((d) => (d.foreignAddress1Frgn = e.target.value))} /></Field>
+              <Field label={t("Address 2 (foreign)", "所在地2（外国文）")}><input className="tin" value={drug.foreignAddress2Frgn ?? ""} disabled={!editable} onChange={(e) => onField((d) => (d.foreignAddress2Frgn = e.target.value))} /></Field>
+            </div>
           </>)}
         </div>
       )}

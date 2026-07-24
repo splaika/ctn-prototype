@@ -148,6 +148,15 @@ export interface StudyDrug {
   drugApplicCodx?: number; // コンパニオン診断薬等の開発 該当有無（薬別・COMB_INFORESEARCHFORCODX）
   drugApplicCombinationProd?: number; // コンビネーション製品に関する治験 該当有無（薬別・COMB_INFOCLINTRIALFORCOMBINATIONPROD）
   drugRemarks?: string; // その他備考（薬別・COMB_REMARKS）
+  // ---- 海外依頼者・外国製造業者（薬別・COMB_INFOFOREIGNMANUFACTURER・本デモは単数） ----
+  foreignName?: string; // 名称（邦文・COMB_FOREIGN_SPONSOR_NAME）
+  foreignRepName?: string; // 代表者氏名（邦文・COMB_FOREIGN_SPONSOR_REP_NAME）
+  foreignAddress1?: string; // 所在地1（邦文・COMB_FOREIGN_SPONSOR_ADDRESS1）
+  foreignAddress2?: string; // 所在地2（邦文・COMB_FOREIGN_SPONSOR_ADDRESS2）
+  foreignNameFrgn?: string; // 名称（外国文・COMB_FOREIGN_NAME_FRGNLNG）
+  foreignRepNameFrgn?: string; // 代表者氏名（外国文・COMB_FOREIGN_SPOMSPR_REP_NAME_FRGNLNG）
+  foreignAddress1Frgn?: string; // 所在地1（外国文・COMB_FOREIGN_ADDRESS1_FRGNLNG）
+  foreignAddress2Frgn?: string; // 所在地2（外国文・COMB_FOREIGN_ADDRESS2_FRGNLNG）
   adrReport?: string; // 副作用報告の有無
   plantName: string; // 製造所名称
   plantAddress1: string;

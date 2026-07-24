@@ -192,6 +192,18 @@ export function generateCtnXml(n: Notification, ctx: XmlContext): string {
     if (d.drugApplicBiological != null) x.leaf("COMB_TYPEBIOLOGICALPROD", d.drugApplicBiological);
     if (d.drugApplicCodx != null) x.leaf("COMB_INFORESEARCHFORCODX_APPLICABLEORNOT", d.drugApplicCodx);
     if (d.drugApplicCombinationProd != null) x.leaf("COMB_INFOCLINTRIALFORCOMBINATIONPROD_APPLICABLEORNOT", d.drugApplicCombinationProd);
+    if (d.foreignName || d.foreignNameFrgn) {
+      x.open("COMB_INFOFOREIGNMANUFACTURER", { SERIALNO1: 1, STATUS: "ADD" });
+      if (d.foreignName) x.leaf("COMB_FOREIGN_SPONSOR_NAME", d.foreignName);
+      if (d.foreignRepName) x.leaf("COMB_FOREIGN_SPONSOR_REP_NAME", d.foreignRepName);
+      if (d.foreignAddress1) x.leaf("COMB_FOREIGN_SPONSOR_ADDRESS1", d.foreignAddress1);
+      if (d.foreignAddress2) x.leaf("COMB_FOREIGN_SPONSOR_ADDRESS2", d.foreignAddress2);
+      if (d.foreignNameFrgn) x.leaf("COMB_FOREIGN_NAME_FRGNLNG", d.foreignNameFrgn);
+      if (d.foreignRepNameFrgn) x.leaf("COMB_FOREIGN_SPOMSPR_REP_NAME_FRGNLNG", d.foreignRepNameFrgn);
+      if (d.foreignAddress1Frgn) x.leaf("COMB_FOREIGN_ADDRESS1_FRGNLNG", d.foreignAddress1Frgn);
+      if (d.foreignAddress2Frgn) x.leaf("COMB_FOREIGN_ADDRESS2_FRGNLNG", d.foreignAddress2Frgn);
+      x.close("COMB_INFOFOREIGNMANUFACTURER");
+    }
     if (d.drugRemarks) x.leaf("COMB_REMARKS", d.drugRemarks);
     if (d.adrReport) x.leaf("COMB_PRESENCEADRREPORT", d.adrReport);
     x.close("INFOCOMBINATION");
