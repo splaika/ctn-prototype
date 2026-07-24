@@ -639,10 +639,10 @@
 .dtab.on{background:var(--navy);color:#fff}
 
 /* dashboard alert / reminder card tints */
-.sect-alert{background:#fdf1f2;border-color:#f3d3d6}
-.sect-alert .sect-h{border-bottom-color:#f3d3d6}
-.sect-reminder{background:#fdf9ec;border-color:#efe4bf}
-.sect-reminder .sect-h{border-bottom-color:#efe4bf}
+.sect-alert{background:#fce4e4;border-color:#f2b8b8}
+.sect-alert .sect-h{border-bottom-color:#f2b8b8}
+.sect-reminder{background:#fdf0d3;border-color:#efd695}
+.sect-reminder .sect-h{border-bottom-color:#efd695}
 
 /* import toolbar */
 .import-toolbar{display:flex;align-items:center;gap:10px;margin:0 0 16px;padding:10px 14px;background:var(--blue-soft);border:1px solid #d6e7f4;border-radius:10px}
