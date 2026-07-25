@@ -704,6 +704,130 @@
 .app.theme-modern .top{border-bottom-color:var(--line)}
 
 /* ============================================================
+   CTN — ALTERNATIVE DESIGN THEME "TENTIAL"
+   出典: awesome-design-md-jp / design-md/tential（2026-05-09 抽出トークン）
+   ブランドネイビー基調・青みがかったサーフェス・角丸4px・Barlow/Inter 見出し・
+   ボタンは pill / outline バリアント。構造と情報密度は現行のまま、
+   パレット＋タイポ＋ボタン形状のみ差し替える。
+   ※ .app.mode-dark より前に置くこと（ダークモードが中立トークンを上書きするため）
+   ============================================================ */
+.app.theme-tential{
+  /* --- brand / accent --- */
+  --navy:#284b7d;                 /* color-brand-navy */
+  --blue:#567eb4;                 /* color-footer-link（操作系アクセント） */
+  --blue-soft:#eef2f7;            /* color-surface-light-blue */
+  --periwinkle:#8593bc;           /* color-accent-periwinkle */
+  --gold:#d1c67a;                 /* color-accent-gold */
+  --brown:#b48857;                /* color-accent-brown */
+  /* --- text --- */
+  --ink:#18181b;                  /* color-text-primary */
+  --ink-2:#45464b; --ink-3:#666666;   /* color-text-secondary */
+  --ink-4:#a9b3c1; --ink-faint:#7e93b1;  /* color-footer-subtitle */
+  /* --- surface（青み寄りの中立色） --- */
+  --line:#d4dbe5;                 /* color-surface-blue-gray */
+  --line-2:#eef2f7; --bg:#f7f8fa; /* color-surface-ultra-light */
+  --white:#fff; --surface:#ffffff;
+  --focus:var(--navy);
+  /* --- semantic（TENTIAL は error のみ規定。他はブランド色から導出） --- */
+  --green:#2f7a57; --green-bg:#e7f1ec;
+  --amber:#8a6636; --amber-bg:#f6f1e0;   /* accent-brown/gold 由来 */
+  --red:#dc3545;   --red-bg:#fbe7e9;     /* color-error */
+  --kpi-crit:#dc3545; --kpi-warn:#b48857;
+  /* --- elevation（ネイビー着色シャドウ） --- */
+  --sh:0 1px 3px rgba(40,75,125,.08);        /* shadow-level-1 */
+  --sh-2:0 8px 24px rgba(40,75,125,.16);     /* shadow-level-3 */
+  /* --- radius: TENTIAL は 4px 一律 --- */
+  --r:4px; --r-sm:4px; --r-md:4px; --r-lg:8px; --r-pill:999px;
+  /* --- status / type --- */
+  --st-draft:#8593bc; --st-review:#567eb4; --st-approved:#2f7a57; --st-submitted:#284b7d;
+  --ty-plan:#567eb4; --ty-change:#b48857; --ty-term:#dc3545; --ty-comp:#2f7a57; --ty-dev:#8593bc;
+  /* --- typography --- */
+  --font-body:Inter,'Noto Sans JP','IBM Plex Sans',sans-serif;
+  --font-head:Barlow,'Noto Sans JP','IBM Plex Sans',sans-serif;
+  font-family:var(--font-body);
+  line-height:1.7;
+  background:var(--bg);
+}
+/* 見出しは Barlow + brand navy（heading-2/3 のスケールを業務画面向けに縮尺） */
+.app.theme-tential .vh .t,
+.app.theme-tential .dt-code,
+.app.theme-tential .rep-hd .ti,
+.app.theme-tential .series-code{
+  font-family:var(--font-head);font-weight:600;letter-spacing:0;color:var(--navy);line-height:1.5;
+}
+.app.theme-tential .vh .t{font-size:28px}
+.app.theme-tential .dt-code,.app.theme-tential .rep-hd .ti{font-size:22px}
+.app.theme-tential .series-code{font-size:19px}
+.app.theme-tential .sect-h h3,
+.app.theme-tential .card-h h3,
+.app.theme-tential .modal-h h3{font-family:var(--font-head);font-size:16px;font-weight:600;color:var(--navy)}
+.app.theme-tential .top h1{font-family:var(--font-head);font-size:17px;font-weight:600;color:var(--navy)}
+/* 数値（KPI / 価格相当）は Barlow 700・tabular */
+.app.theme-tential .kpi .v,
+.app.theme-tential .rep-stats .v{font-family:var(--font-head);font-weight:700;letter-spacing:0;font-variant-numeric:tabular-nums}
+/* ラベル（caption/badge）— TENTIAL は大文字トラッキングを控えめに */
+.app.theme-tential .field>label,
+.app.theme-tential .fld>label,
+.app.theme-tential .fg>label,
+.app.theme-tential .kpi .l,
+.app.theme-tential .ss-h,
+.app.theme-tential .form-sub{letter-spacing:.06em;font-weight:600;color:var(--ink-3)}
+
+/* --- ボタン: Primary Pill / Secondary Outline Pill --- */
+.app.theme-tential .btn{border-radius:var(--r-pill);padding:10px 22px;font-weight:600;letter-spacing:.02em}
+.app.theme-tential .btn-sm{padding:7px 16px}
+.app.theme-tential .btn-p{background:var(--navy);color:#fff}
+.app.theme-tential .btn-p:hover{background:#1d3a63}
+.app.theme-tential .btn-g{background:transparent;border:1px solid var(--navy);color:var(--navy)}
+.app.theme-tential .btn-g:hover{background:var(--blue-soft);border-color:var(--navy)}
+.app.theme-tential .btn-ghost{border:1px solid transparent;color:var(--ink-2)}
+.app.theme-tential .btn-ghost:hover{background:var(--line-2)}
+.app.theme-tential .btn-danger{background:transparent;border:1px solid var(--red);color:var(--red)}
+.app.theme-tential .btn-danger:hover{background:var(--red-bg)}
+.app.theme-tential .chip{border-radius:var(--r-pill)}
+.app.theme-tential .chip.on{background:var(--navy);border-color:var(--navy)}
+.app.theme-tential .mtabs button{border-radius:var(--r-pill);padding:9px 20px}
+
+/* --- カード・コンテナは角丸4px --- */
+.app.theme-tential .kpi,.app.theme-tential .card,.app.theme-tential .sect,
+.app.theme-tential .filters,.app.theme-tential .series-card,.app.theme-tential .glist,
+.app.theme-tential .rep,.app.theme-tential .wf,.app.theme-tential .detail-tabs,
+.app.theme-tential .sitecard,.app.theme-tential .drugcard,.app.theme-tential .banner,
+.app.theme-tential .dropzone,.app.theme-tential .modal{border-radius:var(--r)}
+.app.theme-tential .icon-btn,.app.theme-tential .seg,.app.theme-tential .seg button,
+.app.theme-tential .lang,.app.theme-tential .dtab{border-radius:var(--r)}
+
+/* --- フォーム: bg #f6fafe / border blue-gray / focus navy / error red --- */
+.app.theme-tential .tin,.app.theme-tential .ta,
+.app.theme-tential select.sel,.app.theme-tential .search,
+.app.theme-tential .drawer input.tin{
+  background-color:#f6fafe;border:1px solid var(--line);border-radius:var(--r);
+}
+.app.theme-tential .tin:focus,.app.theme-tential .ta:focus,
+.app.theme-tential select.sel:focus,.app.theme-tential .search:focus{border-color:var(--navy)}
+.app.theme-tential .tin.err{border-color:var(--red)}
+
+/* --- サイドバー: ブランドネイビー（base .side を継承、ロゴのみ調整） --- */
+.app.theme-tential .brand .m{background:linear-gradient(135deg,#284b7d,#8593bc)}
+.app.theme-tential .nav a{color:#c3cee0;border-radius:var(--r)}
+.app.theme-tential .nav a.on{background:rgba(255,255,255,.16);color:#fff}
+.app.theme-tential .nav-badge{background:var(--gold);color:#2b2a17}
+.app.theme-tential .nav a.on .nav-badge{background:var(--gold);color:#2b2a17}
+.app.theme-tential .hublink{border-radius:var(--r)}
+.app.theme-tential .sfoot .a{background:var(--periwinkle);color:#fff}
+/* ヘッダーの選択中トグルはブランドネイビー */
+.app.theme-tential .lang button.on,.app.theme-tential .dtab.on{background:var(--navy)}
+
+/* --- ダッシュボードの意味色 tint を TENTIAL のトーンへ --- */
+.app.theme-tential .sect-alert{background:#fbeced;border-color:#f0c4c9}
+.app.theme-tential .sect-alert .sect-h{border-bottom-color:#f0c4c9}
+.app.theme-tential .sect-reminder{background:#f8f3e1;border-color:#e3d69f}
+.app.theme-tential .sect-reminder .sect-h{border-bottom-color:#e3d69f}
+.app.theme-tential .kpi-red{background:#fbeced;border:1px solid #f0c4c9}
+.app.theme-tential .kpi-amber{background:#f8f3e1;border:1px solid #e3d69f}
+.app.theme-tential .kpi.hl,.app.theme-tential .kpi-blue{border-top:3px solid var(--navy)}
+
+/* ============================================================
    DARK MODE  (color axis, independent of the standard/modern theme)
    Overrides only neutral tokens + literal surfaces; each theme keeps
    its own accent hue. Placed last so it wins the equal-specificity
@@ -755,6 +879,9 @@
 .app.collapsed .hublink span{display:none}
 .app.collapsed .sfoot{padding:14px 0;justify-content:center}
 .app.collapsed .sfoot>div:not(.a){display:none}
+/* header design-version switch（現行 / TENTIAL） */
+.theme-switch{flex:none}
+.theme-switch button{padding:7px 11px;font-size:11px;letter-spacing:.03em}
 /* header dark/light toggle */
 .mode-toggle{flex:none}
 .mode-toggle svg{width:17px;height:17px}
