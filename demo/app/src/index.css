@@ -14,6 +14,11 @@
     --focus:var(--blue);
     /* 強調KPI：カード全体を"やや薄めの意味色"で塗り、文字は白 */
     --kpi-crit:#d95c6a; --kpi-warn:#cf8a3a;
+    /* アクセント色に追従する淡色ボーダー（バナー/ノート/ツールバー）。
+       配色バリエーション（palette-*）で差し替える */
+    --tint-border:#cfe4f3;
+    /* ブランドマークのグラデーション終端 */
+    --blue-2:#6fc0ec;
   }
   *{box-sizing:border-box;margin:0;padding:0}
   body{font-family:'IBM Plex Sans',sans-serif;font-size:14px;color:var(--ink);background:var(--bg);-webkit-font-smoothing:antialiased;height:100vh;overflow:hidden}
@@ -31,7 +36,7 @@
   /* sidebar */
   .side{background:var(--navy);color:#fff;display:flex;flex-direction:column}
   .brand{padding:22px 20px 18px;display:flex;align-items:center;gap:11px}
-  .brand .m{width:28px;height:28px;border-radius:8px;background:linear-gradient(135deg,var(--blue),#6fc0ec);display:grid;place-items:center;font-weight:700}
+  .brand .m{width:28px;height:28px;border-radius:8px;background:linear-gradient(135deg,var(--blue),var(--blue-2));display:grid;place-items:center;font-weight:700}
   .brand b{font-size:15px}
   .brand span{display:block;font-size:10.5px;color:#9db4d6;font-weight:400}
   .nav{padding:6px 12px;flex:1}
@@ -294,7 +299,7 @@
 .alert-d{font-size:11.5px;color:var(--ink-2);margin-top:2px;line-height:1.4}
 .alert-due{font-size:11px;font-weight:700;color:var(--ink-3);white-space:nowrap}
 .empty.small{padding:26px;font-size:12.5px}
-.dash-note{font-size:11.5px;color:var(--ink-3);line-height:1.6;background:var(--blue-soft);border:1px solid #d6e7f4;border-radius:10px;padding:12px 16px}
+.dash-note{font-size:11.5px;color:var(--ink-3);line-height:1.6;background:var(--blue-soft);border:1px solid var(--tint-border);border-radius:10px;padding:12px 16px}
 
 /* notification table */
 .ntbl-wrap{overflow-x:auto}
@@ -397,7 +402,7 @@
 /* banners */
 .banner{display:flex;align-items:center;gap:14px;padding:12px 18px;border-radius:11px;margin-bottom:16px;font-size:13px;flex-wrap:wrap}
 .banner b{font-weight:700}
-.banner-blue{background:var(--blue-soft);border:1px solid #cfe4f3;color:var(--navy)}
+.banner-blue{background:var(--blue-soft);border:1px solid var(--tint-border);color:var(--navy)}
 .banner-amber{background:var(--amber-bg);border:1px solid #ecd9a8;color:var(--amber)}
 .banner-red{background:var(--red-bg);border:1px solid #f0c4bd;color:var(--red)}
 .banner-green{background:var(--green-bg);border:1px solid #bfe4cf;color:var(--green)}
@@ -488,7 +493,7 @@
 .wiz-series b{font-size:14px}
 .validate{margin-top:8px;display:flex;flex-direction:column;gap:3px}
 .v-err{color:var(--red);font-size:11.5px;font-weight:600} .v-warn{color:var(--amber);font-size:11.5px;font-weight:600} .v-ok{color:var(--green);font-size:11.5px;font-weight:600}
-.wiz-note{background:var(--blue-soft);border:1px solid #d0e4f3;border-radius:9px;padding:10px 14px;font-size:12px;color:var(--navy);line-height:1.5}
+.wiz-note{background:var(--blue-soft);border:1px solid var(--tint-border);border-radius:9px;padding:10px 14px;font-size:12px;color:var(--navy);line-height:1.5}
 .wiz-note.wide{grid-column:1/-1}
 .wiz-fixed{display:flex;align-items:center;gap:14px;padding:16px;border:1px solid var(--line);border-radius:11px}
 .wiz-fixed-badge{background:var(--ty-plan);color:#fff;font-weight:700;font-size:13px;padding:8px 14px;border-radius:9px}
@@ -645,7 +650,7 @@
 .sect-reminder .sect-h{border-bottom-color:#efd695}
 
 /* import toolbar */
-.import-toolbar{display:flex;align-items:center;gap:10px;margin:0 0 16px;padding:10px 14px;background:var(--blue-soft);border:1px solid #d6e7f4;border-radius:10px}
+.import-toolbar{display:flex;align-items:center;gap:10px;margin:0 0 16px;padding:10px 14px;background:var(--blue-soft);border:1px solid var(--tint-border);border-radius:10px}
 
 /* settings permission banner */
 .perm-banner{border-radius:11px;padding:13px 16px;margin-bottom:18px;font-size:12.5px;line-height:1.55}
@@ -666,6 +671,7 @@
   --green:#10b981; --green-bg:#e7f7f0;
   --amber:#f59e0b; --amber-bg:#fdf1de;
   --red:#ef4444; --red-bg:#fdecec;
+  --blue-2:#a78bfa;   /* ブランドマークのグラデーション終端 */
   --sh:0 1px 3px rgba(28,28,60,.05); --sh-2:0 18px 44px rgba(28,28,60,.15);
   --r:16px;
   /* status pill colors */
@@ -677,7 +683,7 @@
 .app.theme-modern .side{background:var(--surface);color:var(--ink);border-right:1px solid var(--line)}
 .app.theme-modern .brand b{color:var(--ink)}
 .app.theme-modern .brand span{color:var(--ink-3)}
-.app.theme-modern .brand .m{background:linear-gradient(135deg,#6d5efc,#a78bfa)}
+.app.theme-modern .brand .m{background:linear-gradient(135deg,var(--blue),var(--blue-2))}
 .app.theme-modern .nav a{color:var(--ink-2);font-weight:600}
 .app.theme-modern .nav a:hover{background:var(--line-2);color:var(--ink)}
 .app.theme-modern .nav a.on{background:var(--blue-soft);color:var(--blue)}
@@ -702,6 +708,33 @@
 .app.theme-modern .kpi .v{letter-spacing:-.5px}
 /* header stays surface, subtle divider */
 .app.theme-modern .top{border-bottom-color:var(--line)}
+
+/* ============================================================
+   COLOR PALETTE VARIANTS
+   現行デザイン（theme-modern）の構造・タイポ・角丸・影はそのままに、
+   アクセント色だけを差し替えるバリエーション。
+   意味色（緑=承認/黄=注意/赤=警告）とは衝突しない色相のみを採用する。
+
+   ・アクセント系トークンのみ上書きし、中立色（bg/surface/ink/line）は触らない
+     → ダークモードと直交する
+   ・.app.mode-dark と同じ2クラス詳細度なので、必ずその「前」に置くこと
+     （--blue-soft や *-bg の暗色化はダークモード側に勝たせる）
+   ・「現行（インディゴ）」は palette クラスを付けない = theme-modern そのまま
+   ============================================================ */
+/* ティール — 医療・臨床寄りの落ち着いた青緑 */
+.app.palette-teal{
+  --navy:#0f766e; --blue:#0d9488; --blue-2:#5eead4; --blue-soft:#e6f7f4;
+  --tint-border:#b9e5de;
+  --st-draft:#94a3b8; --st-review:var(--blue); --st-submitted:var(--navy);
+  --ty-plan:var(--blue);
+}
+/* オーシャン — 製薬コーポレートに寄せた実直なブルー */
+.app.palette-ocean{
+  --navy:#1e3a8a; --blue:#2563eb; --blue-2:#7dd3fc; --blue-soft:#eaf1fe;
+  --tint-border:#c3d9fb;
+  --st-draft:#94a3b8; --st-review:var(--blue); --st-submitted:var(--navy);
+  --ty-plan:var(--blue);
+}
 
 /* ============================================================
    DARK MODE  (color axis, independent of the standard/modern theme)
@@ -755,6 +788,13 @@
 .app.collapsed .hublink span{display:none}
 .app.collapsed .sfoot{padding:14px 0;justify-content:center}
 .app.collapsed .sfoot>div:not(.a){display:none}
+/* header palette swatches（配色バリエーション切替） */
+.palette-switch{display:flex;align-items:center;gap:6px;flex:none;padding:5px 8px;border:1px solid var(--line);border-radius:10px}
+.pal-dot{width:16px;height:16px;border-radius:50%;flex:none;border:2px solid transparent;transition:.14s;padding:0}
+.pal-dot:hover{transform:scale(1.15)}
+.pal-dot.on{border-color:var(--ink);box-shadow:0 0 0 2px var(--surface) inset}
+.app.theme-modern .palette-switch{border-radius:11px}
+@media (prefers-reduced-motion: reduce){.pal-dot:hover{transform:none}}
 /* header dark/light toggle */
 .mode-toggle{flex:none}
 .mode-toggle svg{width:17px;height:17px}
