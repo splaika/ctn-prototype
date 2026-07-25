@@ -704,6 +704,166 @@
 .app.theme-modern .top{border-bottom-color:var(--line)}
 
 /* ============================================================
+   CTN — ALTERNATIVE DESIGN THEME "DADS"（デジタル庁デザインシステム）
+   出典: awesome-design-md-jp / design-md/digital-go
+   （原典 digital-go-jp/design-system-example-components-html, MIT）
+   官公庁向けブルー基調・角丸8px(sm 6px)・Noto Sans JP・
+   WCAG 2.2 準拠のフォーカス（4px 黒アウトライン＋yellow-300）・
+   リンクは常時下線。構造と情報密度は現行のまま。
+   ※ .app.mode-dark より前に置くこと（ダークモードが中立トークンを上書きするため）
+   ============================================================ */
+.app.theme-dads{
+  /* --- primitive blue（アクセント） --- */
+  --navy:#00118f;                 /* blue-1000: サイドバー・リンク・強調 */
+  --blue:#0017c1;                 /* blue-900: ボタン・操作系 */
+  --blue-soft:#e8f1fe;            /* blue-50 */
+  --blue-100:#d9e6ff;
+  --focus-yellow:#ffd43d;         /* yellow-300: フォーカスリング */
+  --magenta:#a3005c;              /* visited link */
+  /* --- neutral: solid gray --- */
+  --ink:#1a1a1c;                  /* gray-900 */
+  --ink-2:#4d4d4d;                /* gray-700: 補助文 */
+  --ink-3:#767676;                /* gray-536: AA 下限 */
+  --ink-4:#949494; --ink-faint:#949494;
+  --line:#d8d8d8; --line-2:#f2f2f2; --bg:#f2f2f2;
+  --white:#fff; --surface:#ffffff;
+  --input-border:#666666;         /* gray-600: DADS の入力枠は濃い */
+  --focus:var(--blue);
+  /* --- semantic（DADS 2段階の濃い方＝白背景で AA を満たす側を採用） --- */
+  --green:#197a4b;  --green-bg:#e6f5ed;   /* success-2 / green-800 */
+  --amber:#927200;  --amber-bg:#fdf5da;   /* warning-yellow-2 / yellow-900 */
+  --orange:#c74700;                        /* warning-orange-2 */
+  --red:#ce0000;    --red-bg:#fdeeee;     /* error-2 / red-900, red-50 */
+  --kpi-crit:#ce0000; --kpi-warn:#b78f00;
+  /* --- elevation --- */
+  --sh:0 1px 2px rgba(0,0,0,.08);
+  --sh-2:0 8px 24px rgba(0,0,0,.18);
+  /* --- corner shape: sm 8px / xs 6px / rect medium 12px --- */
+  --r:8px; --r-sm:6px; --r-md:8px; --r-lg:12px; --r-pill:999px;
+  /* --- status / type --- */
+  --st-draft:#767676; --st-review:#0017c1; --st-approved:#197a4b; --st-submitted:#00118f;
+  --ty-plan:#0017c1; --ty-change:#c74700; --ty-term:#ce0000; --ty-comp:#197a4b; --ty-dev:#767676;
+  /* --- typography: DADS 標準は Noto Sans JP、本文 ls .02em --- */
+  font-family:'Noto Sans JP','IBM Plex Sans',sans-serif;
+  letter-spacing:.02em;
+  line-height:1.7;
+  background:var(--bg);
+}
+/* 見出しスケール（std）: 32/1.5/.01em → 28 → 24/1.5/.02em、色は本文色 */
+.app.theme-dads .vh .t{font-size:32px;font-weight:700;line-height:1.5;letter-spacing:.01em;color:var(--ink)}
+.app.theme-dads .dt-code,.app.theme-dads .rep-hd .ti{font-size:28px;font-weight:700;line-height:1.5;letter-spacing:.01em;color:var(--ink)}
+.app.theme-dads .series-code{font-size:24px;font-weight:700;line-height:1.5;letter-spacing:.02em;color:var(--ink)}
+.app.theme-dads .top h1{font-size:20px;font-weight:700;letter-spacing:.02em;color:var(--ink)}
+.app.theme-dads .modal-h h3{font-size:20px;font-weight:700;letter-spacing:.02em;color:var(--ink)}
+/* Heading data-chip: 見出し左端のブルーバー（DADS の見出しバリアント） */
+.app.theme-dads .sect-h h3,.app.theme-dads .card-h h3{
+  font-size:18px;font-weight:700;letter-spacing:.02em;color:var(--ink);
+  position:relative;padding-left:14px;
+}
+.app.theme-dads .sect-h h3::before,.app.theme-dads .card-h h3::before{
+  content:"";position:absolute;left:0;top:.18em;width:4px;height:.9em;
+  background:var(--blue);border-radius:2px;
+}
+/* dense タイポ: テーブル等は lh 1.3 で行を締める */
+.app.theme-dads .ntbl,.app.theme-dads .mtbl,.app.theme-dads .audit-tbl,
+.app.theme-dads .tbl,.app.theme-dads .rep-tbl{font-size:14px;line-height:1.3;letter-spacing:0}
+/* ラベルは大文字化をやめ、日本語の可読性を優先（DADS は全大文字を使わない） */
+.app.theme-dads .field>label,.app.theme-dads .fld>label,.app.theme-dads .fg>label,
+.app.theme-dads .kpi .l,.app.theme-dads .ss-h,.app.theme-dads .form-sub,
+.app.theme-dads .rt-head,.app.theme-dads .ntbl th,.app.theme-dads .mtbl th,
+.app.theme-dads .audit-tbl th,.app.theme-dads .tbl th,.app.theme-dads .rep-tbl th{
+  text-transform:none;letter-spacing:.02em;font-size:13px;color:var(--ink-2)
+}
+.app.theme-dads .kpi .v,.app.theme-dads .rep-stats .v{letter-spacing:0;font-variant-numeric:tabular-nums}
+
+/* --- ボタン: Solid Fill / Outline / Text（sm 36px・radius 6px） --- */
+.app.theme-dads .btn{min-height:36px;border-radius:var(--r-sm);padding:8px 16px;font-size:14px;letter-spacing:.02em}
+.app.theme-dads .btn-sm{min-height:28px;border-radius:4px;padding:5px 12px;font-size:13px}
+.app.theme-dads .btn-p{background:var(--blue);color:#fff}
+.app.theme-dads .btn-p:hover{background:#000f9e}
+.app.theme-dads .btn-g{background:var(--surface);border:1px solid var(--blue);color:var(--blue)}
+.app.theme-dads .btn-g:hover{background:var(--blue-soft);border-color:var(--blue)}
+.app.theme-dads .btn-ghost{color:var(--blue)}
+.app.theme-dads .btn-ghost:hover{background:var(--blue-soft)}
+.app.theme-dads .btn-danger{background:var(--surface);border:1px solid var(--red);color:var(--red)}
+.app.theme-dads .btn-danger:hover{background:var(--red-bg)}
+.app.theme-dads .icon-btn{border-radius:var(--r-sm);border-color:var(--line)}
+.app.theme-dads .chip{border-radius:var(--r-sm);border-color:var(--input-border);color:var(--ink-2)}
+.app.theme-dads .chip.on{background:var(--blue);border-color:var(--blue);color:#fff}
+.app.theme-dads .mtabs button{border-radius:var(--r-sm);border-color:var(--line)}
+.app.theme-dads .mtabs button.on{background:var(--blue);border-color:var(--blue)}
+.app.theme-dads .dtab.on,.app.theme-dads .lang button.on{background:var(--blue)}
+
+/* --- 角丸: rectangle medium 12px / 部品 8px --- */
+.app.theme-dads .kpi,.app.theme-dads .card,.app.theme-dads .sect,
+.app.theme-dads .filters,.app.theme-dads .series-card,.app.theme-dads .glist,
+.app.theme-dads .rep,.app.theme-dads .wf,.app.theme-dads .detail-tabs,
+.app.theme-dads .sitecard,.app.theme-dads .drugcard,.app.theme-dads .dropzone,
+.app.theme-dads .modal{border-radius:var(--r-lg)}
+
+/* --- 入力: 枠線 gray-600・radius 8px・エラーは red-900 --- */
+.app.theme-dads .tin,.app.theme-dads .ta,
+.app.theme-dads select.sel,.app.theme-dads .search,
+.app.theme-dads .drawer input.tin{border:1px solid var(--input-border);border-radius:var(--r)}
+.app.theme-dads .tin:focus,.app.theme-dads .ta:focus,
+.app.theme-dads select.sel:focus,.app.theme-dads .search:focus{border-color:var(--blue)}
+.app.theme-dads .tin.err{border-color:var(--red);border-width:2px}
+.app.theme-dads .tin:disabled,.app.theme-dads .sel:disabled{border-color:var(--line)}
+/* 必須マークは記号＋色（色のみに依存しない） */
+.app.theme-dads .req-a{color:var(--red)} .app.theme-dads .req-c{color:var(--orange)}
+
+/* --- リンク: 常時下線・offset 3px、hover で 3px 太線（色のみに依存しない） --- */
+.app.theme-dads .linkbtn{color:var(--navy);text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:3px}
+.app.theme-dads .linkbtn:hover{text-decoration-thickness:3px}
+.app.theme-dads .linkbtn:active{color:var(--orange)}
+
+/* --- フォーカス: WCAG 2.2「4px 黒アウトライン + yellow-300」 --- */
+.app.theme-dads button:focus-visible,
+.app.theme-dads a:focus-visible,
+.app.theme-dads input:focus-visible,
+.app.theme-dads select:focus-visible,
+.app.theme-dads textarea:focus-visible,
+.app.theme-dads [tabindex]:focus-visible{
+  outline:4px solid #000;
+  outline-offset:2px;
+  box-shadow:0 0 0 2px var(--focus-yellow);
+}
+/* 暗背景（サイドバー・ダークモード）では黒アウトラインが沈むため白に反転 */
+.app.theme-dads .side button:focus-visible,
+.app.theme-dads .side a:focus-visible,
+.app.theme-dads.mode-dark button:focus-visible,
+.app.theme-dads.mode-dark a:focus-visible,
+.app.theme-dads.mode-dark input:focus-visible,
+.app.theme-dads.mode-dark select:focus-visible,
+.app.theme-dads.mode-dark textarea:focus-visible,
+.app.theme-dads.mode-dark [tabindex]:focus-visible{outline-color:#fff}
+
+/* --- Notification Banner: 左 4px の意味色ボーダー --- */
+.app.theme-dads .banner{border-radius:var(--r);border-left-width:4px}
+.app.theme-dads .banner-blue{border:1px solid var(--line);border-left:4px solid var(--blue);background:var(--blue-soft);color:var(--ink)}
+.app.theme-dads .banner-green{border:1px solid var(--line);border-left:4px solid var(--green);background:var(--green-bg);color:var(--ink)}
+.app.theme-dads .banner-amber{border:1px solid var(--line);border-left:4px solid #b78f00;background:var(--amber-bg);color:var(--ink)}
+.app.theme-dads .banner-red{border:1px solid var(--line);border-left:4px solid var(--red);background:var(--red-bg);color:var(--ink)}
+
+/* --- サイドバー: blue-1000（base .side を継承） --- */
+.app.theme-dads .brand .m{background:var(--blue);border-radius:var(--r-sm)}
+.app.theme-dads .nav a{color:#dbe3ff;border-radius:var(--r-sm)}
+.app.theme-dads .nav a.on{background:var(--blue);color:#fff}
+.app.theme-dads .nav-badge{background:var(--focus-yellow);color:#332b00}
+.app.theme-dads .nav a.on .nav-badge{background:var(--focus-yellow);color:#332b00}
+.app.theme-dads .hublink{border-radius:var(--r-sm)}
+.app.theme-dads .sfoot .a{background:var(--blue)}
+
+/* --- ダッシュボードの意味色 tint --- */
+.app.theme-dads .sect-alert{background:var(--red-bg);border-color:#f5b8b8}
+.app.theme-dads .sect-alert .sect-h{border-bottom-color:#f5b8b8}
+.app.theme-dads .sect-reminder{background:var(--amber-bg);border-color:#e5cf83}
+.app.theme-dads .sect-reminder .sect-h{border-bottom-color:#e5cf83}
+.app.theme-dads .kpi-red{background:var(--red-bg);border:1px solid #f5b8b8}
+.app.theme-dads .kpi-amber{background:var(--amber-bg);border:1px solid #e5cf83}
+.app.theme-dads .kpi.hl,.app.theme-dads .kpi-blue{border-top:3px solid var(--blue)}
+
+/* ============================================================
    DARK MODE  (color axis, independent of the standard/modern theme)
    Overrides only neutral tokens + literal surfaces; each theme keeps
    its own accent hue. Placed last so it wins the equal-specificity
@@ -755,6 +915,9 @@
 .app.collapsed .hublink span{display:none}
 .app.collapsed .sfoot{padding:14px 0;justify-content:center}
 .app.collapsed .sfoot>div:not(.a){display:none}
+/* header design-version switch（現行 / DADS） */
+.theme-switch{flex:none}
+.theme-switch button{padding:7px 11px;font-size:11px;letter-spacing:.03em}
 /* header dark/light toggle */
 .mode-toggle{flex:none}
 .mode-toggle svg{width:17px;height:17px}

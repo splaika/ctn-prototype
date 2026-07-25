@@ -37,7 +37,14 @@ export default function App() {
   const [xmlFor, setXmlFor] = useState<Notification | null>(null);
   const [toast, setToast] = useState<{ msg: string; err?: boolean } | null>(null);
   const [rules, setRulesState] = useState<RuleSettings>(() => ({ ...DEFAULT_RULES }));
-  // デザインテーマはモダンに統一（標準/モダン切替は撤去）
+  // デザインテーマ: 現行(modern) を既定とし、DADS(デジタル庁DS)版を別バージョンとして切替可能にする
+  const [theme, setTheme] = useState<"modern" | "dads">(() => {
+    try {
+      return localStorage.getItem("ctn.theme") === "dads" ? "dads" : "modern";
+    } catch {
+      return "modern";
+    }
+  });
   const [mode, setMode] = useState<"light" | "dark">(() => {
     try {
       return localStorage.getItem("ctn.mode") === "dark" ? "dark" : "light";
@@ -67,6 +74,13 @@ export default function App() {
       /* ignore */
     }
   }, [mode]);
+  useEffect(() => {
+    try {
+      localStorage.setItem("ctn.theme", theme);
+    } catch {
+      /* ignore */
+    }
+  }, [theme]);
   useEffect(() => {
     try {
       localStorage.setItem("ctn.sidebar", collapsed ? "collapsed" : "expanded");
@@ -190,7 +204,7 @@ export default function App() {
 
   return (
     <LangContext.Provider value={{ lang, setLang: (l) => setLang(l as Lang), t }}>
-      <div className={`app${lang === "ja" ? " ja" : ""} theme-modern mode-${mode}${collapsed ? " collapsed" : ""}`}>
+      <div className={`app${lang === "ja" ? " ja" : ""} theme-${theme} mode-${mode}${collapsed ? " collapsed" : ""}`}>
         <Sidebar view={selected ? "notifications" : view} onNavigate={(v) => { setSelectedId(null); setView(v); }} user={user} badges={{ dashboard: alerts.length }} collapsed={collapsed} onToggleCollapse={() => setCollapsed((c) => !c)} />
         <div className="main">
           <header className="top">
@@ -215,6 +229,15 @@ export default function App() {
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z" /></svg>
               )}
             </button>
+            {/* デザインバージョン切替（現行 / デジタル庁デザインシステム） */}
+            <div className="lang theme-switch" title={t("Design version", "デザインバージョン")}>
+              <button className={theme === "modern" ? "on" : ""} onClick={() => setTheme("modern")}>
+                {t("Current", "現行")}
+              </button>
+              <button className={theme === "dads" ? "on" : ""} onClick={() => setTheme("dads")}>
+                {t("DADS", "デジタル庁")}
+              </button>
+            </div>
             <div className="lang">
               <button className={lang === "en" ? "on" : ""} onClick={() => setLang("en")}>EN</button>
               <button className={lang === "ja" ? "on" : ""} onClick={() => setLang("ja")}>JA</button>
