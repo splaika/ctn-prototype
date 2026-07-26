@@ -10,7 +10,7 @@
 
 | 成果物 | パス | 内容 |
 | --- | --- | --- |
-| DB（リスト）設計書 | `outputs/CTN_SharePoint_DB設計_20260725.xlsx` | 11シート。リスト12本・列124件・Payload項目173件 |
+| DB（リスト）設計書 | `outputs/CTN_SharePoint_DB設計_20260726.xlsx` | 版1.1。11シート・リスト13本・列133件・Payload項目173件。書体は Noto Sans JP / 本文10pt で統一 |
 | 生成スクリプト | `tools/gen-sharepoint-db-design.py` | `ctn-schema.json` を読んで必須マーク・XSD要素名・選択肢・要確認列を自動で埋める |
 
 再生成: `python tools/gen-sharepoint-db-design.py`

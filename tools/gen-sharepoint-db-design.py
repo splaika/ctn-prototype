@@ -22,7 +22,13 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SCHEMA_PATH = os.path.join(ROOT, "demo", "app", "src", "ctn", "ctn-schema.json")
 GEN_DATE = "2026-07-26"
 DOC_VERSION = "1.1"
-OUT_PATH = os.path.join(ROOT, "outputs", "CTN_SharePoint_DB設計_20260725.xlsx")
+OUT_PATH = os.path.join(ROOT, "outputs", "CTN_SharePoint_DB設計_20260726.xlsx")
+
+# 書体は Noto Sans JP・本文10pt で統一する（恒久設定）。
+# 閲覧環境に Noto Sans JP が未インストールの場合は Excel が代替書体へフォールバックする。
+FONT_NAME = "Noto Sans JP"
+BODY_SIZE = 10
+TITLE_SIZE = 14
 
 schema = json.load(open(SCHEMA_PATH, encoding="utf-8"))
 
@@ -38,12 +44,15 @@ for _t in schema["tables"]:
 # ---------------------------------------------------------------------------
 NAVY = "1F3864"
 HEAD_FILL = PatternFill("solid", fgColor=NAVY)
-HEAD_FONT = Font(color="FFFFFF", bold=True, size=10)
+HEAD_FONT = Font(name=FONT_NAME, color="FFFFFF", bold=True, size=BODY_SIZE)
 SUB_FILL = PatternFill("solid", fgColor="D9E2F3")
-TITLE_FONT = Font(bold=True, size=14, color=NAVY)
-NOTE_FONT = Font(size=9, color="666666")
-BODY_FONT = Font(size=10)
-MONO_FONT = Font(size=9.5, name="Consolas")
+TITLE_FONT = Font(name=FONT_NAME, bold=True, size=TITLE_SIZE, color=NAVY)
+NOTE_FONT = Font(name=FONT_NAME, size=BODY_SIZE, color="666666")
+BODY_FONT = Font(name=FONT_NAME, size=BODY_SIZE)
+# 内部名・JSONパス等も同一書体に統一する（等幅ではなくなる点は許容）
+MONO_FONT = Font(name=FONT_NAME, size=BODY_SIZE)
+SECT_FONT = Font(name=FONT_NAME, bold=True, size=BODY_SIZE, color=NAVY)
+KEY_FONT = Font(name=FONT_NAME, bold=True, size=BODY_SIZE)
 THIN = Side(style="thin", color="BFBFBF")
 BORDER = Border(left=THIN, right=THIN, top=THIN, bottom=THIN)
 WARN_FILL = PatternFill("solid", fgColor="FDF0D3")
@@ -95,13 +104,13 @@ def kv_sheet(ws, pairs, start_row, w1=26, w2=120):
     for k, v in pairs:
         if v is None:  # 見出し行
             c = ws.cell(row=r, column=1, value=k)
-            c.font = Font(bold=True, size=11, color=NAVY)
+            c.font = SECT_FONT
             ws.merge_cells(start_row=r, start_column=1, end_row=r, end_column=2)
             ws.cell(row=r, column=1).fill = SUB_FILL
             r += 1
             continue
         a = ws.cell(row=r, column=1, value=k)
-        a.font = Font(bold=True, size=10)
+        a.font = KEY_FONT
         a.alignment = Alignment(vertical="top", wrap_text=True)
         b = ws.cell(row=r, column=2, value=v)
         b.font = BODY_FONT
@@ -130,6 +139,8 @@ def dv_cell(table_name, prop, override=None):
 
 wb = Workbook()
 wb.remove(wb.active)
+# 既定スタイル（Normal）も同一書体にし、明示指定の無いセルもフォールバックしないようにする
+wb._named_styles["Normal"].font = Font(name=FONT_NAME, size=BODY_SIZE)
 
 # ===========================================================================
 # 00_設計方針
@@ -1032,7 +1043,7 @@ r = table(ws, ["対象", "権限レベル", "許可する操作", "備考・注�
           widths=[24, 34, 46, 96], wrap_cols=("備考・注意", "許可する操作"))
 
 r += 3
-ws.cell(row=r, column=1, value="監査証跡の3層").font = Font(bold=True, size=11, color=NAVY)
+ws.cell(row=r, column=1, value="監査証跡の3層").font = SECT_FONT
 audit = [
     ("1. CtnAudit リスト", "アプリ操作の業務的記録", "誰が・いつ・何を・どう変えたか（create/update/delete/restore/submit/approve/generate-xml）",
      "リポジトリ層が全書き込みの後に追記。UI の監査ログ画面が参照する"),
