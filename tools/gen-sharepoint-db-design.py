@@ -20,7 +20,8 @@ from openpyxl.utils import get_column_letter
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SCHEMA_PATH = os.path.join(ROOT, "demo", "app", "src", "ctn", "ctn-schema.json")
-GEN_DATE = "2026-07-25"
+GEN_DATE = "2026-07-26"
+DOC_VERSION = "1.1"
 OUT_PATH = os.path.join(ROOT, "outputs", "CTN_SharePoint_DB設計_20260725.xlsx")
 
 schema = json.load(open(SCHEMA_PATH, encoding="utf-8"))
@@ -137,7 +138,11 @@ ws = sheet(wb, "00_設計方針", "CTN Suite — SharePoint バックエンド D
 pairs = [
     ("文書情報", None),
     ("文書名", "CTN Suite SharePoint バックエンド DB（リスト）設計書"),
-    ("版 / 作成日", f"1.0 / {GEN_DATE}"),
+    ("版 / 更新日", f"{DOC_VERSION} / {GEN_DATE}"),
+    ("改訂履歴", "1.0 (2026-07-25) 初版。"
+                "1.1 (2026-07-26) 提出パッケージ出力（届書PDF＋CTN XML）の main マージを受けて "
+                "§5「PDF/XML 出力の位置づけ」を追加し、CtnPdfGeneratedAt 列・CtnGeneratedOutputs "
+                "ライブラリ・ロジック2件・画面連携1件を追記。既存の列定義・Payload構造は変更なし。"),
     ("対象システム", "治験届（CTN: Clinical Trial Notification）管理システム"),
     ("生成元", "demo/app/src/ctn/ctn-schema.json（14テーブル/207列）＋ types.ts（UIドメインモデル）"),
     ("根拠文書", "ctn-spfx/docs/spfx-methodology.md（方式B 設計判断）／ctn-spfx/docs/ctn-spfx-migration-brief.md §4（データ設計）／CLAUDE.md（採番ツリー原則）"),
@@ -183,7 +188,38 @@ pairs = [
                                   "厳密な強制が必要になった時点が Dataverse 移行の判断トリガー"),
     ("残余リスク", "サイト権限を持つ利用者は SharePoint 標準UIからリストを直接編集でき、アプリの検証を迂回しうる（運用で緩和）"),
 
-    ("4. 本設計で新規に追加したリスト（demo/app には対応する永続化が無い）", None),
+    ("4. PDF / XML 出力の位置づけ（2026-07-26 追記）", None),
+    ("現行実装", "ブランチ claude/ctn-output-pdf-xml を main へマージ済み。届出詳細の［提出パッケージ出力］で "
+                "① CTN XML（xml.ts）② 届書PDF（output.ts: html2canvas でラスタライズ → pdf-lib でページ化）を生成し、"
+                "添付「検査キット/パッキングリスト」があれば実PDFを結合して1ファイル化する。"),
+    ("★用途の切り分け（重要）",
+     "現行の届書PDFは【社内レビュー用】。PMDA への提出正本は XML（＋添付PDF）である。"
+     "ただし PMDA 提出用PDFは最終的に必須となる見込みであり、その段階では要件が変わる（下記）。"),
+    ("現行方式の制約",
+     "① ラスタライズ方式のため PDF 内のテキストが選択・検索・コピーできない。"
+     "② ページ分割が画像のオフセットずらしのため、表や行がページ境界で切断されうる。"
+     "③ html2canvas + pdf-lib によりバンドルが増加（demo/index.html が約450KB → 約1,081KB）。"
+     "社内レビュー用途では許容できるが、提出用途では①が問題になる。"),
+    ("★設計上の整合性リスク",
+     "ctn-schema.json の添付資料テーブルには cr_hastext（テキスト含有チェック）と cr_hasbookmarks（しおり付与チェック）"
+     "があり、これは PMDA の PDF 品質要件に対応する。ラスタライズPDFはテキストを含まないため、"
+     "提出用途へ格上げする際は必ず方式の見直しが必要になる。"),
+    ("提出用途へ格上げする場合の方式",
+     "Word テンプレート＋SharePoint/OneDrive の「ファイルの変換」アクション（標準コネクタのため追加費用なし）による"
+     "サーバー側生成を推奨。様式の再現度が高く、テキスト選択可・日本語フォント問題なしを同時に満たす。"
+     "pdf-lib への日本語フォント埋め込みは Noto Sans JP でバンドルが数MB増えるため SPFx では割に合わない。"),
+    ("本設計への影響（いずれも追記のみ・既存定義は不変）",
+     "① CtnNotifications に CtnPdfGeneratedAt を1列追加（CtnXmlGeneratedAt と対称）。"
+     "② 生成物の保管先として CtnGeneratedOutputs ドキュメントライブラリを追加。"
+     "③ 06_ロジック実装マップ に「届書PDF生成」「提出パッケージ結合」の2件を追加。"
+     "④ 07_画面データ連携 に「提出パッケージ出力」を追加。"
+     "データモデル本体（CtnPayload の構造）は変更不要。PDF は Payload からの出力にすぎないため。"),
+    ("CtnAttachmentFiles の段階",
+     "現行は添付のメタデータのみを Payload に保持し、実ファイルは持たない（デモはサンプルPDFを生成して結合）。"
+     "★実ファイル結合を本番で行う段階（＝提出用途への格上げ時）に CtnAttachmentFiles が必須となる。"
+     "社内レビュー用途に留まる限りは将来フェーズのままでよい。"),
+
+    ("5. 本設計で新規に追加したリスト（demo/app には対応する永続化が無い）", None),
     ("CtnSettings", "rules.ts の RuleSettings（提出期限オフセット・アラート閾値・有効/無効）は現状メモリ内シングルトンでリロード時に既定へ戻る。"
                     "バックエンド化にあたり単一アイテムのリストとして永続化する。全利用者で共有される設定のため、更新は薬事担当ロールに限定する。"),
     ("CtnAppUsers", "職務分離（起票者≠承認者）の判定にはロール（起票/レビュー/承認/薬事）が必要。"
@@ -230,8 +266,13 @@ lists = [
      "loginName → ロール（起票/レビュー/承認/薬事）の登録簿。職務分離の判定に使用", "正本", "約31", "有",
      "作成/更新/論理削除（管理者限定）", "User（refData.ts の USERS）", "actor 自体は pageContext から取得"),
     ("12★", "CtnAttachmentFiles", "添付ファイル", "ドキュメントライブラリ",
-     "Protocol / IB / ICF 等の実ファイル格納", "正本（ファイル実体）", "数百", "有",
-     "アップロード/差替え", "Attachment（メタデータは Payload 側）", "将来フェーズ（Phase 1 スコープ外）"),
+     "Protocol / IB / ICF / 検査キット・パッキングリスト 等の実ファイル格納", "正本（ファイル実体）", "数百", "有",
+     "アップロード/差替え", "Attachment（メタデータは Payload 側）",
+     "将来フェーズ。★提出パッケージで実ファイルを結合する段階（提出用途への格上げ時）に必須化する"),
+    ("13★", "CtnGeneratedOutputs", "生成物", "ドキュメントライブラリ",
+     "提出パッケージ出力の生成物（届書PDF・CTN XML）の保管", "生成物（正本は CtnPayload）", "数百〜2,000", "有",
+     "生成時に自動アップロード（上書きせず版を積む）", "—（新規）",
+     "既存の SharePoint 文書設計（Source PDFs / Attachments / Generated Outputs の3ライブラリ構成）へ寄せる"),
 ]
 last = table(ws, ["No", "リスト内部名", "表示名", "種別", "役割", "正本/投影", "想定件数",
                   "バージョン管理", "主な操作", "対応 types.ts", "備考"],
@@ -300,6 +341,9 @@ add(L, "CtnSubmittedAt", "提出日時", "単一行", "", "", "", "", "ISO8601",
     "submittedAt", "")
 add(L, "CtnXmlGeneratedAt", "XML生成日時", "単一行", "", "", "", "", "ISO8601",
     "xmlGeneratedAt", "")
+add(L, "CtnPdfGeneratedAt", "届書PDF生成日時", "単一行", "", "", "", "", "ISO8601",
+    "（新規）", "提出パッケージ出力の実行日時。CtnXmlGeneratedAt と対称に持つ。"
+    "現行の届書PDFは社内レビュー用（ラスタライズ方式）")
 add(L, "CtnPayload", "集約ペイロード", "複数行（プレーン）", "○", "", "×", "", "JSON",
     "Notification 全体", "★正本。子配列（studyDrugs / sites / attachments / references / inquiries）を内包。"
     "リッチテキストにしない（HTMLエスケープでJSONが壊れる）")
@@ -453,6 +497,21 @@ add(L, "CtnDocType", "資料種別", "数値", "○", "", "○", "", "Protocol /
 add(L, "CtnHasBookmarks", "しおり付与", "はい/いいえ", "", "", "", "いいえ", "", "hasBookmarks", "PMDA提出要件のチェック")
 add(L, "CtnHasText", "テキスト含有", "はい/いいえ", "", "", "", "いいえ", "", "hasText", "スキャンPDF検出用")
 add(L, "CtnAttachStatus", "添付ステータス", "数値", "○", "", "", "", "添付済 / 確認中 / 任意", "attachStatus", "")
+
+# ---- CtnGeneratedOutputs ----
+L = "CtnGeneratedOutputs★"
+add(L, "FileLeafRef", "ファイル名", "標準（ファイル）", "○", "", "", "", "255バイト以内", "（組立値）",
+    "例「AMG410_届2変1_治験計画変更届_20260726.pdf」。★checkByteLimit() の対象")
+add(L, "CtnNotification", "届出", "参照（CtnNotifications）", "○", "", "○", "", "", "（Notification id）", "")
+add(L, "CtnOutputKind", "生成物種別", "選択肢", "○", "", "○", "", "pdf-review / pdf-submission / xml", "（新規）",
+    "★pdf-review=社内レビュー用（現行・ラスタライズ）／pdf-submission=提出用（将来・テキスト選択可）")
+add(L, "CtnGeneratedAt", "生成日時", "単一行", "○", "", "○", "", "ISO8601", "（新規）", "")
+add(L, "CtnGeneratedBy", "生成者", "単一行", "○", "", "", "", "loginName", "（新規）", "")
+add(L, "CtnPageCount", "ページ数", "数値（整数）", "", "", "", "", "", "（新規）", "PDFのみ。output.ts の pageCount")
+add(L, "CtnPackingLists", "結合した添付数", "数値（整数）", "", "", "", "", "", "（新規）",
+    "検査キット/パッキングリストの結合件数。output.ts の packingListsIncluded")
+add(L, "CtnPayloadVersionAtGen", "生成時ペイロード版", "単一行", "", "", "", "", "", "（新規）",
+    "どの版の Payload から生成したかの追跡。再生成時の同一性確認に使う")
 
 last = table(ws, ["リスト", "内部名", "表示名", "SP型", "必須", "一意", "インデックス", "既定値",
                   "選択肢/範囲", "対応 types.ts", "用途・備考"],
@@ -809,6 +868,16 @@ for i, sl in enumerate(schema["serverLogic"], start=1):
     fn, where, force, note = impl.get(sl["name"], ("—", "—", "—", ""))
     lrows.append((i, sl["name"], sl["implementation"], sl["targetTable"], sl["trigger"],
                   where, fn, force, sl.get("gampCategory", ""), sl.get("oqTarget", ""), note))
+# --- ctn-schema.json の serverLogic には無いが、実装済み／設計上必要なもの（2026-07-26 追記） ---
+lrows.append((17, "届書PDF生成（社内レビュー用）", "（構想に無し）", "治験届", "提出パッケージ出力の操作時",
+              "クライアント。PrintableNotification を html2canvas でラスタライズ → pdf-lib でページ化",
+              "output.ts generateSubmissionPackage()", "—", "Cat 5", "○",
+              "★現行は社内レビュー用。ラスタライズのためテキスト選択不可。"
+              "PMDA 提出用へ格上げする際は Word テンプレート＋SharePoint のファイル変換によるサーバー側生成へ切り替える"))
+lrows.append((18, "提出パッケージ結合", "（構想に無し）", "治験届＋添付", "提出パッケージ出力の操作時",
+              "クライアント。資料種別「検査キット/パッキングリスト」(100001208) の実PDFを届書PDFへ結合",
+              "output.ts generateSubmissionPackage()", "—", "Cat 5", "○",
+              "★デモはサンプルPDFを生成。本番で実ファイルを結合する段階で CtnAttachmentFiles が必須になる"))
 table(ws, ["No", "ロジック名", "Dataverse構想の実装", "対象", "契機",
            "SharePoint版の実装点", "該当関数", "強制力", "GAMP", "OQ", "補足"],
       lrows, 5,
@@ -853,6 +922,12 @@ ui = [
     ("XMLプレビュー", "生成・XSD検証・生成日時記録", "markXmlGenerated()", "CtnNotifications 一式",
      "CtnNotifications（CtnXmlGeneratedAt）, CtnAudit", "MERGE", "xml.ts",
      "生成・検証はブラウザ内で完結。ファイルはダウンロード"),
+    ("治験届 詳細", "提出パッケージ出力（届書PDF＋CTN XML）", "（新規）saveGeneratedOutput()",
+     "CtnNotifications 一式, CtnAttachmentFiles（実ファイル結合時）",
+     "CtnGeneratedOutputs（アップロード）, CtnNotifications（CtnPdfGeneratedAt / CtnXmlGeneratedAt）, CtnAudit",
+     "POST /Files/add + MERGE", "output.ts generateSubmissionPackage() / xml.ts",
+     "★現行の届書PDFは社内レビュー用（ラスタライズ）。生成物は上書きせず版を積む。"
+     "PMDA 提出用へ格上げする際はサーバー側生成（Word テンプレート＋ファイル変換）へ切り替える"),
     ("マスタ管理", "医療機関・医師・IRB・届出者・現場担当のCRUD", "create/update/setXxxActive()",
      "各マスタリスト", "各マスタリスト, CtnAudit（＋医師は CtnGaiji）", "POST / MERGE",
      "detectGaiji()（医師のみ）", "★物理削除しない。無効化は CtnActive=いいえ"),
@@ -919,6 +994,15 @@ lim = [
     ("REST の一括取得上限", "$top は既定100・最大5,000",
      "全件取得の getState() が影響を受ける",
      "$top=500 とページング。現規模では1回で収まる"),
+    ("クライアント側PDF生成の限界", "SPFx はブラウザ内実行のみ",
+     "html2canvas によるラスタライズPDFはテキストを含まない。"
+     "★ctn-schema.json が cr_hastext（テキスト含有チェック）を PDF 品質要件として持つことと矛盾する",
+     "社内レビュー用途では許容。PMDA 提出用へ格上げする際は Word テンプレート＋SharePoint の"
+     "「ファイルの変換」（標準コネクタ・追加費用なし）によるサーバー側生成へ切り替える"),
+    ("バンドルサイズ", "SPFx はバンドルが大きいと初期表示が遅い",
+     "pdf-lib + html2canvas の追加で自己完結デモが約450KB → 約1,081KB に増加",
+     "現規模では許容。日本語フォント埋め込み（Noto Sans JP で数MB増）は行わない。"
+     "サーバー側生成へ移せばクライアントから両ライブラリを外せる"),
     ("添付ファイル", "リストアイテムの添付は検索・メタデータ管理に弱い",
      "Protocol / IB / ICF の版管理・しおり有無チェックに不足",
      "ドキュメントライブラリ（CtnAttachmentFiles）＋メタデータ列で管理（将来フェーズ）"),
@@ -980,6 +1064,15 @@ urows.append(("（横断）", "—", "30日調査対応被験薬区分のコー�
               "refData.ts の SUBJ30_OPTIONS は暫定（1/2/3）。届出区分とは別体系であることの確認を含む"))
 urows.append(("（横断）", "—", "該当有無（APPLICABLEORNOT）のコード値", "Payload $.applic* 各項", "数値", "△", "APPLICABLEORNOT",
               "refData.ts の APPLICABILITY_OPTIONS は暫定（1=該当 / 0=非該当）"))
+urows.append(("（横断）", "—", "PMDA 提出用PDFの要件", "CtnGeneratedOutputs.CtnOutputKind = pdf-submission",
+              "—", "—", "内部管理（PDF品質要件）",
+              "★PDF出力は最終的に PMDA へ必須となる見込み。現行の届書PDFは社内レビュー用（ラスタライズ・テキスト非選択）。"
+              "提出用に求められる要件（テキスト選択可・しおり付与・様式の再現度）を確定させ、"
+              "サーバー側生成（Word テンプレート＋ファイル変換）へ切り替える時期を判断する"))
+urows.append(("（横断）", "—", "検査キット/パッキングリストの実ファイル結合", "CtnAttachmentFiles",
+              "—", "—", "—",
+              "現行はデモ用サンプルPDFを生成して結合。本番で実ファイルを結合する運用に移す時期と、"
+              "その前提となる CtnAttachmentFiles の構築時期を確定させる"))
 last = table(ws, ["テーブル（表示名）", "テーブル", "列（表示名）", "列", "型", "必須(計/変/中/終/開)", "XSD要素", "確認すべき内容"],
              urows, 5,
              widths=[24, 20, 40, 40, 24, 20, 34, 92], wrap_cols=("確認すべき内容", "列（表示名）"))
