@@ -18,6 +18,14 @@ import { XmlPreview } from "./ctn/components/XmlPreview";
 import { DEFAULT_RULES, setRules, type RuleSettings } from "./ctn/rules";
 import type { Notification } from "./ctn/types";
 
+// 配色バリエーション。"indigo" は現行デザイン（palette クラスを付けない）
+const PALETTES = [
+  { key: "indigo", en: "Indigo (current)", ja: "インディゴ（現行）", swatch: "#6d5efc" },
+  { key: "ocean", en: "Ocean", ja: "オーシャン", swatch: "#2563eb" },
+  { key: "teal", en: "Teal", ja: "ティール", swatch: "#0d9488" },
+] as const;
+type PaletteKey = (typeof PALETTES)[number]["key"];
+
 const TITLES: Record<ViewKey, [string, string]> = {
   dashboard: ["Dashboard", "ダッシュボード"],
   notifications: ["Notifications", "治験届一覧"],
@@ -37,7 +45,16 @@ export default function App() {
   const [xmlFor, setXmlFor] = useState<Notification | null>(null);
   const [toast, setToast] = useState<{ msg: string; err?: boolean } | null>(null);
   const [rules, setRulesState] = useState<RuleSettings>(() => ({ ...DEFAULT_RULES }));
-  // デザインテーマはモダンに統一（標準/モダン切替は撤去）
+  // デザインテーマはモダンに統一（標準/モダン切替は撤去）。
+  // 配色のみバリエーションを用意し、"indigo" は現行そのまま（palette クラスなし）
+  const [palette, setPalette] = useState<PaletteKey>(() => {
+    try {
+      const v = localStorage.getItem("ctn.palette");
+      return PALETTES.some((p) => p.key === v) ? (v as PaletteKey) : "indigo";
+    } catch {
+      return "indigo";
+    }
+  });
   const [mode, setMode] = useState<"light" | "dark">(() => {
     try {
       return localStorage.getItem("ctn.mode") === "dark" ? "dark" : "light";
@@ -67,6 +84,13 @@ export default function App() {
       /* ignore */
     }
   }, [mode]);
+  useEffect(() => {
+    try {
+      localStorage.setItem("ctn.palette", palette);
+    } catch {
+      /* ignore */
+    }
+  }, [palette]);
   useEffect(() => {
     try {
       localStorage.setItem("ctn.sidebar", collapsed ? "collapsed" : "expanded");
@@ -190,7 +214,7 @@ export default function App() {
 
   return (
     <LangContext.Provider value={{ lang, setLang: (l) => setLang(l as Lang), t }}>
-      <div className={`app${lang === "ja" ? " ja" : ""} theme-modern mode-${mode}${collapsed ? " collapsed" : ""}`}>
+      <div className={`app${lang === "ja" ? " ja" : ""} theme-modern${palette === "indigo" ? "" : ` palette-${palette}`} mode-${mode}${collapsed ? " collapsed" : ""}`}>
         <Sidebar view={selected ? "notifications" : view} onNavigate={(v) => { setSelectedId(null); setView(v); }} user={user} badges={{ dashboard: alerts.length }} collapsed={collapsed} onToggleCollapse={() => setCollapsed((c) => !c)} />
         <div className="main">
           <header className="top">
@@ -215,6 +239,20 @@ export default function App() {
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z" /></svg>
               )}
             </button>
+            {/* 配色バリエーション切替（構造・タイポは現行のまま、アクセント色のみ差し替え） */}
+            <div className="palette-switch" role="group" aria-label={t("Color palette", "配色")}>
+              {PALETTES.map((p) => (
+                <button
+                  key={p.key}
+                  className={`pal-dot${palette === p.key ? " on" : ""}`}
+                  style={{ background: p.swatch }}
+                  onClick={() => setPalette(p.key)}
+                  title={t(p.en, p.ja)}
+                  aria-label={t(p.en, p.ja)}
+                  aria-pressed={palette === p.key}
+                />
+              ))}
+            </div>
             <div className="lang">
               <button className={lang === "en" ? "on" : ""} onClick={() => setLang("en")}>EN</button>
               <button className={lang === "ja" ? "on" : ""} onClick={() => setLang("ja")}>JA</button>
