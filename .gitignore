@@ -4,3 +4,5 @@ server-*.out.log
 server-*.err.log
 .DS_Store
 Thumbs.db
+# Office の一時ロックファイル（xlsx/docx を開いている間だけ生成される）
+~$*
