@@ -1,6 +1,9 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useLang } from "../../i18n";
 import { columnOf, requiredFor, shouldShow, isRequired } from "../schema";
+import { generateSubmissionPackage, downloadBlob, type SubmissionPackage } from "../output";
+import { PrintableNotification } from "./PrintableNotification";
+import type { XmlContext } from "../xml";
 import {
   is30DayReview,
   computeDeadline,
@@ -29,7 +32,7 @@ import {
   userById,
   type DemoUser,
 } from "../refData";
-import { Section, Field, StatusPill, TypeBadge, Btn, Icon, UnconfirmedBadge } from "./common";
+import { Section, Field, StatusPill, TypeBadge, Btn, Icon, UnconfirmedBadge, Modal } from "./common";
 import type { CtnDb } from "../data/repository";
 import type { Investigator, Notification, ReferenceNote, Site, SiteDrugQty, StudyDrug } from "../types";
 
@@ -64,6 +67,32 @@ export function NotificationDetail({
   const [tab, setTab] = useState<string>("basic");
   const compound = db.compounds.find((c) => c.id === draft.compoundId)!;
   const editable = draft.status === "draft" || draft.status === "review";
+
+  // ---- 提出パッケージ出力（PDF＋XML） ----
+  const printRef = useRef<HTMLDivElement>(null);
+  const [exporting, setExporting] = useState(false);
+  const [pkg, setPkg] = useState<SubmissionPackage | null>(null);
+  const [exportErr, setExportErr] = useState<string | null>(null);
+  const baseName = `${compound.compoundCode}_第${draft.filingCount}回${draft.changeCount != null ? `_変更${draft.changeCount}` : ""}`;
+  const runExport = async () => {
+    if (!printRef.current) return;
+    setExporting(true);
+    setExportErr(null);
+    try {
+      const ctx: XmlContext = {
+        compound,
+        sponsor: db.sponsors.find((s) => s.id === draft.sponsorId)!,
+        institutions: new Map(db.institutions.map((i) => [i.id, i])),
+        irbs: new Map(db.irbs.map((i) => [i.id, i])),
+      };
+      const result = await generateSubmissionPackage(printRef.current, draft, ctx);
+      setPkg(result);
+    } catch (e) {
+      setExportErr(e instanceof Error ? e.message : String(e));
+    } finally {
+      setExporting(false);
+    }
+  };
 
   const upd = (fn: (n: Notification) => void) =>
     setDraft((d) => {
@@ -266,6 +295,7 @@ export function NotificationDetail({
           )}
           {draft.status === "approved" && <Btn kind="p" small onClick={() => onSubmit(draft.id)}>{t("Submit", "提出")}</Btn>}
           <Btn small onClick={() => onGenerateXml(draft)}>{Icon.doc} XML{t(" preview", "プレビュー")}</Btn>
+          <Btn kind="p" small onClick={runExport} disabled={exporting}>{Icon.doc} {exporting ? t("Generating…", "生成中…") : t("Export PDF+XML", "提出パッケージ出力")}</Btn>
           {draft.status === "draft" && <Btn kind="danger" small onClick={() => onDelete(draft.id)}>{Icon.trash}</Btn>}
         </div>
       </div>
@@ -580,6 +610,40 @@ export function NotificationDetail({
           {draft.xmlGeneratedAt && ` ／ XML: ${draft.xmlGeneratedAt.replace("T", " ")}`}
         </span>
       </div>
+
+      {/* 印刷ビュー（PDF化のための隠し要素・画面外に常時レンダリング） */}
+      <div style={{ position: "fixed", left: "-10000px", top: 0, zIndex: -1 }} aria-hidden>
+        <PrintableNotification ref={printRef} n={draft} db={db} />
+      </div>
+
+      {exportErr && <div className="banner banner-red">⚠ {t("Export failed", "出力に失敗しました")}: {exportErr}</div>}
+
+      {pkg && (
+        <Modal
+          title={t("Submission package", "提出パッケージ出力")}
+          sub={t("Client demo: PDF from print view + XML. The form PDF bundles the packing list.", "デモのクライアント生成（印刷ビュー→PDF＋XML）。届書PDFにPacking Listを同梱。")}
+          size="md"
+          onClose={() => setPkg(null)}
+          footer={<Btn onClick={() => setPkg(null)}>{t("Close", "閉じる")}</Btn>}
+        >
+          <div className="form-grid">
+            <Field label={t("Notification PDF", "届書PDF")}>
+              <div className="inline">
+                <span className="muted small">{pkg.pageCount}{t(" pages", "頁")}{pkg.packingListsIncluded > 0 ? t(` · packing list ×${pkg.packingListsIncluded}`, ` ・Packing List ${pkg.packingListsIncluded}件同梱`) : ""}</span>
+                <Btn kind="p" small onClick={() => downloadBlob(pkg.pdfBytes, `${baseName}.pdf`, "application/pdf")}>{Icon.doc} {t("Download PDF", "PDFをDL")}</Btn>
+              </div>
+            </Field>
+            <Field label={t("CTN XML", "CTN XML")}>
+              <div className="inline">
+                <span className="muted small">{(pkg.xml.match(/<[A-Z]/g) ?? []).length}{t(" elements", "要素")}</span>
+                <Btn small onClick={() => downloadBlob(pkg.xml, `${baseName}.xml`, "application/xml")}>{Icon.doc} {t("Download XML", "XMLをDL")}</Btn>
+              </div>
+            </Field>
+          </div>
+          <div className="form-sub">{t("XML preview", "XMLプレビュー")}</div>
+          <pre style={{ maxHeight: "260px", overflow: "auto", background: "var(--row)", border: "1px solid var(--border2)", borderRadius: "8px", padding: "10px", fontSize: "11px", whiteSpace: "pre-wrap" }}>{pkg.xml}</pre>
+        </Modal>
+      )}
     </div>
   );
 }

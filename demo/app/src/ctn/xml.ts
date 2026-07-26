@@ -265,6 +265,20 @@ export function generateCtnXml(n: Notification, ctx: XmlContext): string {
   }
 
   if (n.remarks) x.leaf("REMARKS", n.remarks);
+
+  // ---- 届書添付資料（DOCATTACHEDNOTE / INFONAMEDOCUMENTS）— 資料名を出力 ----
+  // XSDは資料名（NAMEDOC）のみ保持。実ファイルの中身はXMLには埋め込まず、
+  // 提出パッケージの添付ファイルとして別途同梱する（Packing List等）。
+  if (n.attachments.length) {
+    x.open("DOCATTACHEDNOTE", {});
+    n.attachments.forEach((a, i) => {
+      x.open("INFONAMEDOCUMENTS", { SERIALNO1: i + 1, STATUS: "ADD" });
+      x.leaf("NAMEDOC", a.docName);
+      x.close("INFONAMEDOCUMENTS");
+    });
+    x.close("DOCATTACHEDNOTE");
+  }
+
   x.close("CLINICALTRIALNOTIFICATION");
   return `<?xml version="1.0" encoding="UTF-8"?>\n${x.toString()}`;
 }
