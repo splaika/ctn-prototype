@@ -38,10 +38,24 @@ export interface ISpRestClient {
   /**
    * 1件更新する（MERGE）。etag が一致しなければ SpConflictError を投げる。
    * 呼び出し側は再取得→再計算→リトライすること。
+   * 戻り値は更新後の etag（応答の ETag ヘッダー）。連続更新のたびに
+   * etag を取り直す往復を省くために使う。取れなければ undefined。
    */
-  updateItem(listTitle: string, id: number, fields: Record<string, unknown>, etag: string): Promise<void>;
+  updateItem(
+    listTitle: string,
+    id: number,
+    fields: Record<string, unknown>,
+    etag: string
+  ): Promise<string | undefined>;
   /** 1件削除する */
   deleteItem(listTitle: string, id: number, etag: string): Promise<void>;
+  /**
+   * 1項目の実 etag を取る。
+   * コレクション取得の応答本文に odata.etag が入らない環境があるため
+   * （SPFx の spHttpClient が Accept を上書きし nometadata 相当になる）、
+   * 項目単体を GET して ETag レスポンスヘッダーから読む経路を用意する。
+   */
+  getItemEtag(listTitle: string, id: number): Promise<string | undefined>;
   /** サインインユーザーが所属する SharePoint グループ名の一覧 */
   getCurrentUserGroupNames(): Promise<string[]>;
 }
@@ -77,22 +91,51 @@ export interface ISpHttpResponseLike {
   ok: boolean;
   status: number;
   statusText: string;
+  /**
+   * ETag レスポンスヘッダーを読むために使う（本文に odata.etag が入らない環境がある）。
+   * null を返すのは Fetch API の Headers.get の契約に合わせるため。
+   */
+  // eslint-disable-next-line @rushstack/no-new-null
+  headers?: { get(name: string): string | null };
   json(): Promise<unknown>;
   text(): Promise<string>;
 }
 
-const ACCEPT = "application/json;odata=minimalmetadata";
+/**
+ * SPFx の SPHttpClient は OData v4 を既定で使い、`OData-Version: 4.0` を自動で
+ * 付ける。そのため v3 記法（`odata=minimalmetadata` / `odata=nometadata`）は
+ * 通らない（406 になる）。v4 記法は `odata.metadata=<none|minimal|full>` とドット。
+ *
+ * minimal を選ぶ理由: 各項目に `@odata.etag` が載る。IF-MATCH に実 etag を使う
+ * 方針（* 禁止）を満たすにはこれが必要。
+ */
+const ACCEPT = "application/json;odata.metadata=minimal";
 
 interface ISpCollectionResponse {
   value?: unknown[];
 }
 
+/**
+ * 応答から etag を取り出す。
+ * OData v4（SPFx の既定）では `@odata.etag`、v3 では `odata.etag` に載る。
+ * 版によってキーが変わるため両方を見る。これを取り違えると etag が常に
+ * 未取得になり、IF-MATCH を使う全ての更新が失敗する（実際にそうなった）。
+ */
+export function readEtag(o: Record<string, unknown>): string | undefined {
+  for (const key of ["@odata.etag", "odata.etag"]) {
+    const v = o[key];
+    if (typeof v === "string" && v !== "") return v;
+  }
+  return undefined;
+}
+
 /** SharePoint が返す 1 アイテムを SpListItem へ正規化する */
-function toItem(raw: unknown): SpListItem {
+export function toItem(raw: unknown): SpListItem {
   const o = (raw ?? {}) as Record<string, unknown>;
-  const etag = typeof o["odata.etag"] === "string" ? (o["odata.etag"] as string) : undefined;
+  const etag = readEtag(o);
   const item: SpListItem = { ...o, Id: Number(o.Id) };
   if (etag) item.__etag = etag;
+  delete (item as Record<string, unknown>)["@odata.etag"];
   delete (item as Record<string, unknown>)["odata.etag"];
   return item;
 }
@@ -110,30 +153,62 @@ export class SpRestClient implements ISpRestClient, ISpProvisioningClient {
     return `${this.webUrl}/_api/web/lists/getbytitle('${encodeURIComponent(listTitle)}')`;
   }
 
-  private async fail(res: ISpHttpResponseLike, what: string): Promise<never> {
+  /**
+   * 失敗を、原因を追える形で投げる。
+   * どのエンドポイントで落ちたか分からないと切り分けができないため、
+   * サイト URL を除いた相対パスを必ず含める。
+   */
+  private async fail(res: ISpHttpResponseLike, what: string, url: string): Promise<never> {
     let detail = "";
     try {
       detail = await res.text();
     } catch {
       /* 本文が読めないことがある */
     }
-    throw new Error(`${what} に失敗しました (HTTP ${res.status} ${res.statusText})。${detail.slice(0, 400)}`);
+    const path = url.replace(this.webUrl, "");
+    throw new Error(
+      `${what} に失敗しました (HTTP ${res.status} ${res.statusText})。` +
+        `対象: ${path} ${detail.slice(0, 300)}`
+    );
   }
 
   public async getItems(listTitle: string, query?: string): Promise<SpListItem[]> {
     const url = `${this.listUrl(listTitle)}/items${query ? `?${query}` : ""}`;
     const res = await this.http.get(url, this.config, { headers: { Accept: ACCEPT } });
-    if (!res.ok) return this.fail(res, `リスト「${listTitle}」の取得`);
+    if (!res.ok) return this.fail(res, `リスト「${listTitle}」の取得`, url);
     const body = (await res.json()) as ISpCollectionResponse;
     return (body.value ?? []).map(toItem);
   }
 
+  public async getItemEtag(listTitle: string, id: number): Promise<string | undefined> {
+    const res = await this.http.get(`${this.listUrl(listTitle)}/items(${id})`, this.config, {
+      headers: { Accept: ACCEPT },
+    });
+    if (!res.ok) return undefined;
+    // まず ETag ヘッダー。SharePoint は単一項目の GET で必ず返す
+    const header = res.headers?.get("ETag") ?? undefined;
+    if (header) return header;
+    // 次に本文の odata.etag（メタデータ指定が効いている場合）
+    try {
+      return readEtag((await res.json()) as Record<string, unknown>);
+    } catch {
+      return undefined;
+    }
+  }
+
+  /**
+   * 項目の追加・更新の Content-Type は v3 記法（`odata=nometadata`）のままにしている。
+   * 本文は注釈を持たない素の JSON なので SharePoint はこの指定を見ておらず、
+   * 実テナントで追加が成功することを確認済み。仕様準拠のために v4 記法へ
+   * 変えると、動いている経路を根拠なく壊すリスクだけが残るため触らない。
+   * （応答の解釈側は v4 の @odata.etag を読む必要があり、そこは修正済み）
+   */
   public async addItem(listTitle: string, fields: Record<string, unknown>): Promise<SpListItem> {
     const res = await this.http.post(`${this.listUrl(listTitle)}/items`, this.config, {
       headers: { Accept: ACCEPT, "Content-Type": "application/json;odata=nometadata" },
       body: JSON.stringify(fields),
     });
-    if (!res.ok) return this.fail(res, `リスト「${listTitle}」への追加`);
+    if (!res.ok) return this.fail(res, `リスト「${listTitle}」への追加`, `${this.listUrl(listTitle)}/items`);
     return toItem(await res.json());
   }
 
@@ -142,7 +217,7 @@ export class SpRestClient implements ISpRestClient, ISpProvisioningClient {
     id: number,
     fields: Record<string, unknown>,
     etag: string
-  ): Promise<void> {
+  ): Promise<string | undefined> {
     const res = await this.http.post(`${this.listUrl(listTitle)}/items(${id})`, this.config, {
       headers: {
         Accept: ACCEPT,
@@ -158,7 +233,9 @@ export class SpRestClient implements ISpRestClient, ISpProvisioningClient {
         `リスト「${listTitle}」の項目 ${id} は他の操作で更新されています（etag 不一致）。`
       );
     }
-    if (!res.ok) await this.fail(res, `リスト「${listTitle}」の更新`);
+    if (!res.ok) await this.fail(res, `リスト「${listTitle}」の更新`, `${this.listUrl(listTitle)}/items(${id})`);
+    // 更新後の etag。次の更新でこれを使えば取り直しの往復を省ける
+    return res.headers?.get("ETag") ?? undefined;
   }
 
   public async deleteItem(listTitle: string, id: number, etag: string): Promise<void> {
@@ -168,7 +245,7 @@ export class SpRestClient implements ISpRestClient, ISpProvisioningClient {
     if (res.status === 412) {
       throw new SpConflictError(`リスト「${listTitle}」の項目 ${id} は他の操作で更新されています。`);
     }
-    if (!res.ok) await this.fail(res, `リスト「${listTitle}」の削除`);
+    if (!res.ok) await this.fail(res, `リスト「${listTitle}」の削除`, `${this.listUrl(listTitle)}/items(${id})`);
   }
 
   // -------------------------------------------------------------------------
@@ -176,7 +253,12 @@ export class SpRestClient implements ISpRestClient, ISpProvisioningClient {
   //   サイト所有者の権限で通る操作のみ。管理者権限は使わない。
   // -------------------------------------------------------------------------
 
-  /** JSON を POST して結果を返す共通処理 */
+  /**
+   * JSON を POST して結果を返す共通処理。
+   * Content-Type も OData v4 記法にする（v3 の `odata=verbose` は
+   * OData-Version: 4.0 のもとでは通らない）。エンティティの型指定は
+   * v3 の `__metadata` ではなく `@odata.type` を本文に入れる。
+   */
   private async postJson(
     url: string,
     body: unknown,
@@ -186,12 +268,12 @@ export class SpRestClient implements ISpRestClient, ISpProvisioningClient {
     const res = await this.http.post(url, this.config, {
       headers: {
         Accept: ACCEPT,
-        "Content-Type": "application/json;odata=verbose",
+        "Content-Type": "application/json;odata.metadata=none",
         ...extraHeaders,
       },
       body: JSON.stringify(body),
     });
-    if (!res.ok) return this.fail(res, what);
+    if (!res.ok) return this.fail(res, what, url);
     // 204 No Content のこともあるので本文が無くても落ちないようにする
     try {
       return await res.json();
@@ -206,7 +288,7 @@ export class SpRestClient implements ISpRestClient, ISpProvisioningClient {
       this.config,
       { headers: { Accept: ACCEPT } }
     );
-    if (!res.ok) return this.fail(res, "リスト一覧の取得");
+    if (!res.ok) return this.fail(res, "リスト一覧の取得", `${this.webUrl}/_api/web/lists`);
     const body = (await res.json()) as ISpCollectionResponse;
     return (body.value ?? [])
       .map((l) => l as { Title?: unknown; Id?: unknown })
@@ -219,7 +301,7 @@ export class SpRestClient implements ISpRestClient, ISpProvisioningClient {
     const created = (await this.postJson(
       `${this.webUrl}/_api/web/lists`,
       {
-        __metadata: { type: "SP.List" },
+        "@odata.type": "SP.List",
         Title: title,
         Description: description,
         BaseTemplate: 100,
@@ -228,7 +310,7 @@ export class SpRestClient implements ISpRestClient, ISpProvisioningClient {
       {},
       `リスト「${title}」の作成`
     )) as { Id?: unknown; d?: { Id?: unknown } } | undefined;
-    // odata=verbose の応答は { d: {...} }、それ以外は素の形で返る
+    // v3(verbose) の応答は { d: {...} }、v4 は素の形で返る。両方に備える
     const id = created?.Id ?? created?.d?.Id;
     return { id: typeof id === "string" ? id : "" };
   }
@@ -237,9 +319,9 @@ export class SpRestClient implements ISpRestClient, ISpProvisioningClient {
     const res = await this.http.get(`${this.listUrl(title)}?$select=Id`, this.config, {
       headers: { Accept: ACCEPT },
     });
-    if (!res.ok) await this.fail(res, `リスト「${title}」の取得`);
+    if (!res.ok) await this.fail(res, `リスト「${title}」の設定取得`, this.listUrl(title));
     const raw = (await res.json()) as Record<string, unknown>;
-    const etag = typeof raw["odata.etag"] === "string" ? (raw["odata.etag"] as string) : undefined;
+    const etag = readEtag(raw);
     if (!etag) {
       // etag が取れないときは設定変更を諦める（IF-MATCH: * は使わない方針）
       return;
@@ -247,7 +329,7 @@ export class SpRestClient implements ISpRestClient, ISpProvisioningClient {
     await this.postJson(
       this.listUrl(title),
       {
-        __metadata: { type: "SP.List" },
+        "@odata.type": "SP.List",
         Description: description,
         EnableVersioning: true,
       },
@@ -262,7 +344,7 @@ export class SpRestClient implements ISpRestClient, ISpProvisioningClient {
       this.config,
       { headers: { Accept: ACCEPT } }
     );
-    if (!res.ok) return this.fail(res, `リスト「${listTitle}」の列一覧の取得`);
+    if (!res.ok) return this.fail(res, `リスト「${listTitle}」の列一覧の取得`, `${this.listUrl(listTitle)}/fields`);
     const body = (await res.json()) as ISpCollectionResponse;
     return (body.value ?? [])
       .map((f) => (f as { InternalName?: unknown }).InternalName)
@@ -278,7 +360,7 @@ export class SpRestClient implements ISpRestClient, ISpProvisioningClient {
       `${this.listUrl(listTitle)}/fields/createfieldasxml`,
       {
         parameters: {
-          __metadata: { type: "SP.XmlSchemaFieldCreationInformation" },
+          "@odata.type": "SP.XmlSchemaFieldCreationInformation",
           SchemaXml: schemaXml,
           // SP.AddFieldOptions.AddFieldToDefaultView = 8, DefaultValue = 0
           Options: addToDefaultView ? 8 : 0,
@@ -295,7 +377,7 @@ export class SpRestClient implements ISpRestClient, ISpProvisioningClient {
       this.config,
       { headers: { Accept: ACCEPT } }
     );
-    if (!res.ok) return this.fail(res, "サイトグループ一覧の取得");
+    if (!res.ok) return this.fail(res, "サイトグループ一覧の取得", `${this.webUrl}/_api/web/sitegroups`);
     const body = (await res.json()) as ISpCollectionResponse;
     return (body.value ?? [])
       .map((g) => (g as { Title?: unknown }).Title)
@@ -305,7 +387,7 @@ export class SpRestClient implements ISpRestClient, ISpProvisioningClient {
   public async createSiteGroup(title: string, description: string): Promise<void> {
     await this.postJson(
       `${this.webUrl}/_api/web/sitegroups`,
-      { __metadata: { type: "SP.Group" }, Title: title, Description: description },
+      { "@odata.type": "SP.Group", Title: title, Description: description },
       {},
       `サイトグループ「${title}」の作成`
     );
@@ -317,7 +399,7 @@ export class SpRestClient implements ISpRestClient, ISpProvisioningClient {
       this.config,
       { headers: { Accept: ACCEPT } }
     );
-    if (!res.ok) return this.fail(res, "所属グループの取得");
+    if (!res.ok) return this.fail(res, "所属グループの取得", `${this.webUrl}/_api/web/currentuser/groups`);
     const body = (await res.json()) as ISpCollectionResponse;
     return (body.value ?? [])
       .map((g) => (g as { Title?: unknown }).Title)

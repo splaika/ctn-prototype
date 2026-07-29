@@ -35,10 +35,13 @@ async function mockHarness(): Promise<Harness> {
   return { repo, compoundId: db.compounds[0].id, drafter: "u-a", approver: "u-c" };
 }
 
-async function spHarness(hostile: boolean): Promise<Harness & { sp: FakeSpClient }> {
+async function spHarness(mode: "normal" | "hostile" | "noBodyEtag"): Promise<Harness & { sp: FakeSpClient }> {
   const sp = new FakeSpClient();
-  sp.addItemOmitsEtag = hostile;
-  sp.getItemsOmitsEtagWhenSelecting = hostile;
+  sp.addItemOmitsEtag = mode !== "normal";
+  sp.getItemsOmitsEtagWhenSelecting = mode !== "normal";
+  // 実テナントで実際に起きた条件: 応答本文に etag が一切入らない
+  // （ETag レスポンスヘッダー経由でしか取れない）
+  sp.bodyNeverHasEtag = mode === "noBodyEtag";
 
   const repo = new SharePointCtnRepository(sp, (id) => `表示:${id}`);
   const sponsor = await repo.createSponsor(
@@ -65,8 +68,11 @@ const find = (db: CtnDb, id: string): Notification | undefined =>
 /** 両実装に同じシナリオを流す */
 const IMPLS: { name: string; make: () => Promise<Harness> }[] = [
   { name: "mock", make: mockHarness },
-  { name: "SharePoint（etag が応答に無い最悪条件）", make: () => spHarness(true) },
-  { name: "SharePoint（通常）", make: () => spHarness(false) },
+  { name: "SharePoint（通常）", make: () => spHarness("normal") },
+  { name: "SharePoint（$select で etag が落ちる）", make: () => spHarness("hostile") },
+  // 実テナントで実際に踏んだ条件。本文に etag が一切入らず、
+  // ETag レスポンスヘッダー経由でしか取得できない
+  { name: "SharePoint（本文に etag が無い＝実環境）", make: () => spHarness("noBodyEtag") },
 ];
 
 for (const impl of IMPLS) {
@@ -260,6 +266,99 @@ for (const impl of IMPLS) {
     });
   });
 }
+
+describe("SharePoint 固有: 往復数の削減が正しさを崩していないか", () => {
+  /** 最小構成を作る（往復数を数えるため呼び出し記録をリセットできる形で） */
+  async function ready(): Promise<{ sp: FakeSpClient; repo: SharePointCtnRepository; compoundId: string }> {
+    const h = await spHarness("noBodyEtag");
+    return { sp: h.sp, repo: h.repo as SharePointCtnRepository, compoundId: h.compoundId };
+  }
+
+  it("採番が必要な保存では、シリーズを取得して順序番号を確定する", async () => {
+    const { sp, repo, compoundId } = await ready();
+    const n = await repo.createNotification({ compoundId, notifType: "plan", createdBy: "a@x" });
+
+    // 未採番の治験使用薬を1件足す
+    const withDrug = {
+      ...n,
+      studyDrugs: [
+        {
+          id: "d1", drugRole: 1, serialNo: 0, drugName: "薬A", plantName: "", plantAddress1: "",
+          plantAddress2: "", plantCode: "", ingredients: "", intendEffects: "",
+          efficacyClassCode: "", intendDosage: "",
+        },
+      ],
+    };
+    const saved = await repo.updateNotification(withDrug, "a@x");
+    expect(saved.studyDrugs[0].serialNo).toBeGreaterThan(0); // 確定している
+  });
+
+  it("すべて採番済みの保存では、シリーズを取得しない（往復を省く）", async () => {
+    const { sp, repo, compoundId } = await ready();
+    let n = await repo.createNotification({ compoundId, notifType: "plan", createdBy: "a@x" });
+    n = await repo.updateNotification(
+      {
+        ...n,
+        studyDrugs: [
+          {
+            id: "d1", drugRole: 1, serialNo: 0, drugName: "薬A", plantName: "", plantAddress1: "",
+            plantAddress2: "", plantCode: "", ingredients: "", intendEffects: "",
+            efficacyClassCode: "", intendDosage: "",
+          },
+        ],
+      },
+      "a@x"
+    );
+    expect(n.studyDrugs[0].serialNo).toBeGreaterThan(0);
+
+    // ここから2回目の保存。採番は済んでいるのでシリーズ取得は不要
+    sp.calls.length = 0;
+    await repo.updateNotification({ ...n, protocolNo: "P-2" }, "a@x");
+
+    const seriesQueries = sp.calls.filter(
+      (c) => c.op === "get" && c.list === "CtnNotifications"
+    );
+    expect(seriesQueries, "採番済みならシリーズを取り直さない").toHaveLength(0);
+  });
+
+  it("連続保存で etag の取り直しが起きない（更新応答から引き継ぐ）", async () => {
+    const sp = new FakeSpClient(); // 応答が etag を返す通常環境
+    const repo = new SharePointCtnRepository(sp, (id) => id);
+    const sponsor = await repo.createSponsor(
+      {
+        sponsorType: "x", name: "製薬A", repName: "", address1: "", address2: "",
+        manufacturerCode: "", contactName: "", contactTitle: "", telNo: "", faxOrMail: "", active: true,
+      },
+      "seed"
+    );
+    const compound = await repo.createCompound(
+      {
+        compoundCode: "ABC-123", targetCategory: 1, trialKind: "医薬品", initReceptNo: "",
+        initNoteDate: "", devStatus: 1, sponsorId: sponsor.id, drugName: "ABC",
+      },
+      "seed"
+    );
+    let n = await repo.createNotification({
+      compoundId: compound.id, notifType: "plan", createdBy: "a@x",
+    });
+
+    sp.calls.length = 0;
+    for (let i = 0; i < 3; i++) n = await repo.updateNotification({ ...n, protocolNo: `P-${i}` }, "a@x");
+
+    expect(sp.calls.filter((c) => c.op === "getItemEtag")).toHaveLength(0);
+  });
+
+  it("治験成分記号は一度引いたら再取得しない", async () => {
+    const { sp, repo, compoundId } = await ready();
+    const n = await repo.createNotification({ compoundId, notifType: "plan", createdBy: "a@x" });
+
+    sp.calls.length = 0;
+    await repo.updateNotification({ ...n, protocolNo: "A" }, "a@x");
+    await repo.updateNotification({ ...n, protocolNo: "B" }, "a@x");
+
+    expect(sp.calls.filter((c) => c.op === "get" && c.list === "CtnCompounds")).toHaveLength(0);
+  });
+});
 
 describe("SharePoint 固有: 失敗時に中途半端な届を残さない", () => {
   it("2段目の書き込みが失敗したら追加分を取り消す", async () => {

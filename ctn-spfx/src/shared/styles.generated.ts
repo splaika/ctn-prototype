@@ -397,6 +397,11 @@ export const CTN_SCOPED_CSS: string = `.ctnApp{
 .ctnApp .dt-code{font-size:19px;font-weight:700;letter-spacing:-.3px}
 .ctnApp .dt-count{font-size:13px;font-weight:600;color:var(--ink-3);font-variant-numeric:tabular-nums}
 .ctnApp .detail-actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+  /* 操作バーは画面下部に固定する。フォームが長く、入力中はすでに下へ
+     スクロールしているため、保存のたびに上へ戻らせない。
+     スクロール親（.scroll）に対して sticky で張り付く。 */
+  .ctnApp .detail-footer{position:sticky;bottom:0;z-index:30;margin-top:20px;padding:12px 0 4px;background:linear-gradient(to top,var(--bg) 70%,transparent);border-top:1px solid var(--line)}
+  .ctnApp .detail-footer .detail-actions{justify-content:flex-end}
 
 /* workflow bar — dot stacked above label so the connector never crosses text */
 .ctnApp .wf{display:flex;align-items:flex-start;gap:6px;margin-bottom:16px;background:var(--surface);border:1px solid var(--line);border-radius:11px;padding:14px 16px 12px;box-shadow:var(--sh)}

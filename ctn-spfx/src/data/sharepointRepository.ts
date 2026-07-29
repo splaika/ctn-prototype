@@ -141,17 +141,25 @@ export class SharePointCtnRepository implements CtnRepository {
    */
   private async etagFor(list: string, id: string): Promise<string> {
     const key = this.etagKey(list, id);
-    let e = this.etags.get(key);
-    if (!e) {
-      const items = await this.sp.getItems(list, `$filter=Id eq ${Number(id)}`);
-      if (items[0]) {
-        this.rememberEtag(list, items[0]);
-        e = this.etags.get(key);
-      }
+    const cached = this.etags.get(key);
+    if (cached) return cached;
+
+    // 一覧取得の応答本文に odata.etag が入らない環境があるため（SPFx の
+    // spHttpClient が Accept を上書きする）、項目単体の ETag ヘッダーを読む。
+    const viaHeader = await this.sp.getItemEtag(list, Number(id));
+    if (viaHeader) {
+      this.etags.set(key, viaHeader);
+      return viaHeader;
     }
+
+    // 最後の手段として一覧取得の本文を見る（メタデータ指定が効く環境向け）
+    const items = await this.sp.getItems(list, `$filter=Id eq ${Number(id)}`);
+    if (items[0]) this.rememberEtag(list, items[0]);
+    const e = this.etags.get(key);
     if (!e) {
       throw new Error(
-        `${list} の項目 ${id} を取得できませんでした（etag 不明）。削除された可能性があります。画面を再読み込みしてください。`
+        `${list} の項目 ${id} の更新情報（etag）を取得できませんでした。` +
+          "画面を再読み込みしても直らない場合は管理者へ連絡してください。"
       );
     }
     return e;
@@ -166,9 +174,12 @@ export class SharePointCtnRepository implements CtnRepository {
 
   /** 更新（MERGE）。テキスト長を整え、実 etag を解決してから送る */
   private async merge(list: string, id: string, fields: Record<string, unknown>): Promise<void> {
-    await this.sp.updateItem(list, Number(id), clampFields(fields), await this.etagFor(list, id));
-    // 書き込み後は etag が進むので、キャッシュを捨てて次回に取り直させる
-    this.etags.delete(this.etagKey(list, id));
+    const next = await this.sp.updateItem(list, Number(id), clampFields(fields), await this.etagFor(list, id));
+    const key = this.etagKey(list, id);
+    // 応答が新しい etag を返したらそれを覚える（次の更新で取り直さずに済む）。
+    // 返さなければキャッシュを捨てて、次回に取り直させる。
+    if (next) this.etags.set(key, next);
+    else this.etags.delete(key);
   }
 
   // -------------------------------------------------------------------------
@@ -428,6 +439,8 @@ export class SharePointCtnRepository implements CtnRepository {
     const compoundItem = compounds[0];
     if (!compoundItem) throw new Error(`Not found: ${input.compoundId}`);
     const compound = readCompound(compoundItem);
+    // ここで引いた記号を覚えておく（直後の保存で取り直さずに済む）
+    this.compoundCodes.set(compound.id, compound.compoundCode);
 
     // 【根幹】採番は logic.ts が本体（mock と同一の関数）
     const { filingCount, changeCount } = computeFilingNumbers(series, input);
@@ -492,21 +505,48 @@ export class SharePointCtnRepository implements CtnRepository {
     return saved;
   }
 
-  /** 集約 JSON と昇格列を「同一書き込み」で更新する（別々に更新しない） */
+  /**
+   * 集約 JSON と昇格列を「同一書き込み」で更新する（別々に更新しない）。
+   * 書き込んだ内容がそのまま保存後の状態なので、確認のための再取得はしない
+   * （1往復ぶんの待ちを削る）。etag は更新応答から引き継いでいる。
+   */
   private async writeNotificationItem(n: Notification, compoundCode: string): Promise<Notification> {
     await this.merge(LIST.notifications, n.id, writeNotification(n, compoundCode));
-    return this.fetchNotification(n.id);
+    return structuredClone(n);
   }
 
+  /**
+   * 治験成分記号を引く。表示名（Title 列）の組み立てにしか使わず、値はほぼ
+   * 変わらないのでキャッシュする。書き込みごとに1往復増えるのを避けるため。
+   */
+  private compoundCodes = new Map<string, string>();
   private async compoundCodeOf(compoundId: string): Promise<string> {
+    const hit = this.compoundCodes.get(compoundId);
+    if (hit !== undefined) return hit;
     const items = await this.sp.getItems(LIST.compounds, `$filter=Id eq ${Number(compoundId)}`);
-    return items[0] ? toStr(items[0].CtnCompoundCode) : "";
+    const code = items[0] ? toStr(items[0].CtnCompoundCode) : "";
+    this.compoundCodes.set(compoundId, code);
+    return code;
+  }
+
+  /**
+   * 未採番（serialNo<=0）が1つも無ければシリーズの取り直しは不要。
+   * 治験使用薬の順序番号はシリーズ内で採番するため他の届が必要になるが、
+   * すべて採番済みなら参照しても結果は変わらない。1往復ぶん省ける。
+   */
+  private static needsSerialNumbering(n: Notification): boolean {
+    if (n.studyDrugs.some((d) => d.serialNo <= 0)) return true;
+    return n.sites.some(
+      (s) => s.serialNo <= 0 || s.investigators.some((i) => i.serialNo <= 0)
+    );
   }
 
   public async updateNotification(n: Notification, actor: string): Promise<Notification> {
-    const series = await this.fetchSeries(n.compoundId);
     const saved = structuredClone(n);
-    finalizeSerials(saved, series.filter((x) => x.id !== saved.id));
+    if (SharePointCtnRepository.needsSerialNumbering(saved)) {
+      const series = await this.fetchSeries(saved.compoundId);
+      finalizeSerials(saved, series.filter((x) => x.id !== saved.id));
+    }
     const code = await this.compoundCodeOf(saved.compoundId);
     const result = await this.writeNotificationItem(saved, code);
     await this.pushAudit({

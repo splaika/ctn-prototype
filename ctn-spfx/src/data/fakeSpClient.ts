@@ -81,6 +81,7 @@ export class FakeSpClient implements ISpRestClient, ISpProvisioningClient {
   }
 
   private toItem(id: number, stored: StoredItem): SpListItem {
+    if (this.bodyNeverHasEtag) return { ...stored.fields, Id: id };
     return { ...stored.fields, Id: id, __etag: `"${stored.version}"` };
   }
 
@@ -141,12 +142,16 @@ export class FakeSpClient implements ISpRestClient, ISpProvisioningClient {
     return item;
   }
 
+  /**
+   * 更新は本物と同じく、更新後の etag を返す（ETag レスポンスヘッダー相当）。
+   * これを返さないとリポジトリが毎回 etag を取り直し、往復削減の検証にならない。
+   */
   public async updateItem(
     listTitle: string,
     id: number,
     fields: Record<string, unknown>,
     etag: string
-  ): Promise<void> {
+  ): Promise<string | undefined> {
     this.calls.push({ op: "update", list: listTitle, id });
     const stored = this.listOf(listTitle).get(id);
     if (!stored) throw new Error(`FakeSpClient: ${listTitle}#${id} がありません`);
@@ -169,6 +174,7 @@ export class FakeSpClient implements ISpRestClient, ISpProvisioningClient {
     }
     stored.fields = { ...stored.fields, ...fields };
     stored.version++;
+    return `"${stored.version}"`;
   }
 
   public async deleteItem(listTitle: string, id: number, etag: string): Promise<void> {
@@ -177,6 +183,20 @@ export class FakeSpClient implements ISpRestClient, ISpProvisioningClient {
     if (!stored) throw new Error(`FakeSpClient: ${listTitle}#${id} がありません`);
     if (etag !== `"${stored.version}"`) throw new SpConflictError("FakeSpClient: etag 不一致");
     this.listOf(listTitle).delete(id);
+  }
+
+  /**
+   * true で、応答本文からは etag を一切返さない（追加・一覧の両方）。
+   * 実テナントで起きた条件。SPFx の spHttpClient が Accept を上書きするため
+   * odata.etag が本文に入らず、ETag ヘッダー経由でしか取得できない。
+   */
+  public bodyNeverHasEtag = false;
+
+  public async getItemEtag(listTitle: string, id: number): Promise<string | undefined> {
+    this.calls.push({ op: "getItemEtag", list: listTitle, id });
+    const stored = this.listOf(listTitle).get(id);
+    // ETag ヘッダー相当。項目があれば必ず返る
+    return stored ? `"${stored.version}"` : undefined;
   }
 
   public async getCurrentUserGroupNames(): Promise<string[]> {

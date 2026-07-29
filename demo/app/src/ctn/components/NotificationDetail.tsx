@@ -64,6 +64,8 @@ export function NotificationDetail({
   const { t, lang } = useLang();
   const [draft, setDraft] = useState<Notification>(() => structuredClone(notification));
   const [dirty, setDirty] = useState(false);
+  /** 詳細画面のルート。追加した施設カードを探すのに使う（画面外を巻き込まない） */
+  const detailRef = useRef<HTMLDivElement | null>(null);
   const [tab, setTab] = useState<string>("basic");
   const compound = db.compounds.find((c) => c.id === draft.compoundId)!;
   const editable = draft.status === "draft" || draft.status === "review";
@@ -172,7 +174,21 @@ export function NotificationDetail({
     });
 
   // ---------- 実施医療機関 ----------
-  const addSite = () =>
+  // 追加した施設カードまで自動で送る。フォームが縦に長く、追加しても画面が
+  // 動かないと「押しても何も起きない」ように見えるため。
+  // 追加は末尾に積まれるので、描画後に最後の .sitecard を見る。
+  const [siteAdds, setSiteAdds] = useState(0);
+  useEffect(() => {
+    if (siteAdds === 0) return;
+    const cards = detailRef.current?.querySelectorAll(".sitecard");
+    cards?.[cards.length - 1]?.scrollIntoView({ behavior: "smooth", block: "center" });
+  }, [siteAdds]);
+
+  const addSite = () => {
+    addSiteRow();
+    setSiteAdds((v) => v + 1);
+  };
+  const addSiteRow = () =>
     set((n) => {
       // 追加直後はブランク（施設・IRB 未選択）。ユーザーが明示的に選ぶ。
       const nsite: Site = {
@@ -277,7 +293,7 @@ export function NotificationDetail({
   const activeTab = visibleTabs.some((tb) => tb.key === tab) ? tab : visibleTabs[0].key;
 
   return (
-    <div className="detail">
+    <div className="detail" ref={detailRef}>
       {/* ===== ヘッダー ===== */}
       <div className="detail-top">
         <button className="back" onClick={onBack}>← {t("Back", "一覧へ")}</button>
@@ -286,17 +302,6 @@ export function NotificationDetail({
           <TypeBadge type={draft.notifType} full />
           <span className="dt-count">第{draft.filingCount}回{draft.changeCount != null ? `・変更${draft.changeCount}回` : ""}</span>
           <StatusPill status={draft.status} />
-        </div>
-        <div className="detail-actions">
-          {editable && <Btn kind="p" small onClick={save} disabled={!dirty}>{Icon.check} {t("Save", "保存")}</Btn>}
-          {draft.status === "draft" && <Btn small onClick={() => onSendReview(draft.id)} disabled={dirty} title={dirty ? "先に保存してください" : ""}>{t("Send for review", "レビュー送付")}</Btn>}
-          {draft.status === "review" && (
-            <Btn kind="p" small onClick={() => onApprove(draft.id)} disabled={dirty} title={dirty ? "先に保存してください" : jobSepBlocked ? "職務分離：起票者は承認できません" : ""}>{t("Approve", "承認")}</Btn>
-          )}
-          {draft.status === "approved" && <Btn kind="p" small onClick={() => onSubmit(draft.id)}>{t("Submit", "提出")}</Btn>}
-          <Btn small onClick={() => onGenerateXml(draft)}>{Icon.doc} XML{t(" preview", "プレビュー")}</Btn>
-          <Btn kind="p" small onClick={runExport} disabled={exporting}>{Icon.doc} {exporting ? t("Generating…", "生成中…") : t("Export PDF+XML", "提出パッケージ出力")}</Btn>
-          {draft.status === "draft" && <Btn kind="danger" small onClick={() => onDelete(draft.id)}>{Icon.trash}</Btn>}
         </div>
       </div>
 
@@ -644,6 +649,23 @@ export function NotificationDetail({
           <pre style={{ maxHeight: "260px", overflow: "auto", background: "var(--row)", border: "1px solid var(--border2)", borderRadius: "8px", padding: "10px", fontSize: "11px", whiteSpace: "pre-wrap" }}>{pkg.xml}</pre>
         </Modal>
       )}
+
+      {/* ===== 操作バー（画面下部に固定） =====
+          フォームが縦に長く、入力中は画面が下へ進んでいる。上部に置くと
+          保存のたびに戻る必要があるため、常に手元に見える下部へ固定する。 */}
+      <div className="detail-footer">
+        <div className="detail-actions">
+          {editable && <Btn kind="p" small onClick={save} disabled={!dirty}>{Icon.check} {t("Save", "保存")}</Btn>}
+          {draft.status === "draft" && <Btn small onClick={() => onSendReview(draft.id)} disabled={dirty} title={dirty ? "先に保存してください" : ""}>{t("Send for review", "レビュー送付")}</Btn>}
+          {draft.status === "review" && (
+            <Btn kind="p" small onClick={() => onApprove(draft.id)} disabled={dirty} title={dirty ? "先に保存してください" : jobSepBlocked ? "職務分離：起票者は承認できません" : ""}>{t("Approve", "承認")}</Btn>
+          )}
+          {draft.status === "approved" && <Btn kind="p" small onClick={() => onSubmit(draft.id)}>{t("Submit", "提出")}</Btn>}
+          <Btn small onClick={() => onGenerateXml(draft)}>{Icon.doc} XML{t(" preview", "プレビュー")}</Btn>
+          <Btn kind="p" small onClick={runExport} disabled={exporting}>{Icon.doc} {exporting ? t("Generating…", "生成中…") : t("Export PDF+XML", "提出パッケージ出力")}</Btn>
+          {draft.status === "draft" && <Btn kind="danger" small onClick={() => onDelete(draft.id)}>{Icon.trash}</Btn>}
+        </div>
+      </div>
     </div>
   );
 }
