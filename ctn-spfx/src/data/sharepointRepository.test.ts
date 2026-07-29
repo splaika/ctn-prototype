@@ -150,6 +150,54 @@ describe("採番（logic.ts 経由）", () => {
   });
 });
 
+describe("etag が応答に含まれない環境（実テナントで踏んだ回帰）", () => {
+  // 実テナントでは POST /items の応答に odata.etag が入らず、作成直後の
+  // 更新が「etag が未取得です」で必ず失敗した。作成した届が中途半端な状態で
+  // 残り、押した回数ぶん増えていく症状になる。
+  it("届を作成できる（etag を取り直す）", async () => {
+    const { sp, repo, compoundId } = setup();
+    sp.addItemOmitsEtag = true;
+
+    const n = await repo.createNotification({ compoundId, notifType: "plan", createdBy: "a@x" });
+    expect(n.id).toBeTruthy();
+    // 集約JSON内の id が項目 Id と一致している（2段目の書き込みが通った証拠）
+    const raw = sp.raw("CtnNotifications", Number(n.id))!;
+    expect(JSON.parse(String(raw.CtnPayload)).id).toBe(n.id);
+  });
+
+  it("作成した届をそのまま保存できる", async () => {
+    const { sp, repo, compoundId } = setup();
+    sp.addItemOmitsEtag = true;
+
+    const n = await repo.createNotification({ compoundId, notifType: "plan", createdBy: "a@x" });
+    const saved = await repo.updateNotification({ ...n, protocolNo: "P-9" }, "a@x");
+    expect(saved.protocolNo).toBe("P-9");
+    expect(sp.raw("CtnNotifications", Number(n.id))!.CtnProtocolNo).toBe("P-9");
+  });
+
+  it("マスタも作成・更新できる", async () => {
+    const { sp, repo } = setup();
+    sp.addItemOmitsEtag = true;
+
+    const inst = await repo.createInstitution(
+      { code: "H1", name: "第一病院", address1: "", address2: "", telNo: "", active: true },
+      "a@x"
+    );
+    const updated = await repo.updateInstitution({ ...inst, telNo: "03-0000-0000" }, "a@x");
+    expect(updated.telNo).toBe("03-0000-0000");
+  });
+
+  it("存在しない項目の etag は取り直しても失敗する（黙って * を使わない）", async () => {
+    const { repo } = setup();
+    await expect(
+      repo.updateInstitution(
+        { id: "9999", code: "X", name: "無い病院", address1: "", address2: "", telNo: "", active: true },
+        "a@x"
+      )
+    ).rejects.toThrow(/取得できませんでした/);
+  });
+});
+
 describe("etag（楽観的同時実行制御）", () => {
   it("更新は実 etag を使い、書き込みごとに etag が進む", async () => {
     const { sp, repo, compoundId } = setup();

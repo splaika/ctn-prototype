@@ -174,6 +174,23 @@ export default class CtnSuiteWebPart extends BaseClientSideWebPart<ICtnSuiteWebP
     ReactDom.render(element, this.domElement);
   }
 
+  /**
+   * データソースを切り替えたときに、その場で反映させる。
+   * SPFx はプロパティ変更で onInit を再実行しない（render だけが呼ばれる）ため、
+   * これが無いと mock ↔ sharepoint の切替がページ再読み込みまで効かない。
+   */
+  protected onPropertyPaneFieldChanged(propertyPath: string, oldValue: unknown, newValue: unknown): void {
+    super.onPropertyPaneFieldChanged(propertyPath, oldValue, newValue);
+    if (propertyPath !== "dataSource" || oldValue === newValue) return;
+
+    this._initRepository()
+      .then(() => this.render())
+      .catch((e) => {
+        // eslint-disable-next-line no-console
+        console.error("[CTN Suite] データソースの切替に失敗しました。", e);
+      });
+  }
+
   protected onDispose(): void {
     ReactDom.unmountComponentAtNode(this.domElement);
   }

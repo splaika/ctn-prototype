@@ -14,6 +14,9 @@
   "requiresCustomScript": false,
   "supportedHosts": ["SharePointWebPart", "TeamsPersonalApp", "TeamsTab", "SharePointFullPage"],
   "supportsThemeVariants": true,
+  // ページの「全幅列」セクションへ配置できるようにする。これが無いと標準
+  // セクション（最大幅 約1200px・中央寄せ）にしか置けず、左右に余白が残る。
+  "supportsFullBleed": true,
 
   "preconfiguredEntries": [{
     "groupId": "5c03119e-3074-46fd-976b-c60198311f70", // Advanced

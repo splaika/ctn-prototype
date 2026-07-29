@@ -107,12 +107,25 @@ export class SharePointCtnRepository implements CtnRepository {
   private rememberEtag(list: string, item: SpListItem): void {
     if (item.__etag) this.etags.set(this.etagKey(list, String(item.Id)), item.__etag);
   }
-  private etagFor(list: string, id: string): string {
-    const e = this.etags.get(this.etagKey(list, id));
+  /**
+   * 更新に使う実 etag を得る。
+   * キャッシュに無ければ当該項目を取り直す。作成（POST）の応答に odata.etag が
+   * 含まれない環境があり、応答だけに頼ると直後の更新が必ず失敗するため。
+   * IF-MATCH: * は使わない方針なので、取得できなければ明示的に失敗させる。
+   */
+  private async etagFor(list: string, id: string): Promise<string> {
+    const key = this.etagKey(list, id);
+    let e = this.etags.get(key);
     if (!e) {
-      // IF-MATCH: * は使わない方針のため、etag 不明なら明示的に失敗させる
+      const items = await this.sp.getItems(list, `$filter=Id eq ${Number(id)}`);
+      if (items[0]) {
+        this.rememberEtag(list, items[0]);
+        e = this.etags.get(key);
+      }
+    }
+    if (!e) {
       throw new Error(
-        `内部エラー: ${list} の項目 ${id} の etag が未取得です。画面を再読み込みしてください。`
+        `${list} の項目 ${id} を取得できませんでした（etag 不明）。削除された可能性があります。画面を再読み込みしてください。`
       );
     }
     return e;
@@ -234,7 +247,7 @@ export class SharePointCtnRepository implements CtnRepository {
     fields: Record<string, unknown>,
     read: (i: SpListItem) => T
   ): Promise<T> {
-    await this.sp.updateItem(list, Number(rec.id), fields, this.etagFor(list, rec.id));
+    await this.sp.updateItem(list, Number(rec.id), fields, await this.etagFor(list, rec.id));
     const items = await this.sp.getItems(list, `$filter=Id eq ${Number(rec.id)}`);
     const item = items[0];
     if (!item) throw new Error(`Not found: ${rec.id}`);
@@ -243,7 +256,7 @@ export class SharePointCtnRepository implements CtnRepository {
   }
 
   private async setActive(list: string, id: string, active: boolean): Promise<void> {
-    await this.sp.updateItem(list, Number(id), { CtnActive: active }, this.etagFor(list, id));
+    await this.sp.updateItem(list, Number(id), { CtnActive: active }, await this.etagFor(list, id));
     const items = await this.sp.getItems(list, `$filter=Id eq ${Number(id)}`);
     if (items[0]) this.rememberEtag(list, items[0]);
   }
@@ -408,7 +421,7 @@ export class SharePointCtnRepository implements CtnRepository {
       LIST.notifications,
       Number(n.id),
       writeNotification(n, compoundCode),
-      this.etagFor(LIST.notifications, n.id)
+      await this.etagFor(LIST.notifications, n.id)
     );
     return this.fetchNotification(n.id);
   }
@@ -438,7 +451,7 @@ export class SharePointCtnRepository implements CtnRepository {
     const n = await this.fetchNotification(id);
     if (n.status !== "draft") throw new Error("提出済・承認済の届は削除できません（起票中のみ削除可）。");
     const code = await this.compoundCodeOf(n.compoundId);
-    await this.sp.deleteItem(LIST.notifications, Number(id), this.etagFor(LIST.notifications, id));
+    await this.sp.deleteItem(LIST.notifications, Number(id), await this.etagFor(LIST.notifications, id));
     await this.pushAudit({
       who: this.actorName(actor),
       action: "delete",
@@ -507,7 +520,7 @@ export class SharePointCtnRepository implements CtnRepository {
             LIST.compounds,
             Number(n.compoundId),
             { CtnDevStatus: nextDevStatus },
-            this.etagFor(LIST.compounds, n.compoundId)
+            await this.etagFor(LIST.compounds, n.compoundId)
           );
         }
       }
@@ -557,7 +570,7 @@ export class SharePointCtnRepository implements CtnRepository {
         LIST.doctors,
         Number(rec.doctorId),
         { CtnHasGaiji: true },
-        this.etagFor(LIST.doctors, rec.doctorId)
+        await this.etagFor(LIST.doctors, rec.doctorId)
       );
     }
   }

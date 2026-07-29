@@ -13,6 +13,7 @@
     "sync": "node scripts/sync-from-demo.mjs",
     "verify:scope": "node scripts/verify-scope.mjs",
     "provision:gen": "node scripts/gen-provision.mjs",
+    "provision:browser": "node scripts/gen-browser-setup.mjs && node scripts/gen-browser-seed.mjs",
     "package": "gulp bundle --ship && gulp package-solution --ship"
   },
   "dependencies": {
@@ -41,6 +42,7 @@
     "@types/react-dom": "17.0.17",
     "@types/webpack-env": "~1.15.2",
     "ajv": "^6.12.5",
+    "esbuild": "0.25.11",
     "eslint": "8.57.1",
     "eslint-plugin-react-hooks": "4.3.0",
     "gulp": "4.0.2",

@@ -89,6 +89,8 @@ export default function CtnApp({ demoMode, currentUser, initialLang }: ICtnAppPr
   const [wizard, setWizard] = useState(false);
   const [xmlFor, setXmlFor] = useState<Notification | null>(null);
   const [toast, setToast] = useState<{ msg: string; err?: boolean } | null>(null);
+  // 初回読み込みの失敗。トーストは3秒で消えるため、原因を画面に残す用途で持つ
+  const [bootError, setBootError] = useState<string>("");
   const [rules, setRulesState] = useState<RuleSettings>(() => ({ ...DEFAULT_RULES }));
   const [palette, setPalette] = useState<PaletteKey>(() => {
     const v = readLocal("ctn.palette");
@@ -119,16 +121,42 @@ export default function CtnApp({ demoMode, currentUser, initialLang }: ICtnAppPr
     window.setTimeout(() => setToast(null), 3000);
   };
 
-  const reload = async (): Promise<void> => setDb(await repo.getState());
+  const reload = async (): Promise<void> => {
+    setDb(await repo.getState());
+    setBootError("");
+  };
   useEffect(() => {
     // demo/app 版は `void reload()` だが、SharePoint リスト接続時は初回読み込みが
-    // 権限・リスト未作成で失敗しうる。握り潰さずトーストで見せる。
-    reload().catch((e) => flash((e as Error).message, true));
+    // 権限・リスト未作成で失敗しうる。失敗を握り潰すと db が null のままになり
+    // 「読み込み中…」で永久に止まるため、原因を画面に出して再試行させる。
+    reload().catch((e) => setBootError((e as Error).message));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const openNotif = (id: string): void => setSelectedId(id);
   const backToList = (): void => setSelectedId(null);
+
+  /**
+   * 新規届の作成を開く。
+   * ウィザードは「治験届出者が選択済み」を作成の条件にしているため、届出者が
+   * 1件も無いと作成ボタンが押せない行き止まりになる（SharePoint リストを
+   * 作った直後がこの状態）。理由を出してマスタ管理へ誘導する。
+   */
+  const openWizard = (): void => {
+    const hasSponsor = (db?.sponsors ?? []).some((s) => s.active);
+    if (!hasSponsor) {
+      flash(
+        t(
+          "Register a sponsor first (Masters → Sponsor).",
+          "先に治験届出者を登録してください（マスタ管理 → 治験届出者）。届出者が無いと届を作成できません。"
+        ),
+        true
+      );
+      setView("masters");
+      return;
+    }
+    setWizard(true);
+  };
 
   const applyRules = (r: RuleSettings): void => {
     setRules(r); // モジュールのシングルトンへ反映（computeDeadline / deriveAlerts が参照）
@@ -138,70 +166,91 @@ export default function CtnApp({ demoMode, currentUser, initialLang }: ICtnAppPr
 
   // 既存ファイル（XML）→ ドラフトとして取り込む
   const handleImport = async (p: ParsedImport): Promise<void> => {
-    let compoundId = db?.compounds.find((c) => c.compoundCode === p.compoundCode)?.id;
-    if (!compoundId) {
-      const c = await repo.createCompound(
+    try {
+      let compoundId = db?.compounds.find((c) => c.compoundCode === p.compoundCode)?.id;
+      if (!compoundId) {
+        const c = await repo.createCompound(
+          {
+            compoundCode: p.compoundCode,
+            targetCategory: TARGET_CATEGORY.drug,
+            trialKind: "医薬品",
+            initReceptNo: "",
+            initNoteDate: "",
+            devStatus: DEV_STATUS.active,
+            sponsorId: db?.sponsors[0]?.id ?? "",
+            drugName: p.compoundCode,
+          },
+          userId
+        );
+        compoundId = c.id;
+      }
+      const n = await repo.createNotification({ compoundId, notifType: p.notifType, createdBy: userId });
+      await repo.updateNotification(
         {
-          compoundCode: p.compoundCode,
-          targetCategory: TARGET_CATEGORY.drug,
-          trialKind: "医薬品",
-          initReceptNo: "",
-          initNoteDate: "",
-          devStatus: DEV_STATUS.active,
-          sponsorId: db?.sponsors[0]?.id ?? "",
-          drugName: p.compoundCode,
+          ...n,
+          protocolNo: p.protocolNo ?? n.protocolNo,
+          objectives: p.objectives ?? n.objectives,
+          targetDisease: p.targetDisease ?? n.targetDisease,
+          remarks: p.remarks ?? n.remarks,
         },
         userId
       );
-      compoundId = c.id;
+      await reload();
+      setSelectedId(n.id);
+      setView("notifications");
+      flash(t("Imported as a draft — complete the details.", "ドラフトとして取り込みました。詳細を補完してください。"));
+    } catch (e) {
+      flash((e as Error).message, true);
     }
-    const n = await repo.createNotification({ compoundId, notifType: p.notifType, createdBy: userId });
-    await repo.updateNotification(
-      {
-        ...n,
-        protocolNo: p.protocolNo ?? n.protocolNo,
-        objectives: p.objectives ?? n.objectives,
-        targetDisease: p.targetDisease ?? n.targetDisease,
-        remarks: p.remarks ?? n.remarks,
-      },
-      userId
-    );
-    await reload();
-    setSelectedId(n.id);
-    setView("notifications");
-    flash(t("Imported as a draft — complete the details.", "ドラフトとして取り込みました。詳細を補完してください。"));
   };
 
   // ---- ワークフローハンドラ ----
   const handleCreate = async (p: CreatePayload): Promise<void> => {
-    let compoundId = p.compoundId;
-    if (p.newCompound) {
-      const c = await repo.createCompound(p.newCompound, userId);
-      compoundId = c.id;
+    try {
+      let compoundId = p.compoundId;
+      if (p.newCompound) {
+        const c = await repo.createCompound(p.newCompound, userId);
+        compoundId = c.id;
+      }
+      if (!compoundId) return;
+      const n = await repo.createNotification({
+        compoundId,
+        notifType: p.notifType,
+        targetFilingCount: p.targetFilingCount,
+        createdBy: userId,
+      });
+      await reload();
+      setWizard(false);
+      setSelectedId(n.id);
+      flash(t("Filing created — edit the differences.", "届を作成しました。差分を編集してください。"));
+    } catch (e) {
+      // 作成に失敗したらウィザードを開いたままにして、理由を見せる
+      flash((e as Error).message, true);
     }
-    if (!compoundId) return;
-    const n = await repo.createNotification({
-      compoundId,
-      notifType: p.notifType,
-      targetFilingCount: p.targetFilingCount,
-      createdBy: userId,
-    });
-    await reload();
-    setWizard(false);
-    setSelectedId(n.id);
-    flash(t("Filing created — edit the differences.", "届を作成しました。差分を編集してください。"));
   };
 
   const handleSave = async (n: Notification): Promise<Notification> => {
-    const saved = await repo.updateNotification(n, userId);
-    await reload();
-    flash(t("Saved", "保存しました"));
-    return saved; // サーバー確定後の順序番号を detail の draft へ反映する
+    try {
+      const saved = await repo.updateNotification(n, userId);
+      await reload();
+      flash(t("Saved", "保存しました"));
+      return saved; // サーバー確定後の順序番号を detail の draft へ反映する
+    } catch (e) {
+      // 失敗を黙って飲み込むと「保存ボタンが反応しない」ように見える。
+      // トーストで理由を出したうえで再スローし、詳細側の未保存フラグを
+      // 立てたまま残す（setDirty(false) へ進ませない＝再試行できる）。
+      flash((e as Error).message, true);
+      throw e;
+    }
   };
   const handleSendReview = async (id: string): Promise<void> => {
-    await repo.sendForReview(id, userId);
-    await reload();
-    flash(t("Sent for review", "社内レビューへ送付しました"));
+    try {
+      await repo.sendForReview(id, userId);
+      await reload();
+      flash(t("Sent for review", "社内レビューへ送付しました"));
+    } catch (e) {
+      flash((e as Error).message, true);
+    }
   };
   const handleApprove = async (id: string): Promise<void> => {
     try {
@@ -232,14 +281,61 @@ export default function CtnApp({ demoMode, currentUser, initialLang }: ICtnAppPr
     }
   };
   const handleXmlGenerated = async (n: Notification): Promise<void> => {
-    await repo.markXmlGenerated(n.id, userId);
-    await reload();
-    setXmlFor(null);
-    flash(t("XML generated & validated", "XMLを生成・検証しました"));
+    try {
+      await repo.markXmlGenerated(n.id, userId);
+      await reload();
+      setXmlFor(null);
+      flash(t("XML generated & validated", "XMLを生成・検証しました"));
+    } catch (e) {
+      flash((e as Error).message, true);
+    }
   };
 
   // .ctnApp はスコープ化CSSの土台。元の body 相当のスタイルがここに載る。
   const wrapperClass = `ctnApp${lang === "ja" ? " ja" : ""}`;
+
+  // 読み込みに失敗したときは「読み込み中」のまま止めず、原因と再試行を出す
+  if (!db && bootError)
+    return (
+      <div className={wrapperClass}>
+        <div className="boot">
+          <div className="boot-card" style={{ maxWidth: 640, textAlign: "left" }}>
+            <h2 style={{ fontSize: 16, marginBottom: 10 }}>
+              {t("Failed to load data", "データを読み込めませんでした")}
+            </h2>
+            <div
+              style={{
+                padding: 12,
+                borderRadius: 8,
+                background: "var(--red-bg)",
+                fontSize: 13,
+                lineHeight: 1.7,
+                marginBottom: 14,
+                wordBreak: "break-all",
+              }}
+            >
+              {bootError}
+            </div>
+            <p style={{ fontSize: 13, lineHeight: 1.8, marginBottom: 14 }}>
+              {t(
+                "Check that the lists exist and that you have access.",
+                "次を確認してください：SharePoint リストが作成済みか／このサイトへのアクセス権があるか。" +
+                  "リストが未作成の場合は、Web パーツのデータソースを「デモデータ（mock）」に戻すと表示できます。"
+              )}
+            </p>
+            <button
+              className="btn btn-p"
+              onClick={() => {
+                setBootError("");
+                reload().catch((e) => setBootError((e as Error).message));
+              }}
+            >
+              {t("Retry", "再試行する")}
+            </button>
+          </div>
+        </div>
+      </div>
+    );
 
   if (!db)
     return (
@@ -339,7 +435,7 @@ export default function CtnApp({ demoMode, currentUser, initialLang }: ICtnAppPr
                   JA
                 </button>
               </div>
-              <button className="btn btn-p" onClick={() => setWizard(true)}>
+              <button className="btn btn-p" onClick={openWizard}>
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5}>
                   <path d="M12 5v14M5 12h14" />
                 </svg>

@@ -3,7 +3,9 @@
   "solution": {
     "name": "ctn-suite-client-side-solution",
     "id": "d73e8018-634a-4e25-8190-58cf5fa3b481",
-    "version": "1.0.0.0",
+    // リリースのたびに上げる。同じ版のままだとアプリカタログでどのビルドが
+    // 入っているか判別できず、更新も認識されないことがある。
+    "version": "1.2.0.0",
     "includeClientSideAssets": true,
     // false = サイトごとに「アプリを追加」してから使う。true にすると承認と同時に
     // 全サイトで利用可能になり、承認範囲が必要以上に広くなるため false のままにする。

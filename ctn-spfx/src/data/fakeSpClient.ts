@@ -82,9 +82,21 @@ export class FakeSpClient implements ISpRestClient, ISpProvisioningClient {
     return items;
   }
 
+  /**
+   * true で、追加（POST）の応答から etag を落とす。
+   * 実テナントでこの挙動を踏み、作成直後の更新が必ず失敗した（項目の etag が
+   * 未取得エラー）。リポジトリが etag を取り直せることを担保するためのフラグ。
+   */
+  public addItemOmitsEtag = false;
+
   public async addItem(listTitle: string, fields: Record<string, unknown>): Promise<SpListItem> {
     const item = this.seed(listTitle, fields);
     this.calls.push({ op: "add", list: listTitle, id: item.Id });
+    if (this.addItemOmitsEtag) {
+      const { __etag, ...withoutEtag } = item;
+      void __etag;
+      return withoutEtag as SpListItem;
+    }
     return item;
   }
 
