@@ -7,12 +7,35 @@
 //   - IF-MATCH 不一致で 412 相当（SpConflictError）
 //   - $filter=Id eq N / $filter=<Lookup>Id eq N / $top / $orderby=Id desc
 // ============================================================================
+import listSchema from "../../provision/ctn-lists.schema.json";
 import {
   SpConflictError,
   type ISpProvisioningClient,
   type ISpRestClient,
   type SpListItem,
 } from "./spClient";
+
+/**
+ * 1行テキスト列の上限。SharePoint は超過を切り捨てず拒否するため、フェイクでも
+ * 同じように失敗させる（これが無いと「長さを詰める」修正の検証力が無くなる）。
+ */
+const TEXT_MAX = 255;
+const NOTE_COLUMNS: ReadonlySet<string> = new Set(
+  (listSchema.lists as { fields: { name: string; type: string }[] }[]).flatMap((l) =>
+    l.fields.filter((f) => f.type === "Note").map((f) => f.name)
+  )
+);
+
+function assertFieldLengths(listTitle: string, fields: Record<string, unknown>): void {
+  for (const [k, v] of Object.entries(fields)) {
+    if (typeof v === "string" && !NOTE_COLUMNS.has(k) && v.length > TEXT_MAX) {
+      throw new Error(
+        `FakeSpClient: ${listTitle}.${k} が上限 ${TEXT_MAX} 文字を超えています（${v.length} 文字）。` +
+          "SharePoint は 1 行テキスト列の超過を拒否します。"
+      );
+    }
+  }
+}
 
 interface StoredItem {
   fields: Record<string, unknown>;
@@ -61,6 +84,15 @@ export class FakeSpClient implements ISpRestClient, ISpProvisioningClient {
     return { ...stored.fields, Id: id, __etag: `"${stored.version}"` };
   }
 
+  /**
+   * true で、$select 付きの一覧取得の応答から etag を落とす。
+   * 応答の形は環境やメタデータ指定で変わるため、最悪条件でもリポジトリが
+   * etag を取り直せることを担保する。
+   */
+  public getItemsOmitsEtagWhenSelecting = false;
+  /** 指定リストの更新（MERGE）を必ず失敗させる（巻き戻しの検証用） */
+  public failUpdatesOnList: string | undefined = undefined;
+
   public async getItems(listTitle: string, query?: string): Promise<SpListItem[]> {
     this.calls.push({ op: "get", list: listTitle });
     let items = [...this.listOf(listTitle).entries()].map(([id, s]) => this.toItem(id, s));
@@ -79,6 +111,14 @@ export class FakeSpClient implements ISpRestClient, ISpProvisioningClient {
 
     const top = /\$top=(\d+)/.exec(query ?? "");
     if (top) items = items.slice(0, Number(top[1]));
+
+    if (this.getItemsOmitsEtagWhenSelecting && /\$select=/.test(query ?? "")) {
+      items = items.map((i) => {
+        const { __etag, ...rest } = i;
+        void __etag;
+        return rest as SpListItem;
+      });
+    }
     return items;
   }
 
@@ -90,6 +130,7 @@ export class FakeSpClient implements ISpRestClient, ISpProvisioningClient {
   public addItemOmitsEtag = false;
 
   public async addItem(listTitle: string, fields: Record<string, unknown>): Promise<SpListItem> {
+    assertFieldLengths(listTitle, fields);
     const item = this.seed(listTitle, fields);
     this.calls.push({ op: "add", list: listTitle, id: item.Id });
     if (this.addItemOmitsEtag) {
@@ -109,6 +150,11 @@ export class FakeSpClient implements ISpRestClient, ISpProvisioningClient {
     this.calls.push({ op: "update", list: listTitle, id });
     const stored = this.listOf(listTitle).get(id);
     if (!stored) throw new Error(`FakeSpClient: ${listTitle}#${id} がありません`);
+
+    if (this.failUpdatesOnList === listTitle) {
+      throw new Error(`FakeSpClient: 意図的な更新失敗 (${listTitle}#${id})`);
+    }
+    assertFieldLengths(listTitle, fields);
 
     if (this.failNextUpdateWithConflict > 0) {
       this.failNextUpdateWithConflict--;

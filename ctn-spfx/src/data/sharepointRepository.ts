@@ -42,6 +42,7 @@ import type {
   CtnRepository,
 } from "../shared/ctn/data/repository";
 import { SpConflictError, type ISpRestClient, type SpListItem } from "./spClient";
+import listSchema from "../../provision/ctn-lists.schema.json";
 
 /** 一覧取得の上限。30ユーザー・数百件規模を想定（ブリーフ 4章） */
 const TOP = 500;
@@ -63,6 +64,31 @@ const PAYLOAD_VERSION = "1";
 
 /** 提出時の採番確定でリトライする回数（412 の解決） */
 const SUBMIT_RETRIES = 3;
+
+/**
+ * 複数行テキスト（Note）の列。ここに集約JSONや長文が入るので長さを詰めない。
+ * それ以外の1行テキストは 255 文字上限で、超えると SharePoint がエラーを返す
+ * （切り捨ててはくれない）。スキーマから導いて取りこぼしを防ぐ。
+ */
+const NOTE_COLUMNS: ReadonlySet<string> = new Set(
+  (listSchema.lists as { fields: { name: string; type: string }[] }[]).flatMap((l) =>
+    l.fields.filter((f) => f.type === "Note").map((f) => f.name)
+  )
+);
+const TEXT_MAX = 255;
+
+/**
+ * 1行テキスト列の値を上限に収める。
+ * 医療機関名や備考のような自由入力が上限を超えると書き込み全体が失敗するため、
+ * 書き込み直前に一律で通す（Note 列は対象外）。
+ */
+function clampFields(fields: Record<string, unknown>): Record<string, unknown> {
+  const out: Record<string, unknown> = {};
+  for (const [k, v] of Object.entries(fields)) {
+    out[k] = typeof v === "string" && !NOTE_COLUMNS.has(k) && v.length > TEXT_MAX ? v.slice(0, TEXT_MAX) : v;
+  }
+  return out;
+}
 
 // ---------------------------------------------------------------------------
 // 値の変換ヘルパ
@@ -131,6 +157,20 @@ export class SharePointCtnRepository implements CtnRepository {
     return e;
   }
 
+  /** 追加。テキスト長を整えてから送る */
+  private async add(list: string, fields: Record<string, unknown>): Promise<SpListItem> {
+    const created = await this.sp.addItem(list, clampFields(fields));
+    this.rememberEtag(list, created);
+    return created;
+  }
+
+  /** 更新（MERGE）。テキスト長を整え、実 etag を解決してから送る */
+  private async merge(list: string, id: string, fields: Record<string, unknown>): Promise<void> {
+    await this.sp.updateItem(list, Number(id), clampFields(fields), await this.etagFor(list, id));
+    // 書き込み後は etag が進むので、キャッシュを捨てて次回に取り直させる
+    this.etags.delete(this.etagKey(list, id));
+  }
+
   // -------------------------------------------------------------------------
   // 読み取り
   // -------------------------------------------------------------------------
@@ -169,7 +209,17 @@ export class SharePointCtnRepository implements CtnRepository {
 
     return {
       compounds: compounds.map(readCompound),
-      notifications: notifications.map(readNotification),
+      // 1行でも壊れた Payload があると全画面が開けなくなるのは割に合わないので、
+      // 読めない行は飛ばして続行する（何を飛ばしたかはコンソールに出す）。
+      notifications: notifications.reduce<Notification[]>((acc, item) => {
+        try {
+          acc.push(readNotification(item));
+        } catch (e) {
+          // eslint-disable-next-line no-console
+          console.error(`[CTN Suite] 治験届 ${item.Id} を読み込めませんでした。この届は一覧に出ません。`, e);
+        }
+        return acc;
+      }, []),
       institutions: institutions.map(readInstitution),
       doctors: doctors.map(readDoctor),
       siteStaff: siteStaff.map(readSiteStaff),
@@ -205,8 +255,23 @@ export class SharePointCtnRepository implements CtnRepository {
   // -------------------------------------------------------------------------
   // 監査（追記専用）
   // -------------------------------------------------------------------------
+  /**
+   * 監査ログを追記する。
+   * 追記の失敗で業務操作を失敗扱いにしない: 本体の書き込みは既に成功しており、
+   * ここで投げるとユーザーには失敗に見えて再試行され、重複を生む。
+   * 記録漏れは検知できるようコンソールへ出す。
+   */
   private async pushAudit(a: Omit<AuditEntry, "id" | "at">): Promise<void> {
-    await this.sp.addItem(LIST.audit, {
+    try {
+      await this.writeAudit(a);
+    } catch (e) {
+      // eslint-disable-next-line no-console
+      console.error("[CTN Suite] 監査ログの追記に失敗しました（操作自体は完了しています）。", a, e);
+    }
+  }
+
+  private async writeAudit(a: Omit<AuditEntry, "id" | "at">): Promise<void> {
+    await this.add(LIST.audit, {
       Title: a.summary.slice(0, 255),
       CtnAt: nowIso(),
       CtnWho: a.who,
@@ -232,7 +297,7 @@ export class SharePointCtnRepository implements CtnRepository {
     fields: Record<string, unknown>,
     read: (i: SpListItem) => T
   ): Promise<T> {
-    const created = await this.sp.addItem(list, fields);
+    const created = await this.add(list, fields);
     this.rememberEtag(list, created);
     // 追加応答は $select を効かせられないため、確実な形にするため読み直す
     const items = await this.sp.getItems(list, `$filter=Id eq ${created.Id}`);
@@ -247,7 +312,7 @@ export class SharePointCtnRepository implements CtnRepository {
     fields: Record<string, unknown>,
     read: (i: SpListItem) => T
   ): Promise<T> {
-    await this.sp.updateItem(list, Number(rec.id), fields, await this.etagFor(list, rec.id));
+    await this.merge(list, rec.id, fields);
     const items = await this.sp.getItems(list, `$filter=Id eq ${Number(rec.id)}`);
     const item = items[0];
     if (!item) throw new Error(`Not found: ${rec.id}`);
@@ -256,7 +321,7 @@ export class SharePointCtnRepository implements CtnRepository {
   }
 
   private async setActive(list: string, id: string, active: boolean): Promise<void> {
-    await this.sp.updateItem(list, Number(id), { CtnActive: active }, await this.etagFor(list, id));
+    await this.merge(list, id, { CtnActive: active });
     const items = await this.sp.getItems(list, `$filter=Id eq ${Number(id)}`);
     if (items[0]) this.rememberEtag(list, items[0]);
   }
@@ -395,15 +460,27 @@ export class SharePointCtnRepository implements CtnRepository {
     const from = pickInheritanceSource(series, series, input, filingCount);
     if (from) applyInheritance(base, from, newId);
 
-    const created = await this.sp.addItem(
-      LIST.notifications,
-      writeNotification(base, compound.compoundCode)
-    );
-    this.rememberEtag(LIST.notifications, created);
+    const created = await this.add(LIST.notifications, writeNotification(base, compound.compoundCode));
 
-    // 集約 JSON 内の id を SharePoint の Id に合わせて確定させる
+    // 集約 JSON 内の id を SharePoint の Id に合わせて確定させる（2段目の書き込み）
     base.id = String(created.Id);
-    const saved = await this.writeNotificationItem(base, compound.compoundCode);
+    let saved: Notification;
+    try {
+      saved = await this.writeNotificationItem(base, compound.compoundCode);
+    } catch (e) {
+      // 2段目が失敗すると中途半端な届が残り、再試行のたびに増えていく。
+      // 追加した分を取り消してから投げ直す（取り消し自体の失敗は握る）。
+      try {
+        await this.sp.deleteItem(
+          LIST.notifications,
+          Number(created.Id),
+          await this.etagFor(LIST.notifications, String(created.Id))
+        );
+      } catch {
+        /* 取り消せなくても、元の失敗理由を優先して伝える */
+      }
+      throw e;
+    }
 
     await this.pushAudit({
       who: this.actorName(input.createdBy),
@@ -417,12 +494,7 @@ export class SharePointCtnRepository implements CtnRepository {
 
   /** 集約 JSON と昇格列を「同一書き込み」で更新する（別々に更新しない） */
   private async writeNotificationItem(n: Notification, compoundCode: string): Promise<Notification> {
-    await this.sp.updateItem(
-      LIST.notifications,
-      Number(n.id),
-      writeNotification(n, compoundCode),
-      await this.etagFor(LIST.notifications, n.id)
-    );
+    await this.merge(LIST.notifications, n.id, writeNotification(n, compoundCode));
     return this.fetchNotification(n.id);
   }
 
@@ -512,17 +584,7 @@ export class SharePointCtnRepository implements CtnRepository {
       // 開発中止届の提出でシリーズ開発状態を更新
       const nextDevStatus = devStatusAfterSubmit(n.notifType);
       if (nextDevStatus !== null) {
-        const items = await this.sp.getItems(LIST.compounds, `$filter=Id eq ${Number(n.compoundId)}`);
-        const item = items[0];
-        if (item) {
-          this.rememberEtag(LIST.compounds, item);
-          await this.sp.updateItem(
-            LIST.compounds,
-            Number(n.compoundId),
-            { CtnDevStatus: nextDevStatus },
-            await this.etagFor(LIST.compounds, n.compoundId)
-          );
-        }
+        await this.merge(LIST.compounds, n.compoundId, { CtnDevStatus: nextDevStatus });
       }
 
       await this.pushAudit({
@@ -549,7 +611,7 @@ export class SharePointCtnRepository implements CtnRepository {
   }
 
   public async addGaijiRecord(rec: Omit<GaijiRecord, "id">): Promise<void> {
-    await this.sp.addItem(LIST.gaiji, {
+    await this.add(LIST.gaiji, {
       Title: `${rec.originalChar} → ${rec.replacementChar}`,
       CtnDoctorId: lookupWrite(rec.doctorId),
       CtnNotificationId: lookupWrite(rec.notificationId),
@@ -562,17 +624,7 @@ export class SharePointCtnRepository implements CtnRepository {
       CtnConfirmedOn: rec.confirmedOn,
     });
     // 医師の外字フラグを立てる（mock と同じ付随更新）
-    const items = await this.sp.getItems(LIST.doctors, `$filter=Id eq ${Number(rec.doctorId)}`);
-    const doc = items[0];
-    if (doc) {
-      this.rememberEtag(LIST.doctors, doc);
-      await this.sp.updateItem(
-        LIST.doctors,
-        Number(rec.doctorId),
-        { CtnHasGaiji: true },
-        await this.etagFor(LIST.doctors, rec.doctorId)
-      );
-    }
+    await this.merge(LIST.doctors, rec.doctorId, { CtnHasGaiji: true });
   }
 
   private ref(n: Notification, compoundCode: string): string {
