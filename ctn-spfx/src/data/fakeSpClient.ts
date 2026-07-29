@@ -7,14 +7,19 @@
 //   - IF-MATCH 不一致で 412 相当（SpConflictError）
 //   - $filter=Id eq N / $filter=<Lookup>Id eq N / $top / $orderby=Id desc
 // ============================================================================
-import { SpConflictError, type ISpRestClient, type SpListItem } from "./spClient";
+import {
+  SpConflictError,
+  type ISpProvisioningClient,
+  type ISpRestClient,
+  type SpListItem,
+} from "./spClient";
 
 interface StoredItem {
   fields: Record<string, unknown>;
   version: number;
 }
 
-export class FakeSpClient implements ISpRestClient {
+export class FakeSpClient implements ISpRestClient, ISpProvisioningClient {
   private lists = new Map<string, Map<number, StoredItem>>();
   private nextId = new Map<string, number>();
   /** テストで所属グループを差し替える */
@@ -118,5 +123,74 @@ export class FakeSpClient implements ISpRestClient {
 
   public async getCurrentUserGroupNames(): Promise<string[]> {
     return this.groupNames;
+  }
+
+  // -------------------------------------------------------------------------
+  // プロビジョニング（ISpProvisioningClient）
+  // -------------------------------------------------------------------------
+  /** 明示的に作成されたリストのタイトル → 疑似 GUID */
+  private createdLists = new Map<string, string>();
+  /** リストタイトル → 列の内部名 */
+  private fields = new Map<string, Set<string>>();
+  /** 作られた列の Field XML（アサーション用） */
+  public fieldXml: { list: string; xml: string; addToDefaultView: boolean }[] = [];
+  private siteGroups = new Set<string>();
+  /** 指定した列名の作成を失敗させる（部分失敗の検証用） */
+  public failFieldsMatching: RegExp | undefined = undefined;
+
+  /** テストの前準備でリストが既に在る状態を作る */
+  public seedList(title: string, fieldNames: string[] = []): void {
+    if (!this.createdLists.has(title)) {
+      this.createdLists.set(title, `guid-${this.createdLists.size + 1}`);
+    }
+    this.fields.set(title, new Set(fieldNames));
+  }
+
+  public async getLists(): Promise<{ title: string; id: string }[]> {
+    return [...this.createdLists.entries()].map(([title, id]) => ({ title, id }));
+  }
+
+  public async createList(title: string, _description: string): Promise<{ id: string }> {
+    if (this.createdLists.has(title)) throw new Error(`FakeSpClient: リスト ${title} は既にあります`);
+    const id = `guid-${this.createdLists.size + 1}`;
+    this.createdLists.set(title, id);
+    this.fields.set(title, new Set(["Title", "ID"]));
+    this.calls.push({ op: "createList", list: title });
+    return { id };
+  }
+
+  public async updateListSettings(title: string, _description: string): Promise<void> {
+    if (!this.createdLists.has(title)) throw new Error(`FakeSpClient: リスト ${title} がありません`);
+    this.calls.push({ op: "updateListSettings", list: title });
+  }
+
+  public async getFieldInternalNames(listTitle: string): Promise<string[]> {
+    return [...(this.fields.get(listTitle) ?? new Set<string>())];
+  }
+
+  public async createFieldAsXml(
+    listTitle: string,
+    schemaXml: string,
+    addToDefaultView: boolean
+  ): Promise<void> {
+    const name = /Name="([^"]+)"/.exec(schemaXml)?.[1] ?? "";
+    if (this.failFieldsMatching && this.failFieldsMatching.test(name)) {
+      throw new Error(`FakeSpClient: 意図的な列作成失敗 (${name})`);
+    }
+    const set = this.fields.get(listTitle);
+    if (!set) throw new Error(`FakeSpClient: リスト ${listTitle} がありません`);
+    set.add(name);
+    this.fieldXml.push({ list: listTitle, xml: schemaXml, addToDefaultView });
+    this.calls.push({ op: "createField", list: listTitle });
+  }
+
+  public async getSiteGroupNames(): Promise<string[]> {
+    return [...this.siteGroups];
+  }
+
+  public async createSiteGroup(title: string, _description: string): Promise<void> {
+    if (this.siteGroups.has(title)) throw new Error(`FakeSpClient: グループ ${title} は既にあります`);
+    this.siteGroups.add(title);
+    this.calls.push({ op: "createGroup", list: title });
   }
 }

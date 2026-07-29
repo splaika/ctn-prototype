@@ -21,6 +21,8 @@ import { SPHttpClient } from "@microsoft/sp-http";
 
 import * as strings from "CtnSuiteWebPartStrings";
 import CtnApp, { type ICtnAppProps } from "./CtnApp";
+import SetupView, { type ISetupViewProps } from "./SetupView";
+import { checkProvisioning } from "../../data/listProvisioner";
 import { CTN_HOST_CSS } from "./hostStyles";
 import { CTN_SCOPED_CSS } from "../../shared/styles.generated";
 import { setRepository } from "../../shared/ctn/data/repository";
@@ -48,6 +50,10 @@ const STYLE_ELEMENT_ID = "ctn-suite-scoped-styles";
 export default class CtnSuiteWebPart extends BaseClientSideWebPart<ICtnSuiteWebPartProps> {
   /** サインインユーザーのロール。sharepoint モードではグループから解決する */
   private _role: CtnRole = "drafter";
+  /** sharepoint モードで使う REST クライアント（セットアップ画面にも渡す） */
+  private _sp: SpRestClient | undefined;
+  /** 未作成のリスト。空でなければセットアップ画面を出す */
+  private _missingLists: string[] = [];
 
   protected async onInit(): Promise<void> {
     this._injectStyles();
@@ -71,6 +77,7 @@ export default class CtnSuiteWebPart extends BaseClientSideWebPart<ICtnSuiteWebP
    * データへ触れる（この設計を崩さないこと — ブリーフ 6章）。
    */
   private async _initRepository(): Promise<void> {
+    this._missingLists = [];
     if (this.properties.dataSource !== "sharepoint") {
       setRepository(new MockCtnRepository());
       return;
@@ -81,10 +88,19 @@ export default class CtnSuiteWebPart extends BaseClientSideWebPart<ICtnSuiteWebP
       SPHttpClient.configurations.v1,
       this.context.pageContext.web.absoluteUrl
     );
+    this._sp = sp;
 
-    // ロールは SharePoint のサイトグループ所属から決まる
-    // （provision-lists.ps1 が4グループを作成する）。取得に失敗しても
-    // 最小権限の drafter で起動し、白画面にはしない。
+    // リストが未作成なら、データ取得を試みる前にセットアップ画面へ回す。
+    // 取得に失敗した場合（権限不足など）は判定を諦めてアプリ側のエラー表示に委ねる。
+    try {
+      this._missingLists = (await checkProvisioning(sp)).missing;
+    } catch (e) {
+      // eslint-disable-next-line no-console
+      console.warn("[CTN Suite] リストの有無を確認できませんでした。", e);
+    }
+
+    // ロールは SharePoint のサイトグループ所属から決まる（セットアップが作る4グループ）。
+    // 取得に失敗しても最小権限の drafter で起動し、白画面にはしない。
     try {
       this._role = resolveRole(await sp.getCurrentUserGroupNames());
     } catch (e) {
@@ -134,13 +150,27 @@ export default class CtnSuiteWebPart extends BaseClientSideWebPart<ICtnSuiteWebP
 
     this.domElement.style.setProperty("--ctn-host-height", `${this.properties.heightPx || 820}px`);
 
-    const element: React.ReactElement<ICtnAppProps> = React.createElement(CtnApp, {
-      demoMode: !!this.properties.demoMode,
-      currentUser: this._currentUser(),
-      initialLang,
-    });
+    // リストが揃っていなければ初期セットアップ画面を出す。
+    // ここで作成まで済ませられるので、テナント管理者や PnP.PowerShell は不要。
+    const needsSetup = !!this._sp && this._missingLists.length > 0;
+
+    const element: React.ReactElement<ISetupViewProps | ICtnAppProps> = needsSetup
+      ? React.createElement(SetupView, {
+          sp: this._sp as SpRestClient,
+          missing: this._missingLists,
+          onDone: () => {
+            this._missingLists = [];
+            this.render();
+          },
+        })
+      : React.createElement(CtnApp, {
+          demoMode: !!this.properties.demoMode,
+          currentUser: this._currentUser(),
+          initialLang,
+        });
 
     // SPFx 1.21.1 は React 17。createRoot ではなく ReactDom.render を使う。
+    // 描画は1箇所に集約する（onDispose の unmount と対で管理するため）。
     ReactDom.render(element, this.domElement);
   }
 

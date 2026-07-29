@@ -19,8 +19,10 @@
 - 利用者: 現在3名、将来的に約30名を想定
 - 追加ライセンス費用: なし（Microsoft 365 のみで動作します）
 
-サイト所有者権限では実施できない作業が2点あるため、お願いに上がりました。
-いずれも SharePoint 管理者権限が必要な、仕様上の制約による依頼です。
+サイト所有者権限では実施できない作業が**1点だけ**あるため、お願いに上がりました。
+SharePoint 管理者権限が必要な、仕様上の制約による依頼です。
+
+リストの作成やロール設定など、それ以外の作業はすべてこちらで実施します。
 
 ---
 
@@ -52,42 +54,19 @@ https://github.com/splaika/ctn-prototype の `ctn-spfx/` 配下が該当しま�
 
 ---
 
-## 依頼2（必須）: リスト作成スクリプトの実行、または Entra ID アプリ登録
+## リスト作成について（ご対応は不要です）
 
-デモで使う SharePoint リスト（9個・計83列）を作成する必要があります。
-PnP.PowerShell 2.x 以降は対話ログインに Entra ID のアプリ登録を要求し、
-その作成にテナント管理者の同意が必要なため、こちらもお願いに上がりました。
+データの保存先となる SharePoint リスト（9個・計83列）とロール用グループは、
+**アプリ内の「初期セットアップ」ボタンからこちらで作成します。**
+リスト作成はサイト所有者の権限で実施できるため、ご対応は不要です。
 
-**どちらか一方をお願いします。**
-
-### 案A: スクリプトを実行していただく（1回で完了）
-
-添付の `provision-lists.ps1` を、対象サイトに対して1回実行してください。
-
-```powershell
-Install-Module PnP.PowerShell -Scope CurrentUser
-.\provision-lists.ps1 -SiteUrl 'https://seventoone.sharepoint.com/sites/ClinicalTrialSubmissionAssistant-Demo' -ClientId '<Entra アプリID>'
-```
-
-- **冪等です。** 既存のリスト・列・グループは作り直しません。複数回実行しても安全です
-- 既存列の型変更は行いません（データ損失を避ける設計にしています）
-- 作成されるのは対象サイト内のリスト9個と、ロール用サイトグループ4個のみです
-- 作成される列の一覧は、必要であれば `columns.md` をお送りします
-
-### 案B: Entra ID アプリ登録だけ作成していただく
-
-以下を1回実行して同意いただければ、以降のスクリプト実行は私が行います。
-今後の再実行やリスト調整で毎回お手数をかけずに済むため、**可能であればこちらを希望します。**
-
-```powershell
-Register-PnPEntraIDAppForInteractiveLogin -ApplicationName 'PnP-PowerShell-CTN' -Tenant seventoone.onmicrosoft.com -Interactive
-```
-
-作成後、アプリケーション（クライアント）ID をお知らせください。
+- PowerShell の実行や Entra ID アプリ登録は必要ありません
+- 作成対象は上記デモサイト内のリストとサイトグループのみです
+- 既存のものは作り直さない設計のため、再実行しても安全です
 
 ---
 
-## 依頼3（任意・急ぎません）: サイト URL の短縮
+## 依頼2（任意・急ぎません）: サイト URL の短縮
 
 現在の URL が長く、関係者への共有時に扱いにくいため、可能であれば短縮を希望します。
 サイト アドレスの変更は SharePoint 管理センターからのみ可能なため、お願いに上がりました。
@@ -95,16 +74,27 @@ Register-PnPEntraIDAppForInteractiveLogin -ApplicationName 'PnP-PowerShell-CTN' 
 - 現在: `/sites/ClinicalTrialSubmissionAssistant-Demo`
 - 希望: `/sites/ctn-demo` （他の候補でも構いません）
 
-急ぎではないため、依頼1・2が完了した後で問題ありません。
+急ぎではないため、依頼1が完了した後で問題ありません。
 
 ---
 
 ## 添付ファイル
 
+`ctn-suite-deploy-request.zip` を添付しています。展開すると以下が入っています。
+
 | ファイル | サイズ | 用途 |
 | --- | --- | --- |
+| `README-first.txt` | — | 各ファイルの説明（最初にお読みください） |
 | `ctn-suite.sppkg` | 約 1.2 MB | 依頼1 でアップロードしていただくパッケージ |
-| `provision-lists.ps1` | 約 35 KB | 依頼2 の案A を選ぶ場合のみ |
+| `columns-reference.md` | 約 11 KB | 作成されるリストと列の一覧（確認用・作業には不要） |
+
+> **`ctn-suite.sppkg` の扱いについて**
+>
+> ZIP を展開し、**中の `ctn-suite.sppkg` をそのままアプリ カタログへアップロード**してください。
+>
+> - `.sppkg` をさらに展開する必要はありません（SharePoint がパッケージとして解釈します）
+> - 拡張子を `.zip` へ変更しないでください。アプリ カタログが受け付けません
+> - ZIP で包んでいるのは、メールゲートウェイが `.sppkg` を除去することがあるためです
 
 ---
 
@@ -112,7 +102,8 @@ Register-PnPEntraIDAppForInteractiveLogin -ApplicationName 'PnP-PowerShell-CTN' 
 
 1. サイトへアプリを追加
 2. Web パーツをページへ配置し、データソースを SharePoint リストへ切り替え
-3. ロール用グループへの担当者割り当て
+3. 表示される「初期セットアップ」からリストとグループを作成
+4. ロール用グループへの担当者割り当て
 
 ご不明な点があればお知らせください。
 
