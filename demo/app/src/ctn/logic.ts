@@ -290,5 +290,144 @@ export function diffRoster(previous: RosterMember[], next: RosterMember[]): Rost
   return { additions, removals, roleChanges };
 }
 
+// ---------------------------------------------------------------------------
+// (S13) 届出回数・変更回数の採番（ツリー）— 【業務の根幹】
+//   手引き（2024年3月版）の番号体系。届出回数＝プロトコールの通し番号で、
+//   新規プロトコールの「治験計画届」を出したときだけ +1。変更届・終了届・
+//   中止届は対象プロトコールの届出回数を据え置き、変更届のみ変更回数を採番する。
+//   開発中止届は開発プログラム全体が対象のため届出回数を持たない（XML では "00"）。
+//
+//   ここを誤ると生成XMLの届出回数が誤値になり、30日調査や提出期限の判断を誤る。
+//   リポジトリ実装（mock / SharePoint）はいずれもこの関数を経由すること。
+// ---------------------------------------------------------------------------
+export interface FilingNumbers {
+  filingCount: number;
+  /** 変更届のみ。それ以外は undefined */
+  changeCount?: number;
+}
+export function computeFilingNumbers(
+  /** 同一シリーズ（治験成分）の既存届すべて */
+  series: Pick<Notification, "notifType" | "filingCount" | "changeCount">[],
+  input: { notifType: Notification["notifType"]; targetFilingCount?: number }
+): FilingNumbers {
+  const protocols = series.filter((n) => n.notifType === "plan");
+  const maxProtocol = protocols.length ? Math.max(...protocols.map((p) => p.filingCount)) : 0;
+  if (input.notifType === "plan") {
+    // 新規プロトコール（N回届）または初回計画届 → 届出回数をインクリメント
+    return { filingCount: maxProtocol + 1, changeCount: undefined };
+  }
+  // 既存プロトコールへの届 → 対象プロトコールの届出回数を継承（据え置き）
+  const filingCount = input.targetFilingCount ?? (maxProtocol || 1);
+  const changeCount =
+    input.notifType === "change"
+      ? Math.max(
+          0,
+          ...series
+            .filter((n) => n.notifType === "change" && n.filingCount === filingCount)
+            .map((n) => n.changeCount ?? 0)
+        ) + 1
+      : undefined;
+  return { filingCount, changeCount };
+}
+
+// ---------------------------------------------------------------------------
+// (S14) 継承元の届の選択 — 転記の排除
+//   新規プロトコールの計画届（N回届）は継承しない＝新しいプロトコールとして開始。
+//   それ以外は対象プロトコール（同一届出回数）の最新届から引き継ぐ。
+// ---------------------------------------------------------------------------
+export function pickInheritanceSource(
+  /** 同一シリーズの既存届 */
+  series: Notification[],
+  /** 明示指定された継承元を引くための全届 */
+  allNotifications: Notification[],
+  input: { notifType: Notification["notifType"]; inheritFromNotificationId?: string },
+  filingCount: number
+): Notification | undefined {
+  if (input.notifType === "plan") return undefined;
+  if (input.inheritFromNotificationId) {
+    return allNotifications.find((n) => n.id === input.inheritFromNotificationId);
+  }
+  return (
+    [...series.filter((n) => n.filingCount === filingCount)].sort(
+      (a, b) => (b.changeCount ?? 0) - (a.changeCount ?? 0)
+    )[0] ?? [...series].sort((a, b) => b.filingCount - a.filingCount)[0]
+  );
+}
+
+// ---------------------------------------------------------------------------
+// (S15) 継承元から新規届への引き継ぎ
+//   施設・医師ロスターは継続として引き継ぐが、イベント行（医師）は新しい届で
+//   採番し直すため serialNo=0 に戻す（finalizeSerials が確定する）。
+//   前届で削除済みの医師は持ち越さない。数量の実績値はクリアする。
+//   newId は呼び出し側（リポジトリ）の ID 発番器。
+// ---------------------------------------------------------------------------
+export function applyInheritance(base: Notification, from: Notification, newId: () => string): void {
+  base.studyDrugs = structuredClone(from.studyDrugs); // 順序番号（突合キー）ごと引き継ぐ
+  base.protocolNo = from.protocolNo;
+  base.phase = from.phase;
+  base.trialType = from.trialType;
+  base.objectives = from.objectives;
+  base.targetDisease = from.targetDisease;
+  base.plannedSubjDrug = from.plannedSubjDrug;
+  base.plannedSubjTotal = from.plannedSubjTotal;
+  base.periodStart = from.periodStart;
+  base.periodEnd = from.periodEnd;
+  base.plannedStartDate = from.plannedStartDate;
+  base.sites = from.sites.map((s) => ({
+    ...structuredClone(s),
+    id: `site-${newId()}`,
+    enrolledSubjects: undefined,
+    investigators: s.investigators
+      .filter((iv) => iv.changeType !== 100001002) // 前届で削除済みは持ち越さない
+      // イベント行型：新しい届では順序番号を採番し直す（serialNo=0 → finalizeSerials で確定）
+      .map((iv) => ({
+        ...structuredClone(iv),
+        id: `inv-${newId()}`,
+        serialNo: 0,
+        changeType: 100001003,
+        changeDate: undefined,
+        changeReason: undefined,
+      })),
+    quantities: s.quantities.map((q) => ({
+      ...structuredClone(q),
+      qtySupplied: undefined,
+      qtyUsed: undefined,
+      qtyWithdrawn: undefined,
+      qtyAbrogated: undefined,
+    })),
+  }));
+}
+
+// ---------------------------------------------------------------------------
+// (S16) 未採番（serialNo<=0）の順序番号を確定する — サーバー正本
+//   クライアントの採番を信頼せず、保存・提出のたびにここで確定する。
+//   seriesOthers = 同一シリーズの「自分以外」の届（治験使用薬の採番に使う）。
+// ---------------------------------------------------------------------------
+export function finalizeSerials(n: Notification, seriesOthers: Notification[]): void {
+  // 実施医療機関の順序番号（SERIALNO1・届内）
+  let maxSite = Math.max(0, ...n.sites.map((s) => (s.serialNo > 0 ? s.serialNo : 0)));
+  for (const s of n.sites) if (s.serialNo <= 0) s.serialNo = ++maxSite;
+
+  // 治験使用薬の順序番号（突合キー型・シリーズ内で不変）
+  const known = new Set(seriesStudyDrugSerials(seriesOthers));
+  for (const d of n.studyDrugs) known.add(d.serialNo > 0 ? d.serialNo : -1);
+  for (const d of n.studyDrugs) {
+    if (d.serialNo <= 0) {
+      const next = nextStudyDrugSerial([...known].filter((s) => s > 0));
+      d.serialNo = next;
+      known.add(next);
+    }
+  }
+  // 施設別数量は治験使用薬の順序番号を継承
+  for (const s of n.sites)
+    for (const q of s.quantities) {
+      const drug = n.studyDrugs.find((d) => d.id === q.studyDrugId);
+      if (drug) q.serialNo = drug.serialNo;
+    }
+  // 医師イベント行：届内で採番
+  for (const s of n.sites)
+    for (const inv of s.investigators) if (inv.serialNo <= 0) inv.serialNo = nextInvestigatorSerial(n);
+}
+
 /** 異動区分（changeType）ラベルの逆引き用に定数を再エクスポート */
 export { CHANGE_TYPE };

@@ -11,11 +11,12 @@ import {
   userById,
 } from "../refData";
 import {
+  applyInheritance,
   canApprove,
   canSubmit,
-  nextInvestigatorSerial,
-  nextStudyDrugSerial,
-  seriesStudyDrugSerials,
+  computeFilingNumbers,
+  finalizeSerials,
+  pickInheritanceSource,
 } from "../logic";
 import type {
   AuditEntry,
@@ -176,57 +177,17 @@ export class MockCtnRepository implements CtnRepository {
     return this.db.notifications.filter((n) => n.compoundId === compoundId);
   }
 
-  /** 未採番（serialNo<=0）の順序番号を確定する（サーバー正本） */
+  /** 未採番（serialNo<=0）の順序番号を確定する（サーバー正本・logic.ts が本体） */
   private finalizeSerials(n: Notification) {
-    // 実施医療機関の順序番号（SERIALNO1・届内）をサーバーで確定（クライアント採番を信頼しない）
-    let maxSite = Math.max(0, ...n.sites.map((s) => (s.serialNo > 0 ? s.serialNo : 0)));
-    for (const s of n.sites) if (s.serialNo <= 0) s.serialNo = ++maxSite;
-
-    const series = this.seriesNotifs(n.compoundId).filter((x) => x.id !== n.id);
-    const known = new Set(seriesStudyDrugSerials(series));
-    for (const d of n.studyDrugs) known.add(d.serialNo > 0 ? d.serialNo : -1);
-    for (const d of n.studyDrugs) {
-      if (d.serialNo <= 0) {
-        const next = nextStudyDrugSerial([...known].filter((s) => s > 0));
-        d.serialNo = next;
-        known.add(next);
-      }
-    }
-    // 施設別数量は治験使用薬の順序番号を継承
-    for (const s of n.sites)
-      for (const q of s.quantities) {
-        const drug = n.studyDrugs.find((d) => d.id === q.studyDrugId);
-        if (drug) q.serialNo = drug.serialNo;
-      }
-    // 医師イベント行：届内で採番
-    for (const s of n.sites)
-      for (const inv of s.investigators)
-        if (inv.serialNo <= 0) inv.serialNo = nextInvestigatorSerial(n);
+    finalizeSerials(n, this.seriesNotifs(n.compoundId).filter((x) => x.id !== n.id));
   }
 
   async createNotification(input: CreateNotificationInput): Promise<Notification> {
     const series = this.seriesNotifs(input.compoundId);
     const compound = this.db.compounds.find((c) => c.id === input.compoundId)!;
-    // 【根幹】手引きの番号体系（ツリー）に従う：
-    // 届出回数＝プロトコール（治験計画届）の通し番号。新規プロトコールの計画届のみ +1。
-    // 変更届・終了届・中止届・開発中止届は対象プロトコールの届出回数を「据え置き」、
-    // 変更届のみ「変更回数」を対象プロトコール内で採番する。
-    const protocols = series.filter((n) => n.notifType === "plan");
-    const maxProtocol = protocols.length ? Math.max(...protocols.map((p) => p.filingCount)) : 0;
-    let filingCount: number;
-    let changeCount: number | undefined;
-    if (input.notifType === "plan") {
-      // 新規プロトコール（N回届）または初回計画届 → 届出回数をインクリメント
-      filingCount = maxProtocol + 1;
-      changeCount = undefined;
-    } else {
-      // 既存プロトコールへの届 → 対象プロトコールの届出回数を継承（据え置き）
-      filingCount = input.targetFilingCount ?? (maxProtocol || 1);
-      changeCount =
-        input.notifType === "change"
-          ? Math.max(0, ...series.filter((n) => n.notifType === "change" && n.filingCount === filingCount).map((n) => n.changeCount ?? 0)) + 1
-          : undefined;
-    }
+    // 【根幹】手引きの番号体系（ツリー）は logic.ts の computeFilingNumbers が本体。
+    // SharePoint 版リポジトリも同じ関数を経由する（採番の単一ソース）。
+    const { filingCount, changeCount } = computeFilingNumbers(series, input);
 
     const base: Notification = {
       id: `nt-${this.nid()}`,
@@ -251,38 +212,9 @@ export class MockCtnRepository implements CtnRepository {
     };
 
     // 対象プロトコール（同一届出回数）の最新届から継承（転記の排除）。
-    // 新規プロトコールの計画届（N回届）は継承しない＝新しいプロトコールとして開始。
-    const from =
-      input.notifType === "plan"
-        ? undefined
-        : input.inheritFromNotificationId
-          ? this.db.notifications.find((n) => n.id === input.inheritFromNotificationId)
-          : [...series.filter((n) => n.filingCount === filingCount)].sort((a, b) => (b.changeCount ?? 0) - (a.changeCount ?? 0))[0]
-            ?? [...series].sort((a, b) => b.filingCount - a.filingCount)[0];
-    if (from) {
-      base.studyDrugs = clone(from.studyDrugs); // 順序番号（突合キー）ごと引き継ぐ
-      base.protocolNo = from.protocolNo;
-      base.phase = from.phase;
-      base.trialType = from.trialType;
-      base.objectives = from.objectives;
-      base.targetDisease = from.targetDisease;
-      base.plannedSubjDrug = from.plannedSubjDrug;
-      base.plannedSubjTotal = from.plannedSubjTotal;
-      base.periodStart = from.periodStart;
-      base.periodEnd = from.periodEnd;
-      base.plannedStartDate = from.plannedStartDate;
-      // 施設・医師ロスターを継続として引き継ぐ（イベント行は新規届で編集）
-      base.sites = from.sites.map((s) => ({
-        ...clone(s),
-        id: `site-${this.nid()}`,
-        enrolledSubjects: undefined,
-        investigators: s.investigators
-          .filter((iv) => iv.changeType !== 100001002) // 前届で削除済みは持ち越さない
-          // イベント行型：新しい届では順序番号を採番し直す（serialNo=0 → finalizeSerials で確定）
-          .map((iv) => ({ ...clone(iv), id: `inv-${this.nid()}`, serialNo: 0, changeType: 100001003, changeDate: undefined, changeReason: undefined })),
-        quantities: s.quantities.map((q) => ({ ...clone(q), qtySupplied: undefined, qtyUsed: undefined, qtyWithdrawn: undefined, qtyAbrogated: undefined })),
-      }));
-    }
+    // 選択と引き継ぎの規則は logic.ts が本体（SharePoint 版と共有）。
+    const from = pickInheritanceSource(series, this.db.notifications, input, filingCount);
+    if (from) applyInheritance(base, from, () => this.nid());
 
     this.db.notifications.push(base);
     this.pushAudit({ who: this.actorName(input.createdBy), action: "create", entity: "治験届", entityRef: `${compound.compoundCode} ${NOTIF_TYPE_SHORT[input.notifType]}届 #${filingCount}`, summary: `${NOTIF_TYPE_SHORT[input.notifType]}届を起票（届出回数 ${filingCount}${changeCount ? `・変更回数 ${changeCount}` : ""}）` });
