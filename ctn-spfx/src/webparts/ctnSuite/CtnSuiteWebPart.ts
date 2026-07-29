@@ -1,0 +1,189 @@
+// ============================================================================
+// CtnSuiteWebPart.ts — CTN Suite の SPFx ホスト
+// ----------------------------------------------------------------------------
+// 役割は3つだけ。ドメインロジックは一切持たない（shared/ctn の logic.ts 等が正）。
+//   1. データソース（mock / sharepoint）を選び CtnRepository を注入する
+//   2. スコープ化CSSを Web パーツ内に注入する
+//   3. 操作ユーザーを pageContext から解決して CtnApp へ渡す
+// ============================================================================
+import * as React from "react";
+import * as ReactDom from "react-dom";
+import { Version } from "@microsoft/sp-core-library";
+import {
+  type IPropertyPaneConfiguration,
+  PropertyPaneChoiceGroup,
+  PropertyPaneSlider,
+  PropertyPaneToggle,
+} from "@microsoft/sp-property-pane";
+import { BaseClientSideWebPart } from "@microsoft/sp-webpart-base";
+
+import { SPHttpClient } from "@microsoft/sp-http";
+
+import * as strings from "CtnSuiteWebPartStrings";
+import CtnApp, { type ICtnAppProps } from "./CtnApp";
+import { CTN_HOST_CSS } from "./hostStyles";
+import { CTN_SCOPED_CSS } from "../../shared/styles.generated";
+import { setRepository } from "../../shared/ctn/data/repository";
+import { MockCtnRepository } from "../../shared/ctn/data/mockRepository";
+import { SharePointCtnRepository } from "../../data/sharepointRepository";
+import { SpRestClient } from "../../data/spClient";
+import { resolveRole, type CtnRole } from "../../data/roleResolver";
+import type { Lang } from "../../shared/ctn/types";
+import type { DemoUser } from "../../shared/ctn/refData";
+
+export type CtnDataSource = "mock" | "sharepoint";
+
+export interface ICtnSuiteWebPartProps {
+  /** 既定は mock。リスト未作成のサイトでも白画面にならないようにするため */
+  dataSource: CtnDataSource;
+  /** true でユーザー切替ドロップダウンを表示（職務分離のデモ用） */
+  demoMode: boolean;
+  /** Web パーツの表示高（px） */
+  heightPx: number;
+}
+
+/** 生成CSSを一度だけ document.head へ入れる（Web パーツ複数配置でも1回） */
+const STYLE_ELEMENT_ID = "ctn-suite-scoped-styles";
+
+export default class CtnSuiteWebPart extends BaseClientSideWebPart<ICtnSuiteWebPartProps> {
+  /** サインインユーザーのロール。sharepoint モードではグループから解決する */
+  private _role: CtnRole = "drafter";
+
+  protected async onInit(): Promise<void> {
+    this._injectStyles();
+    await this._initRepository();
+  }
+
+  /**
+   * .ctnApp スコープへ変換済みのCSSと、SharePoint ホスト用の上書きを注入する。
+   * 生成CSS → 上書き の順（同詳細度は後勝ち）。
+   */
+  private _injectStyles(): void {
+    if (document.getElementById(STYLE_ELEMENT_ID)) return;
+    const style = document.createElement("style");
+    style.id = STYLE_ELEMENT_ID;
+    style.textContent = CTN_SCOPED_CSS + "\n" + CTN_HOST_CSS;
+    document.head.appendChild(style);
+  }
+
+  /**
+   * CtnRepository を注入する。コンポーネントは getRepository() 経由でのみ
+   * データへ触れる（この設計を崩さないこと — ブリーフ 6章）。
+   */
+  private async _initRepository(): Promise<void> {
+    if (this.properties.dataSource !== "sharepoint") {
+      setRepository(new MockCtnRepository());
+      return;
+    }
+
+    const sp = new SpRestClient(
+      this.context.spHttpClient,
+      SPHttpClient.configurations.v1,
+      this.context.pageContext.web.absoluteUrl
+    );
+
+    // ロールは SharePoint のサイトグループ所属から決まる
+    // （provision-lists.ps1 が4グループを作成する）。取得に失敗しても
+    // 最小権限の drafter で起動し、白画面にはしない。
+    try {
+      this._role = resolveRole(await sp.getCurrentUserGroupNames());
+    } catch (e) {
+      // eslint-disable-next-line no-console
+      console.warn("[CTN Suite] 所属グループを取得できませんでした。drafter として起動します。", e);
+      this._role = "drafter";
+    }
+
+    const me = this.context.pageContext.user;
+    setRepository(
+      new SharePointCtnRepository(sp, (actorId) =>
+        // 監査ログの表示名。現在の操作者は pageContext から、それ以外は
+        // ログイン名をそのまま残す（他ユーザーの表示名解決は行わない）。
+        actorId === me.loginName ? me.displayName || me.loginName : actorId
+      )
+    );
+  }
+
+  /** pageContext のサインインユーザーを DemoUser 形へ写像する */
+  private _currentUser(): DemoUser {
+    const u = this.context.pageContext.user;
+    const name = u.displayName || u.loginName;
+    const initials = name
+      // 半角空白に加え U+3000（全角スペース）。日本語の表示名は姓名が全角空白
+      // で区切られることが多く、素の \s ではこれを拾えない。
+      .split(/[\s\u3000]+/)
+      .filter(Boolean)
+      .slice(0, 2)
+      .map((part) => part.charAt(0))
+      .join("")
+      .toUpperCase();
+    return {
+      // 職務分離（起票者≠承認者）の判定キー。ログイン名で一意にする。
+      id: u.loginName,
+      name,
+      initials: initials || "??",
+      // ロールは SharePoint のサイトグループ所属から解決済み（_initRepository）。
+      // mock モードではグループを引かないため drafter のまま。
+      role: this._role,
+      dept: "",
+    };
+  }
+
+  public render(): void {
+    const cultureName = this.context.pageContext.cultureInfo.currentUICultureName || "";
+    const initialLang: Lang = cultureName.toLowerCase().indexOf("ja") === 0 ? "ja" : "en";
+
+    this.domElement.style.setProperty("--ctn-host-height", `${this.properties.heightPx || 820}px`);
+
+    const element: React.ReactElement<ICtnAppProps> = React.createElement(CtnApp, {
+      demoMode: !!this.properties.demoMode,
+      currentUser: this._currentUser(),
+      initialLang,
+    });
+
+    // SPFx 1.21.1 は React 17。createRoot ではなく ReactDom.render を使う。
+    ReactDom.render(element, this.domElement);
+  }
+
+  protected onDispose(): void {
+    ReactDom.unmountComponentAtNode(this.domElement);
+  }
+
+  protected get dataVersion(): Version {
+    return Version.parse("1.0");
+  }
+
+  protected getPropertyPaneConfiguration(): IPropertyPaneConfiguration {
+    return {
+      pages: [
+        {
+          header: { description: strings.PropertyPaneDescription },
+          groups: [
+            {
+              groupName: strings.BasicGroupName,
+              groupFields: [
+                PropertyPaneChoiceGroup("dataSource", {
+                  label: strings.DataSourceFieldLabel,
+                  options: [
+                    { key: "mock", text: strings.DataSourceMock },
+                    { key: "sharepoint", text: strings.DataSourceSharePoint },
+                  ],
+                }),
+                PropertyPaneToggle("demoMode", {
+                  label: strings.DemoModeFieldLabel,
+                  onText: strings.DemoModeOn,
+                  offText: strings.DemoModeOff,
+                }),
+                PropertyPaneSlider("heightPx", {
+                  label: strings.HeightFieldLabel,
+                  min: 480,
+                  max: 1600,
+                  step: 20,
+                }),
+              ],
+            },
+          ],
+        },
+      ],
+    };
+  }
+}

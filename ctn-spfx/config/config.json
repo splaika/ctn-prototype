@@ -1,0 +1,18 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/spfx-build/config.2.0.schema.json",
+  "version": "2.0",
+  "bundles": {
+    "ctn-suite-web-part": {
+      "components": [
+        {
+          "entrypoint": "./lib/webparts/ctnSuite/CtnSuiteWebPart.js",
+          "manifest": "./src/webparts/ctnSuite/CtnSuiteWebPart.manifest.json"
+        }
+      ]
+    }
+  },
+  "externals": {},
+  "localizedResources": {
+    "CtnSuiteWebPartStrings": "lib/webparts/ctnSuite/loc/{locale}.js"
+  }
+}

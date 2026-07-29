@@ -1,0 +1,22 @@
+{
+  "@microsoft/generator-sharepoint": {
+    "whichFolder": "subdir",
+    "solutionName": "ctn-suite",
+    "skipFeatureDeployment": true,
+    "componentType": "webpart",
+    "template": "react",
+    "componentName": "CtnSuite",
+    "componentDescription": "CTN Suite - 治験届管理",
+    "plusBeta": false,
+    "isCreatingSolution": true,
+    "nodeVersion": "22.23.1",
+    "sdksVersions": {},
+    "version": "1.21.1",
+    "libraryName": "ctn-suite",
+    "libraryId": "d73e8018-634a-4e25-8190-58cf5fa3b481",
+    "environment": "spo",
+    "packageManager": "npm",
+    "solutionShortDescription": "ctn-suite description",
+    "isDomainIsolated": false
+  }
+}

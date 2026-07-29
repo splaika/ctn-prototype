@@ -1,0 +1,61 @@
+{
+  "extends": "./node_modules/@microsoft/rush-stack-compiler-5.3/includes/tsconfig-web.json",
+  "compilerOptions": {
+    // 共有コードは Set / 文字列を for...of で回す（logic.ts の外字判定など）。
+    // es5 だと TS2802 になるため引き上げる。SharePoint Online の対応ブラウザは
+    // いずれも ES2017 構文をネイティブに解釈する（IE11 は 2021 にサポート終了）。
+    "target": "es2017",
+    "forceConsistentCasingInFileNames": true,
+    "module": "esnext",
+    "moduleResolution": "node",
+    // demo/app と同じ自動 JSX ランタイム。共有コンポーネントは `import React` を
+    // 書かない前提（React 17 の react/jsx-runtime を使う）。
+    "jsx": "react-jsx",
+    // ctn-schema.json を import している（単一ソースの原則）。
+    // schema.ts は default import で読むので合成 default を許可する。
+    "resolveJsonModule": true,
+    "allowSyntheticDefaultImports": true,
+
+    // demo/app（単一ソース）は noUnusedLocals/noUnusedParameters を無効にしている。
+    // SPFx 既定の設定のままだと demo 側の未使用宣言でビルドが落ちるため揃える。
+    // demo/app を無変更に保つ絶対条件（ブリーフ 1章）を優先した判断。
+    "noUnusedLocals": false,
+    "noUnusedParameters": false,
+    "declaration": true,
+    "sourceMap": true,
+    "experimentalDecorators": true,
+    "skipLibCheck": true,
+    "outDir": "lib",
+    "inlineSources": false,
+    "noImplicitAny": true,
+
+    "typeRoots": [
+      "./node_modules/@types",
+      "./node_modules/@microsoft"
+    ],
+    "types": [
+      "webpack-env"
+    ],
+    // 共有コード（demo/app）は String.includes / Object.entries / Array.flat 等の
+    // ES2015+ 組み込みを使う。target は es5 のままで構文はダウンレベルされるが、
+    // 組み込みの型定義が無いと tsc が通らないため lib を demo/app 側へ揃える。
+    // SharePoint Online が対応するブラウザは全て ES2020 の組み込みを持つ。
+    "lib": [
+      "es2020",
+      "dom",
+      "dom.iterable"
+    ]
+  },
+  "include": [
+    "src/**/*.ts",
+    "src/**/*.tsx"
+  ],
+  // テストとそのフェイクは出荷バンドルに含めない（vitest は tsconfig の
+  // include/exclude を見ないので、テスト実行には影響しない）。
+  "exclude": [
+    "node_modules",
+    "lib",
+    "src/**/*.test.ts",
+    "src/data/fakeSpClient.ts"
+  ]
+}
