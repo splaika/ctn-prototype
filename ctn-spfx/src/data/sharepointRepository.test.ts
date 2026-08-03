@@ -34,7 +34,9 @@ function setup(): { sp: FakeSpClient; repo: SharePointCtnRepository; compoundId:
     CtnDrugName: "ABC",
     CtnCreatedAt: "2026-01-01",
   });
-  const repo = new SharePointCtnRepository(sp, DISPLAY);
+  // このファイルは HTTP と応答解析の検証が目的。ロール制限で止まらないよう
+  // 全操作が可能な薬事担当として組み立てる（ロール別の可否は permissions.test.ts）。
+  const repo = new SharePointCtnRepository(sp, DISPLAY, () => "regulatory");
   return { sp, repo, compoundId: String(compound.Id) };
 }
 
@@ -388,13 +390,17 @@ describe("ロール解決（SharePoint グループ）", () => {
     expect(resolveRole(["CTN 薬事担当"])).toBe("regulatory");
   });
 
-  it("どのグループにも属さなければ最小権限の drafter", () => {
-    expect(resolveRole([])).toBe("drafter");
-    expect(resolveRole(["メンバー", "所有者"])).toBe("drafter");
+  it("どのグループにも属さなければ閲覧のみ（viewer）", () => {
+    // サイトを見られるだけの利用者が届を起票できてしまわないようにするため、
+    // 未所属は drafter ではなく viewer に落とす。
+    expect(resolveRole([])).toBe("viewer");
+    expect(resolveRole(["メンバー", "所有者"])).toBe("viewer");
   });
 
   it("複数所属では強い権限が優先される", () => {
     expect(resolveRole(["CTN 起票担当", "CTN 承認者"])).toBe("approver");
     expect(resolveRole(["CTN 起票担当", "CTN レビュー担当"])).toBe("reviewer");
+    // 提出は薬事のみの権限。兼務で失わないよう薬事を最上位に置く。
+    expect(resolveRole(["CTN 承認者", "CTN 薬事担当"])).toBe("regulatory");
   });
 });

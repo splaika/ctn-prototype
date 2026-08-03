@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useLang } from "../../i18n";
 import { DEFAULT_RULES, type RuleSettings } from "../rules";
 import { roleLabel, type DemoUser } from "../refData";
+import { can } from "../permissions";
 import { Section, Field, Btn } from "./common";
 
 export function SettingsView({ rules, onSave, user }: { rules: RuleSettings; onSave: (r: RuleSettings) => void; user: DemoUser }) {
@@ -9,7 +10,8 @@ export function SettingsView({ rules, onSave, user }: { rules: RuleSettings; onS
   const [v, setV] = useState<RuleSettings>({ ...rules });
   const [dirty, setDirty] = useState(false);
   // 権限：ロジカルチェック設定は「薬事担当（システム管理者相当）」のみ編集可。適用は全社（システム全体）。
-  const canEdit = user.role === "regulatory";
+  // 判定は permissions.ts に寄せる（ロール表と可否の単一ソース）。
+  const canEdit = can(user.role, "editMasterData");
   const num = (k: keyof RuleSettings) => (e: React.ChangeEvent<HTMLInputElement>) => { setV((s) => ({ ...s, [k]: Number(e.target.value) })); setDirty(true); };
   const bool = (k: keyof RuleSettings) => (e: React.ChangeEvent<HTMLInputElement>) => { setV((s) => ({ ...s, [k]: e.target.checked })); setDirty(true); };
 

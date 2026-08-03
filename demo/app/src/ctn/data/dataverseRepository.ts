@@ -88,6 +88,9 @@ export class DataverseCtnRepository implements CtnRepository {
   async sendForReview(): Promise<void> {
     this.fail();
   }
+  async rejectNotification(): Promise<void> {
+    this.fail();
+  }
   async approveNotification(): Promise<void> {
     this.fail();
   }

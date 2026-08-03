@@ -31,7 +31,7 @@ import { SharePointCtnRepository } from "../../data/sharepointRepository";
 import { SpRestClient } from "../../data/spClient";
 import { resolveRole, type CtnRole } from "../../data/roleResolver";
 import type { Lang } from "../../shared/ctn/types";
-import type { DemoUser } from "../../shared/ctn/refData";
+import { userById, type DemoUser } from "../../shared/ctn/refData";
 
 export type CtnDataSource = "mock" | "sharepoint";
 
@@ -49,7 +49,7 @@ const STYLE_ELEMENT_ID = "ctn-suite-scoped-styles";
 
 export default class CtnSuiteWebPart extends BaseClientSideWebPart<ICtnSuiteWebPartProps> {
   /** サインインユーザーのロール。sharepoint モードではグループから解決する */
-  private _role: CtnRole = "drafter";
+  private _role: CtnRole = "viewer";
   /** sharepoint モードで使う REST クライアント（セットアップ画面にも渡す） */
   private _sp: SpRestClient | undefined;
   /** 未作成のリスト。空でなければセットアップ画面を出す */
@@ -79,7 +79,11 @@ export default class CtnSuiteWebPart extends BaseClientSideWebPart<ICtnSuiteWebP
   private async _initRepository(): Promise<void> {
     this._missingLists = [];
     if (this.properties.dataSource !== "sharepoint") {
-      setRepository(new MockCtnRepository());
+      // mock はデモデータの砂場。デモ利用者（切替ドロップダウン）はそのロールで
+      // 動かし、表に無いサインインユーザーは全操作を許して試せるようにする。
+      // 実データに触れないため、ここを緩めても実害はない。
+      this._role = "regulatory";
+      setRepository(new MockCtnRepository((id) => userById(id)?.role ?? "regulatory"));
       return;
     }
 
@@ -100,21 +104,27 @@ export default class CtnSuiteWebPart extends BaseClientSideWebPart<ICtnSuiteWebP
     }
 
     // ロールは SharePoint のサイトグループ所属から決まる（セットアップが作る4グループ）。
-    // 取得に失敗しても最小権限の drafter で起動し、白画面にはしない。
+    // 取得に失敗しても最小権限の viewer で起動し、白画面にはしない。
     try {
       this._role = resolveRole(await sp.getCurrentUserGroupNames());
     } catch (e) {
       // eslint-disable-next-line no-console
-      console.warn("[CTN Suite] 所属グループを取得できませんでした。drafter として起動します。", e);
-      this._role = "drafter";
+      console.warn("[CTN Suite] 所属グループを取得できませんでした。閲覧のみで起動します。", e);
+      this._role = "viewer";
     }
 
     const me = this.context.pageContext.user;
     setRepository(
-      new SharePointCtnRepository(sp, (actorId) =>
-        // 監査ログの表示名。現在の操作者は pageContext から、それ以外は
-        // ログイン名をそのまま残す（他ユーザーの表示名解決は行わない）。
-        actorId === me.loginName ? me.displayName || me.loginName : actorId
+      new SharePointCtnRepository(
+        sp,
+        (actorId) =>
+          // 監査ログの表示名。現在の操作者は pageContext から、それ以外は
+          // ログイン名をそのまま残す（他ユーザーの表示名解決は行わない）。
+          actorId === me.loginName ? me.displayName || me.loginName : actorId,
+        // デモの操作ユーザーに切り替えているならその人のロール、そうでなければ
+        // サインインユーザーのサイトグループ由来のロール。画面側も同じ actor の
+        // ロールで可否を判断するため、押せるのに失敗するボタンは出ない。
+        (actorId) => userById(actorId)?.role ?? this._role
       )
     );
   }
@@ -138,7 +148,7 @@ export default class CtnSuiteWebPart extends BaseClientSideWebPart<ICtnSuiteWebP
       name,
       initials: initials || "??",
       // ロールは SharePoint のサイトグループ所属から解決済み（_initRepository）。
-      // mock モードではグループを引かないため drafter のまま。
+      // mock モードはグループを引かず regulatory（砂場のため全操作可）。
       role: this._role,
       dept: "",
     };

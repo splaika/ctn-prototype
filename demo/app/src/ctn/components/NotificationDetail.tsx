@@ -33,6 +33,7 @@ import {
   type DemoUser,
 } from "../refData";
 import { Section, Field, StatusPill, TypeBadge, Btn, Icon, UnconfirmedBadge, Modal } from "./common";
+import { requirePermission } from "../permissions";
 import type { CtnDb } from "../data/repository";
 import type { Investigator, Notification, ReferenceNote, Site, SiteDrugQty, StudyDrug } from "../types";
 
@@ -45,6 +46,7 @@ export function NotificationDetail({
   onBack,
   onSave,
   onSendReview,
+  onReject,
   onApprove,
   onSubmit,
   onDelete,
@@ -56,6 +58,7 @@ export function NotificationDetail({
   onBack: () => void;
   onSave: Cb;
   onSendReview: (id: string) => void;
+  onReject: (id: string, reason: string) => void;
   onApprove: (id: string) => void;
   onSubmit: (id: string) => void;
   onDelete: (id: string) => void;
@@ -68,7 +71,18 @@ export function NotificationDetail({
   const detailRef = useRef<HTMLDivElement | null>(null);
   const [tab, setTab] = useState<string>("basic");
   const compound = db.compounds.find((c) => c.id === draft.compoundId)!;
-  const editable = draft.status === "draft" || draft.status === "review";
+
+  // ---- ロール別の可否（permissions.ts が単一ソース）----
+  // ボタンは隠さず、権限が無いときは理由をツールチップに出して無効化する。
+  // 「誰が何をできるか」を画面から読み取れるようにするため。
+  const mayEdit = requirePermission(user.role, "editNotification");
+  const maySendReview = requirePermission(user.role, "sendForReview");
+  const mayReject = requirePermission(user.role, "rejectNotification");
+  const mayApprove = requirePermission(user.role, "approveNotification");
+  const maySubmit = requirePermission(user.role, "submitNotification");
+  const mayDelete = requirePermission(user.role, "deleteNotification");
+
+  const editable = (draft.status === "draft" || draft.status === "review") && mayEdit.ok;
 
   // ---- 提出パッケージ出力（PDF＋XML） ----
   const printRef = useRef<HTMLDivElement>(null);
@@ -123,6 +137,10 @@ export function NotificationDetail({
   const activeStaff = db.siteStaff.filter((s) => s.active);
 
   const jobSepBlocked = draft.createdBy === user.id;
+
+  // ---- 差し戻し（review → draft）----
+  const [rejectOpen, setRejectOpen] = useState(false);
+  const [rejectReason, setRejectReason] = useState("");
 
   // サーバーのワークフロー遷移（レビュー送付・承認・提出・XML生成）で親から新しい
   // notification が来たら draft を同期する。未保存編集の黙殺を避けるため、mount key は
@@ -324,6 +342,18 @@ export function NotificationDetail({
       {jobSepBlocked && draft.status === "review" && (
         <div className="banner banner-amber">⚠ {t("Job separation: you drafted this filing and cannot approve it. Switch to another approver (top-right).", "職務分離：あなたはこの届の起票者のため承認できません。右上でユーザーを承認者に切り替えてください。")}</div>
       )}
+
+      {/* 差し戻された届。レビュー送付でこの記録は消える */}
+      {draft.status === "draft" && draft.rejectionReason && (
+        <div className="banner banner-red">
+          ⚠ <b>{t("Sent back", "差し戻し")}</b>
+          {draft.rejectedBy && <>（{userById(draft.rejectedBy)?.name ?? draft.rejectedBy}{draft.rejectedAt ? `・${fmtDate(draft.rejectedAt)}` : ""}）</>}
+          ： {draft.rejectionReason}
+        </div>
+      )}
+
+      {/* 閲覧のみの利用者に、なぜ操作できないかを最初に伝える */}
+      {!mayEdit.ok && <div className="banner banner-blue">{mayEdit.reason}</div>}
 
       {/* ===== 提出期限バナー ===== */}
       {(draft.notifType === "plan" || draft.notifType === "change") && deadline && (
@@ -623,6 +653,33 @@ export function NotificationDetail({
 
       {exportErr && <div className="banner banner-red">⚠ {t("Export failed", "出力に失敗しました")}: {exportErr}</div>}
 
+      {rejectOpen && (
+        <Modal
+          title={t("Send back for revision", "差し戻し")}
+          sub={t("The filing returns to Draft. The reason is shown to the drafter and recorded in the audit log.", "届は「作成中」に戻ります。理由は起票者に表示され、監査ログにも残ります。")}
+          size="sm"
+          onClose={() => setRejectOpen(false)}
+          footer={
+            <>
+              <Btn small onClick={() => setRejectOpen(false)}>{t("Cancel", "キャンセル")}</Btn>
+              <Btn
+                kind="danger"
+                small
+                disabled={!rejectReason.trim()}
+                title={!rejectReason.trim() ? "理由を入力してください" : ""}
+                onClick={() => { onReject(draft.id, rejectReason.trim()); setRejectOpen(false); }}
+              >
+                {t("Send back", "差し戻す")}
+              </Btn>
+            </>
+          }
+        >
+          <Field label={t("Reason", "差し戻しの理由")} mark="always" wide>
+            <textarea className="tin" rows={4} value={rejectReason} onChange={(e) => setRejectReason(e.target.value)} />
+          </Field>
+        </Modal>
+      )}
+
       {pkg && (
         <Modal
           title={t("Submission package", "提出パッケージ出力")}
@@ -656,14 +713,24 @@ export function NotificationDetail({
       <div className="detail-footer">
         <div className="detail-actions">
           {editable && <Btn kind="p" small onClick={save} disabled={!dirty}>{Icon.check} {t("Save", "保存")}</Btn>}
-          {draft.status === "draft" && <Btn small onClick={() => onSendReview(draft.id)} disabled={dirty} title={dirty ? "先に保存してください" : ""}>{t("Send for review", "レビュー送付")}</Btn>}
-          {draft.status === "review" && (
-            <Btn kind="p" small onClick={() => onApprove(draft.id)} disabled={dirty} title={dirty ? "先に保存してください" : jobSepBlocked ? "職務分離：起票者は承認できません" : ""}>{t("Approve", "承認")}</Btn>
+          {draft.status === "draft" && (
+            <Btn small onClick={() => onSendReview(draft.id)} disabled={dirty || !maySendReview.ok} title={!maySendReview.ok ? maySendReview.reason : dirty ? "先に保存してください" : ""}>{t("Send for review", "レビュー送付")}</Btn>
           )}
-          {draft.status === "approved" && <Btn kind="p" small onClick={() => onSubmit(draft.id)}>{t("Submit", "提出")}</Btn>}
+          {draft.status === "review" && (
+            <Btn small onClick={() => { setRejectReason(""); setRejectOpen(true); }} disabled={dirty || !mayReject.ok} title={!mayReject.ok ? mayReject.reason : dirty ? "先に保存してください" : ""}>{t("Send back", "差し戻し")}</Btn>
+          )}
+          {draft.status === "review" && (
+            <Btn kind="p" small onClick={() => onApprove(draft.id)} disabled={dirty || jobSepBlocked || !mayApprove.ok} title={!mayApprove.ok ? mayApprove.reason : dirty ? "先に保存してください" : jobSepBlocked ? "職務分離：起票者は承認できません" : ""}>{t("Approve", "承認")}</Btn>
+          )}
+          {draft.status === "approved" && (
+            <Btn kind="p" small onClick={() => onSubmit(draft.id)} disabled={!maySubmit.ok} title={!maySubmit.ok ? maySubmit.reason : ""}>{t("Submit", "提出")}</Btn>
+          )}
+          {/* XML プレビューと提出パッケージ出力は読み取りのため制限しない */}
           <Btn small onClick={() => onGenerateXml(draft)}>{Icon.doc} XML{t(" preview", "プレビュー")}</Btn>
           <Btn kind="p" small onClick={runExport} disabled={exporting}>{Icon.doc} {exporting ? t("Generating…", "生成中…") : t("Export PDF+XML", "提出パッケージ出力")}</Btn>
-          {draft.status === "draft" && <Btn kind="danger" small onClick={() => onDelete(draft.id)}>{Icon.trash}</Btn>}
+          {draft.status === "draft" && (
+            <Btn kind="danger" small onClick={() => onDelete(draft.id)} disabled={!mayDelete.ok} title={!mayDelete.ok ? mayDelete.reason : ""}>{Icon.trash}</Btn>
+          )}
         </div>
       </div>
     </div>

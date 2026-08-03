@@ -42,6 +42,7 @@ const SCOPE = ".ctnApp";
 const EXCLUDE = new Set([
   "ctn/data/dataverseRepository.ts", // Dataverse 実装は SPFx 版に持ち込まない
   "ctn/logic.test.ts", // テストは demo/app 側で実行し続ける
+  "ctn/permissions.test.ts", // 同上
 ]);
 
 const HEADER = [

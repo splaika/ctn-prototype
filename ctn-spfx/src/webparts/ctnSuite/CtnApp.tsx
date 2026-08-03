@@ -25,6 +25,7 @@ import { getRepository } from "../../shared/ctn/data/repository";
 import type { CtnDb } from "../../shared/ctn/data/repository";
 import { deriveAlerts } from "../../shared/ctn/derive";
 import { USERS, userById, roleLabel, TARGET_CATEGORY, DEV_STATUS, type DemoUser } from "../../shared/ctn/refData";
+import { requirePermission } from "../../shared/ctn/permissions";
 import { Sidebar, type ViewKey } from "../../shared/ctn/components/Sidebar";
 import { Dashboard } from "../../shared/ctn/components/Dashboard";
 import { NotificationsView } from "../../shared/ctn/components/NotificationList";
@@ -106,8 +107,12 @@ export default function CtnApp({ demoMode, currentUser, initialLang }: ICtnAppPr
 
   // 職務分離の判定に使う操作ユーザー。demoMode ではドロップダウンの選択、
   // それ以外は SharePoint のサインインユーザー。
+  // 操作ユーザーを切り替えたら、そのユーザーのロールで動く。リポジトリ側も
+  // 同じ actor からロールを引くため、画面の可否と検証は必ず一致する。
   const user: DemoUser = demoMode ? userById(demoUserId) ?? currentUser : currentUser;
   const userId = user.id;
+  /** 起票の可否（ロール別）。permissions.ts が単一ソース */
+  const mayCreate = requirePermission(user.role, "createNotification");
 
   // demo/app 版は document.body に "ja" を付けるが、SharePoint ページを
   // 汚さないためラッパー要素側のクラスで表現する（下の className を参照）。
@@ -248,6 +253,15 @@ export default function CtnApp({ demoMode, currentUser, initialLang }: ICtnAppPr
       await repo.sendForReview(id, userId);
       await reload();
       flash(t("Sent for review", "社内レビューへ送付しました"));
+    } catch (e) {
+      flash((e as Error).message, true);
+    }
+  };
+  const handleReject = async (id: string, reason: string): Promise<void> => {
+    try {
+      await repo.rejectNotification(id, userId, reason);
+      await reload();
+      flash(t("Sent back", "差し戻しました"));
     } catch (e) {
       flash((e as Error).message, true);
     }
@@ -435,7 +449,7 @@ export default function CtnApp({ demoMode, currentUser, initialLang }: ICtnAppPr
                   JA
                 </button>
               </div>
-              <button className="btn btn-p" onClick={openWizard}>
+              <button className="btn btn-p" onClick={openWizard} disabled={!mayCreate.ok} title={mayCreate.reason ?? ""}>
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5}>
                   <path d="M12 5v14M5 12h14" />
                 </svg>
@@ -453,6 +467,7 @@ export default function CtnApp({ demoMode, currentUser, initialLang }: ICtnAppPr
                   onBack={backToList}
                   onSave={handleSave}
                   onSendReview={handleSendReview}
+                  onReject={handleReject}
                   onApprove={handleApprove}
                   onSubmit={handleSubmit}
                   onDelete={handleDelete}

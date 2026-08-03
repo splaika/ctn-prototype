@@ -24,15 +24,18 @@ import type { Notification } from "../shared/ctn/types";
 interface Harness {
   repo: CtnRepository;
   compoundId: string;
-  /** 起票者と承認者（実装によって id の形が違うので抽象化する） */
+  /** 各ロールの操作者（実装によって id の形が違うので抽象化する） */
   drafter: string;
+  reviewer: string;
   approver: string;
+  regulatory: string;
 }
 
 async function mockHarness(): Promise<Harness> {
   const repo = new MockCtnRepository();
   const db = await repo.getState();
-  return { repo, compoundId: db.compounds[0].id, drafter: "u-a", approver: "u-c" };
+  // mock はデモ利用者表からロールを引く: u-a 起票 / u-b レビュー / u-c 承認 / u-d 薬事
+  return { repo, compoundId: db.compounds[0].id, drafter: "u-a", reviewer: "u-b", approver: "u-c", regulatory: "u-d" };
 }
 
 async function spHarness(mode: "normal" | "hostile" | "noBodyEtag"): Promise<Harness & { sp: FakeSpClient }> {
@@ -43,7 +46,9 @@ async function spHarness(mode: "normal" | "hostile" | "noBodyEtag"): Promise<Har
   // （ETag レスポンスヘッダー経由でしか取れない）
   sp.bodyNeverHasEtag = mode === "noBodyEtag";
 
-  const repo = new SharePointCtnRepository(sp, (id) => `表示:${id}`);
+  // 契約テストは書き込み経路の検証が目的。ロール制限で止まらないよう全操作が
+  // 可能な薬事担当として組み立てる（ロール別の可否は permissions.test.ts）。
+  const repo = new SharePointCtnRepository(sp, (id) => `表示:${id}`, () => "regulatory");
   const sponsor = await repo.createSponsor(
     {
       sponsorType: "製造販売業者", name: "製薬A", repName: "代表", address1: "東京", address2: "",
@@ -59,7 +64,12 @@ async function spHarness(mode: "normal" | "hostile" | "noBodyEtag"): Promise<Har
     },
     "seed"
   );
-  return { repo, sp, compoundId: compound.id, drafter: "drafter@x", approver: "approver@x" };
+  // SharePoint 実装のロールはサインインユーザー単位（上で regulatory 固定）。
+  // ロール別の可否は permissions.test.ts が担い、ここでは書き込み経路を見る。
+  return {
+    repo, sp, compoundId: compound.id,
+    drafter: "drafter@x", reviewer: "reviewer@x", approver: "approver@x", regulatory: "regulatory@x",
+  };
 }
 
 const find = (db: CtnDb, id: string): Notification | undefined =>
@@ -103,14 +113,14 @@ for (const impl of IMPLS) {
     });
 
     it("レビュー送付 → 承認 → 提出 が通る", async () => {
-      const { repo, compoundId, drafter, approver } = await impl.make();
+      const { repo, compoundId, drafter, approver, regulatory } = await impl.make();
       const n = await repo.createNotification({ compoundId, notifType: "plan", createdBy: drafter });
 
       await repo.sendForReview(n.id, drafter);
       expect(find(await repo.getState(), n.id)?.status).toBe("review");
       await repo.approveNotification(n.id, approver);
       expect(find(await repo.getState(), n.id)?.status).toBe("approved");
-      await repo.submitNotification(n.id, approver);
+      await repo.submitNotification(n.id, regulatory); // 提出は薬事のみ
 
       const done = find(await repo.getState(), n.id);
       expect(done?.status).toBe("submitted");
@@ -119,15 +129,39 @@ for (const impl of IMPLS) {
     });
 
     it("起票者は自分の届を承認できない", async () => {
-      const { repo, compoundId, drafter } = await impl.make();
-      const n = await repo.createNotification({ compoundId, notifType: "plan", createdBy: drafter });
-      await expect(repo.approveNotification(n.id, drafter)).rejects.toThrow(/職務分離/);
+      // ロールを満たしていても職務分離で止まることを見る。承認者自身が起票する。
+      const { repo, compoundId, approver } = await impl.make();
+      const n = await repo.createNotification({ compoundId, notifType: "plan", createdBy: approver });
+      await expect(repo.approveNotification(n.id, approver)).rejects.toThrow(/職務分離/);
     });
 
     it("承認前は提出できない", async () => {
-      const { repo, compoundId, drafter } = await impl.make();
+      const { repo, compoundId, drafter, regulatory } = await impl.make();
       const n = await repo.createNotification({ compoundId, notifType: "plan", createdBy: drafter });
-      await expect(repo.submitNotification(n.id, drafter)).rejects.toThrow(/提出ゲート/);
+      await expect(repo.submitNotification(n.id, regulatory)).rejects.toThrow(/提出ゲート/);
+    });
+
+    it("差し戻すと作成中へ戻り、理由が残る。再送付で消える", async () => {
+      const { repo, compoundId, drafter, reviewer } = await impl.make();
+      const n = await repo.createNotification({ compoundId, notifType: "plan", createdBy: drafter });
+      await repo.sendForReview(n.id, drafter);
+
+      await repo.rejectNotification(n.id, reviewer, "実施計画書識別記号が未入力");
+      const back = find(await repo.getState(), n.id);
+      expect(back?.status).toBe("draft");
+      expect(back?.rejectionReason).toBe("実施計画書識別記号が未入力");
+      expect(back?.rejectedBy).toBe(reviewer);
+
+      await repo.sendForReview(n.id, drafter);
+      const resent = find(await repo.getState(), n.id);
+      expect(resent?.status).toBe("review");
+      expect(resent?.rejectionReason).toBeUndefined();
+    });
+
+    it("レビュー中以外は差し戻せない", async () => {
+      const { repo, compoundId, drafter, reviewer } = await impl.make();
+      const n = await repo.createNotification({ compoundId, notifType: "plan", createdBy: drafter });
+      await expect(repo.rejectNotification(n.id, reviewer, "要修正")).rejects.toThrow(/レビュー中/);
     });
 
     it("起票中の届は削除でき、承認済みは削除できない", async () => {
@@ -323,7 +357,7 @@ describe("SharePoint 固有: 往復数の削減が正しさを崩していない
 
   it("連続保存で etag の取り直しが起きない（更新応答から引き継ぐ）", async () => {
     const sp = new FakeSpClient(); // 応答が etag を返す通常環境
-    const repo = new SharePointCtnRepository(sp, (id) => id);
+    const repo = new SharePointCtnRepository(sp, (id) => id, () => "regulatory");
     const sponsor = await repo.createSponsor(
       {
         sponsorType: "x", name: "製薬A", repName: "", address1: "", address2: "",
@@ -363,7 +397,7 @@ describe("SharePoint 固有: 往復数の削減が正しさを崩していない
 describe("SharePoint 固有: 失敗時に中途半端な届を残さない", () => {
   it("2段目の書き込みが失敗したら追加分を取り消す", async () => {
     const sp = new FakeSpClient();
-    const repo = new SharePointCtnRepository(sp, (id) => id);
+    const repo = new SharePointCtnRepository(sp, (id) => id, () => "regulatory");
     const sponsor = await repo.createSponsor(
       {
         sponsorType: "x", name: "製薬A", repName: "", address1: "", address2: "",
@@ -393,7 +427,7 @@ describe("SharePoint 固有: 失敗時に中途半端な届を残さない", () 
 describe("SharePoint 固有: 壊れたデータで全体が死なない", () => {
   it("読めない Payload の届は飛ばして残りを返す", async () => {
     const sp = new FakeSpClient();
-    const repo = new SharePointCtnRepository(sp, (id) => id);
+    const repo = new SharePointCtnRepository(sp, (id) => id, () => "regulatory");
     sp.seed("CtnNotifications", { Title: "壊れた届", CtnPayload: "{壊れたJSON", CtnCompoundId: 1 });
     sp.seed("CtnNotifications", { Title: "空の届", CtnPayload: "", CtnCompoundId: 1 });
 

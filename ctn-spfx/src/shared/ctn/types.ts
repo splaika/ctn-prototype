@@ -343,6 +343,10 @@ export interface Notification {
   approvedAt?: string;
   submittedAt?: string;
   xmlGeneratedAt?: string;
+  // ---- 差し戻し（review → draft）。再度レビュー送付すると消える ----
+  rejectedBy?: string;
+  rejectedAt?: string;
+  rejectionReason?: string;
 }
 
 // ============================================================================

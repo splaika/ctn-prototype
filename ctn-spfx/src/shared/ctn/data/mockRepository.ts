@@ -34,12 +34,20 @@ import type {
   SiteStaff,
   Sponsor,
 } from "../types";
+import { assertPermission, type CtnRole } from "../permissions";
 import type { CreateNotificationInput, CtnDb, CtnRepository } from "./repository";
 import { makeSeedDb } from "./seed";
 
 const clone = <T,>(v: T): T => structuredClone(v);
 
 export class MockCtnRepository implements CtnRepository {
+  /**
+   * actor → ロールの解決。既定はデモ利用者表から引く。
+   * SPFx の mock モードは操作者がサインインユーザー（表に無い）になるため、
+   * Web パーツ側から解決関数を差し替える。
+   */
+  public constructor(private readonly roleOf: (actorId: string) => CtnRole = (id) => userById(id)?.role ?? "viewer") {}
+
   private db: CtnDb = makeSeedDb();
   private seq = 1000;
   private nid() {
@@ -50,6 +58,9 @@ export class MockCtnRepository implements CtnRepository {
   }
   private actorName(actorId: string): string {
     return userById(actorId)?.name ?? actorId;
+  }
+  private actorRole(actorId: string): CtnRole {
+    return this.roleOf(actorId);
   }
 
   async getState(): Promise<CtnDb> {
@@ -188,6 +199,7 @@ export class MockCtnRepository implements CtnRepository {
   }
 
   async createNotification(input: CreateNotificationInput): Promise<Notification> {
+    assertPermission(this.actorRole(input.createdBy), "createNotification");
     const series = this.seriesNotifs(input.compoundId);
     const compound = this.db.compounds.find((c) => c.id === input.compoundId)!;
     // 【根幹】手引きの番号体系（ツリー）は logic.ts の computeFilingNumbers が本体。
@@ -227,6 +239,7 @@ export class MockCtnRepository implements CtnRepository {
   }
 
   async updateNotification(n: Notification, actor: string): Promise<Notification> {
+    assertPermission(this.actorRole(actor), "editNotification");
     const i = this.db.notifications.findIndex((x) => x.id === n.id);
     if (i === -1) throw new Error(`Not found: ${n.id}`);
     const saved = clone(n);
@@ -238,6 +251,7 @@ export class MockCtnRepository implements CtnRepository {
   }
 
   async deleteNotification(id: string, actor: string): Promise<void> {
+    assertPermission(this.actorRole(actor), "deleteNotification");
     const n = this.db.notifications.find((x) => x.id === id);
     if (!n) throw new Error(`Not found: ${id}`);
     if (n.status !== "draft") throw new Error("提出済・承認済の届は削除できません（起票中のみ削除可）。");
@@ -247,15 +261,35 @@ export class MockCtnRepository implements CtnRepository {
   }
 
   async sendForReview(id: string, actor: string): Promise<void> {
+    assertPermission(this.actorRole(actor), "sendForReview");
     const n = this.db.notifications.find((x) => x.id === id);
     if (!n) throw new Error(`Not found: ${id}`);
     n.status = "review";
+    // 差し戻しの記録は再送付で消す（起票中バナーを残さない）
+    delete n.rejectedBy;
+    delete n.rejectedAt;
+    delete n.rejectionReason;
     this.pushAudit({ who: this.actorName(actor), action: "update", entity: "治験届", entityRef: this.ref(n), summary: "社内レビューへ送付" });
+  }
+
+  async rejectNotification(id: string, actor: string, reason: string): Promise<void> {
+    assertPermission(this.actorRole(actor), "rejectNotification");
+    const n = this.db.notifications.find((x) => x.id === id);
+    if (!n) throw new Error(`Not found: ${id}`);
+    if (n.status !== "review") throw new Error("差し戻せるのはレビュー中の届のみです。");
+    const note = reason.trim();
+    if (!note) throw new Error("差し戻しには理由の入力が必要です。");
+    n.status = "draft";
+    n.rejectedBy = actor;
+    n.rejectedAt = TODAY;
+    n.rejectionReason = note;
+    this.pushAudit({ who: this.actorName(actor), action: "update", entity: "治験届", entityRef: this.ref(n), summary: `差し戻し：${note}` });
   }
 
   async approveNotification(id: string, approverUserId: string): Promise<void> {
     const n = this.db.notifications.find((x) => x.id === id);
     if (!n) throw new Error(`Not found: ${id}`);
+    assertPermission(this.actorRole(approverUserId), "approveNotification");
     const check = canApprove(n, approverUserId); // 職務分離：起票者≠承認者
     if (!check.ok) throw new Error(check.reason);
     n.status = "approved";
@@ -267,6 +301,7 @@ export class MockCtnRepository implements CtnRepository {
   async submitNotification(id: string, actor: string): Promise<void> {
     const n = this.db.notifications.find((x) => x.id === id);
     if (!n) throw new Error(`Not found: ${id}`);
+    assertPermission(this.actorRole(actor), "submitNotification");
     const gate = canSubmit(n); // 提出ゲート：承認済のみ
     if (!gate.ok) throw new Error(gate.reason);
     this.finalizeSerials(n);

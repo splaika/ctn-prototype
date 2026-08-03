@@ -2,8 +2,10 @@
 // 参照データ・定数・小ヘルパ
 // ============================================================================
 import { choiceSet, choiceLabel } from "./schema";
+import { ROLE_LABEL, type CtnRole } from "./permissions";
 import type { Lang, NotifTypeKey, StatusKey } from "./types";
 export { NOTIF_TYPE_ORDER } from "./types";
+export type { CtnRole } from "./permissions";
 
 // デモの基準日（本番相当。実クロックに依存せず再現可能にする）
 export const TODAY = "2026-07-14";
@@ -129,7 +131,8 @@ export interface DemoUser {
   id: string;
   name: string;
   initials: string;
-  role: "drafter" | "reviewer" | "approver" | "regulatory";
+  /** 権限の単一ソースは permissions.ts。viewer（未所属＝閲覧のみ）を含む */
+  role: CtnRole;
   dept: string;
 }
 export const USERS: DemoUser[] = [
@@ -139,12 +142,8 @@ export const USERS: DemoUser[] = [
   { id: "u-d", name: "土井 直樹", initials: "DN", role: "regulatory", dept: "薬事部" },
 ];
 export const userById = (id: string) => USERS.find((u) => u.id === id);
-export const roleLabel: Record<DemoUser["role"], [string, string]> = {
-  drafter: ["Drafter", "起票担当"],
-  reviewer: ["Reviewer", "レビュー担当"],
-  approver: ["Approver", "承認者"],
-  regulatory: ["Regulatory", "薬事担当"],
-};
+/** ロール表示名の単一ソースは permissions.ts（viewer を含む） */
+export const roleLabel = ROLE_LABEL;
 
 // ============================================================================
 // 外字 縮退マップ（代表例・デモ用）。本番は標準＋社内辞書。

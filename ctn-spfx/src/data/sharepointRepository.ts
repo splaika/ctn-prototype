@@ -24,6 +24,7 @@ import {
   normalizeGaiji,
   pickInheritanceSource,
 } from "../shared/ctn/logic";
+import { assertPermission, type CtnRole } from "../shared/ctn/permissions";
 import { NOTIF_TYPE_SHORT, TODAY } from "../shared/ctn/refData";
 import type {
   AuditEntry,
@@ -124,7 +125,14 @@ export class SharePointCtnRepository implements CtnRepository {
   public constructor(
     private readonly sp: ISpRestClient,
     /** 監査ログの actor 表示名を引くための解決関数（pageContext 由来） */
-    private readonly displayNameOf: (actorId: string) => string
+    private readonly displayNameOf: (actorId: string) => string,
+    /**
+     * actor → ロールの解決。既定は最小権限。
+     * Web パーツは「デモの操作ユーザーならその人のロール、それ以外は
+     * サインインユーザーのサイトグループ由来のロール」を返す関数を渡す。
+     * 画面側も同じ actor のロールで可否を出すため、両者は必ず一致する。
+     */
+    private readonly roleOf: (actorId: string) => CtnRole = () => "viewer"
   ) {}
 
   private etagKey(list: string, id: string): string {
@@ -431,6 +439,7 @@ export class SharePointCtnRepository implements CtnRepository {
   // 治験届
   // -------------------------------------------------------------------------
   public async createNotification(input: CreateNotificationInput): Promise<Notification> {
+    assertPermission(this.roleOf(input.createdBy), "createNotification");
     const series = await this.fetchSeries(input.compoundId);
     const compounds = await this.sp.getItems(
       LIST.compounds,
@@ -542,6 +551,7 @@ export class SharePointCtnRepository implements CtnRepository {
   }
 
   public async updateNotification(n: Notification, actor: string): Promise<Notification> {
+    assertPermission(this.roleOf(actor), "editNotification");
     const saved = structuredClone(n);
     if (SharePointCtnRepository.needsSerialNumbering(saved)) {
       const series = await this.fetchSeries(saved.compoundId);
@@ -560,6 +570,7 @@ export class SharePointCtnRepository implements CtnRepository {
   }
 
   public async deleteNotification(id: string, actor: string): Promise<void> {
+    assertPermission(this.roleOf(actor), "deleteNotification");
     const n = await this.fetchNotification(id);
     if (n.status !== "draft") throw new Error("提出済・承認済の届は削除できません（起票中のみ削除可）。");
     const code = await this.compoundCodeOf(n.compoundId);
@@ -574,14 +585,35 @@ export class SharePointCtnRepository implements CtnRepository {
   }
 
   public async sendForReview(id: string, actor: string): Promise<void> {
+    assertPermission(this.roleOf(actor), "sendForReview");
     const n = await this.fetchNotification(id);
     n.status = "review";
+    // 差し戻しの記録は再送付で消す（起票中バナーを残さない）
+    delete n.rejectedBy;
+    delete n.rejectedAt;
+    delete n.rejectionReason;
     const code = await this.compoundCodeOf(n.compoundId);
     await this.writeNotificationItem(n, code);
     await this.pushAudit({ who: this.actorName(actor), action: "update", entity: "治験届", entityRef: this.ref(n, code), summary: "社内レビューへ送付" });
   }
 
+  public async rejectNotification(id: string, actor: string, reason: string): Promise<void> {
+    assertPermission(this.roleOf(actor), "rejectNotification");
+    const n = await this.fetchNotification(id);
+    if (n.status !== "review") throw new Error("差し戻せるのはレビュー中の届のみです。");
+    const note = reason.trim();
+    if (!note) throw new Error("差し戻しには理由の入力が必要です。");
+    n.status = "draft";
+    n.rejectedBy = actor;
+    n.rejectedAt = TODAY;
+    n.rejectionReason = note;
+    const code = await this.compoundCodeOf(n.compoundId);
+    await this.writeNotificationItem(n, code);
+    await this.pushAudit({ who: this.actorName(actor), action: "update", entity: "治験届", entityRef: this.ref(n, code), summary: `差し戻し：${note}` });
+  }
+
   public async approveNotification(id: string, approverUserId: string): Promise<void> {
+    assertPermission(this.roleOf(approverUserId), "approveNotification");
     const n = await this.fetchNotification(id);
     const check = canApprove(n, approverUserId); // 職務分離：起票者≠承認者
     if (!check.ok) throw new Error(check.reason);
@@ -598,6 +630,7 @@ export class SharePointCtnRepository implements CtnRepository {
    * 412 ならリトライ」で衝突を防ぐ（過去に採番衝突バグの前歴あり・ブリーフ 5章）。
    */
   public async submitNotification(id: string, actor: string): Promise<void> {
+    assertPermission(this.roleOf(actor), "submitNotification");
     let lastConflict: unknown;
     for (let attempt = 0; attempt < SUBMIT_RETRIES; attempt++) {
       const n = await this.fetchNotification(id); // 最新を再取得

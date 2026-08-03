@@ -110,8 +110,9 @@ describe("mock: ワークフロー", () => {
   it("起票者は自分の届を承認できない（職務分離）", async () => {
     const repo = new MockCtnRepository();
     const compoundId = await firstCompoundId(repo);
-    const n = await repo.createNotification({ compoundId, notifType: "plan", createdBy: "u-a" });
-    await expect(repo.approveNotification(n.id, "u-a")).rejects.toThrow(/職務分離/);
+    // 承認者ロール（u-c）が自分で起票した届。ロールは満たすが職務分離で止まる
+    const n = await repo.createNotification({ compoundId, notifType: "plan", createdBy: "u-c" });
+    await expect(repo.approveNotification(n.id, "u-c")).rejects.toThrow(/職務分離/);
   });
 
   it("承認前は提出できない（提出ゲート）", async () => {
