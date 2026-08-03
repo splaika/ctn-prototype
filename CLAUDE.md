@@ -63,6 +63,15 @@ React + TypeScript + Vite。単一ソース `src/ctn/ctn-schema.json`。デモ�
 - ライブ反映は `/workspace/ctn-prototype` の `demo/app/src` に `cp -r`→`npm run build:demo`→PR→merge。
 - ビルド/テスト: `cd demo/app && npm run build:demo`（tsc+vite+singlefile）、`npm test`（Vitest）。
 
+## 開発環境（別PC・別アカウントで始めるとき）
+
+Azure DevOps / VS Code / Claude Code のセットアップと役割分担は
+[`docs/dev-environment-setup.md`](docs/dev-environment-setup.md) を参照。
+
+**規律**: 会話で決めた設計判断は、その場で `CLAUDE.md` か `docs/` に書いてコミットする。
+チャット履歴と Claude のメモリは環境をまたいで共有されないため、書き残さないと次に開いた
+環境からは存在しないのと同じになる。
+
 ## 未確定（要確認）メモ
 
 - 左メニュー「使い方マニュアル」は仕様確定後に作成予定（現状は準備中プレースホルダ）。
