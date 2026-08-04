@@ -20,7 +20,11 @@
 //   await ctn.checkAll()        全届について整合を検証
 //   await ctn.counts()          9リストの件数
 //   await ctn.audit()           監査ログの直近
+//   await ctn.setupViews()      9リストの既定ビューを読める構成に揃える
 //   await ctn.hidePayload()     CtnPayload を既定ビューから外す（表示ノイズ削減）
+//
+// リストの中身が読めない（タイトルしか出ない）ときは setupViews() を実行する。
+// プロビジョニングは列を作るが既定ビューには出さないため。データは変更しない。
 //
 // 素の fetch は OData-Version を送らないためサーバーが v3 とみなす。
 // そのため v3 記法（odata=nometadata）で通る。SPFx の SPHttpClient は v4 を
@@ -41,6 +45,37 @@
     irbs: "CtnIrbs",
     gaiji: "CtnGaiji",
     audit: "CtnAudit",
+  };
+
+  /**
+   * 各リストの既定ビューに出す列。setupViews() が使う。
+   * プロビジョニング直後の既定ビューはタイトルだけなので、一覧を見ても
+   * 中身が読めない。業務・検証で見たい列をここで決める。
+   * CtnPayload は意図的に外している（巨大な JSON 1行で読めないため）。
+   * CtnPayloadVersion も外す（常に 1 で情報量がない）。
+   */
+  const VIEW_FIELDS = {
+    CtnNotifications: [
+      "Title", "CtnStatus", "CtnNotifType", "CtnFilingCount", "CtnChangeCount",
+      "CtnProtocolNo", "CtnNoteDate", "CtnCreatedByUser", "CtnApprovedByUser", "Modified",
+    ],
+    CtnCompounds: [
+      "Title", "CtnCompoundCode", "CtnDrugName", "CtnTargetCategory",
+      "CtnTrialKind", "CtnDevStatus", "CtnInitNoteDate",
+    ],
+    CtnSponsors: ["Title", "CtnName", "CtnSponsorType", "CtnRepName", "CtnTelNo", "CtnActive"],
+    CtnInstitutions: ["Title", "CtnCode", "CtnName", "CtnTelNo", "CtnActive"],
+    CtnDoctors: [
+      "Title", "CtnDoctorNo", "CtnNameFiling", "CtnPronounce",
+      "CtnInstitution", "CtnHasGaiji", "CtnActive",
+    ],
+    CtnSiteStaff: ["Title", "CtnName", "CtnKana", "CtnStaffRole", "CtnInstitution", "CtnActive"],
+    CtnIrbs: ["Title", "CtnIrbType", "CtnOwnerName", "CtnActive"],
+    CtnGaiji: [
+      "Title", "CtnOriginalChar", "CtnReplacementChar", "CtnGaijiType",
+      "CtnConfirmedBy", "CtnConfirmedOn",
+    ],
+    CtnAudit: ["Title", "CtnAt", "CtnWho", "CtnAction", "CtnEntity", "CtnEntityRef", "CtnSummary"],
   };
 
   /** 昇格列 → CtnPayload 上の対応プロパティ。check() の突合に使う */
@@ -177,8 +212,51 @@
     },
 
     /**
+     * 9リストの既定ビューを「読める」構成に揃える。
+     * プロビジョニング直後の既定ビューはタイトルだけなので、一覧を開いても
+     * 中身が分からない。VIEW_FIELDS の定義どおりに並べ替える。
+     * 列そのものは既に存在しているので、追加コストは無い（表示の切替のみ）。
+     * データは一切変更しない。
+     */
+    async setupViews(only) {
+      const d = await digest();
+      const targets = only ? [only] : Object.keys(VIEW_FIELDS);
+      const result = {};
+
+      for (const list of targets) {
+        const fields = VIEW_FIELDS[list];
+        if (!fields) {
+          result[list] = "定義なし（VIEW_FIELDS を確認）";
+          continue;
+        }
+        const post = async (op) => {
+          const r = await fetch(
+            `${WEB}/_api/web/lists/getbytitle('${list}')/defaultview/viewfields/${op}`,
+            {
+              method: "POST",
+              headers: { Accept: "application/json;odata=nometadata", "X-RequestDigest": d },
+              credentials: "same-origin",
+            }
+          );
+          if (!r.ok) throw new Error(`${op} → ${r.status} ${r.statusText}`);
+        };
+        try {
+          await post("removeallviewfields");
+          for (const f of fields) await post(`addviewfield('${f}')`);
+          result[list] = `${fields.length}列に設定`;
+        } catch (e) {
+          result[list] = `失敗: ${e.message}`;
+        }
+      }
+      console.table(result);
+      console.log("リスト画面を再読み込みすると反映されます。");
+      return result;
+    },
+
+    /**
      * CtnPayload を既定ビューから外す。人間が読む列ではないため。
      * データは消えない。元に戻すにはリスト設定でチェックを入れ直す。
+     * setupViews() を使う場合はそちらが CtnPayload を除いて組み直すので不要。
      */
     async hidePayload(list = LIST.notifications, field = "CtnPayload") {
       const d = await digest();
@@ -243,6 +321,7 @@
       "  await ctn.checkAll()    全届について整合を検証",
       "  await ctn.counts()      9リストの件数",
       "  await ctn.audit()       監査ログの直近",
+      "  await ctn.setupViews()  9リストの既定ビューを読める構成に揃える",
       "  await ctn.hidePayload() CtnPayload を既定ビューから外す",
     ].join("\n")
   );

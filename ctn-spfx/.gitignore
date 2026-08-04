@@ -32,3 +32,14 @@ obj
 
 # Styles Generated Code
 *.scss.ts
+
+# 共有コードの生成物。単一ソースは demo/app/src で、scripts/sync-from-demo.mjs が
+# ここへ生成する。Git 管理下に置くと、共有コンポーネントを直すたびに demo/app 側と
+# ここの両方でコンフリクトし、こちら側の解決は無意味な作業になる（2名以上で作業すると
+# 確実に踏む）。追跡から外して「単一ソースは demo/app」を構造的に強制する。
+#
+# クローン直後・依存更新後は同期が必要:
+#   npm ci && npm run sync
+# 同期されていない状態で test / package を実行すると scripts/check-shared.mjs が
+# 理由付きで止める。
+src/shared/

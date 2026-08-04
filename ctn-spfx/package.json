@@ -9,7 +9,10 @@
   "scripts": {
     "build": "gulp bundle",
     "clean": "gulp clean",
+    "check:shared": "node scripts/check-shared.mjs",
+    "pretest": "node scripts/check-shared.mjs",
     "test": "vitest run",
+    "prepackage": "node scripts/check-shared.mjs",
     "sync": "node scripts/sync-from-demo.mjs",
     "verify:scope": "node scripts/verify-scope.mjs",
     "provision:gen": "node scripts/gen-provision.mjs",
