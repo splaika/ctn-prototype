@@ -40,8 +40,17 @@ export interface ICtnSuiteWebPartProps {
   dataSource: CtnDataSource;
   /** true でユーザー切替ドロップダウンを表示（職務分離のデモ用） */
   demoMode: boolean;
-  /** Web パーツの表示高（px） */
+  /** Web パーツの表示高（px）。fillViewport が true のときは使わない */
   heightPx: number;
+  /**
+   * true で「画面の高さに合わせる」。Web パーツの上端から画面下端までを高さにする。
+   *
+   * マニフェストの preconfiguredEntries には**入れていない**（既定は undefined＝false）。
+   * プロパティを preconfiguredEntries へ足すとマニフェストが変わり、アプリカタログへの
+   * 再登録＝IT 依頼が必要になるため。同じ理由でラベルは loc/en-us.js を使わず直接
+   * 埋め込んでいる（文言ファイルはハッシュ付きの名前でマニフェストから参照される）。
+   */
+  fillViewport?: boolean;
 }
 
 /** 生成CSSを一度だけ document.head へ入れる（Web パーツ複数配置でも1回） */
@@ -54,6 +63,8 @@ export default class CtnSuiteWebPart extends BaseClientSideWebPart<ICtnSuiteWebP
   private _sp: SpRestClient | undefined;
   /** 未作成のリスト。空でなければセットアップ画面を出す */
   private _missingLists: string[] = [];
+  /** fillViewport のときだけ張るリサイズ監視。onDispose で外す */
+  private _onResize: (() => void) | undefined;
 
   protected async onInit(): Promise<void> {
     this._injectStyles();
@@ -158,7 +169,8 @@ export default class CtnSuiteWebPart extends BaseClientSideWebPart<ICtnSuiteWebP
     const cultureName = this.context.pageContext.cultureInfo.currentUICultureName || "";
     const initialLang: Lang = cultureName.toLowerCase().indexOf("ja") === 0 ? "ja" : "en";
 
-    this.domElement.style.setProperty("--ctn-host-height", `${this.properties.heightPx || 820}px`);
+    this._applyHeight();
+    this._watchViewport();
 
     // リストが揃っていなければ初期セットアップ画面を出す。
     // ここで作成まで済ませられるので、テナント管理者や PnP.PowerShell は不要。
@@ -185,12 +197,65 @@ export default class CtnSuiteWebPart extends BaseClientSideWebPart<ICtnSuiteWebP
   }
 
   /**
+   * 高さを決める。
+   *
+   * fillViewport のときは固定 px ではなく「Web パーツの上端から画面下端まで」を使う。
+   * 100vh を直接使わない理由: Web パーツはスイートバー等の下から始まるため、
+   * 100vh だとその分だけはみ出してページ側にスクロールバーが出る（アプリ内側と
+   * 二重になる）。実測して差し引けば、?env=Embedded でも通常表示でも同じ扱いで済む。
+   */
+  private _applyHeight(): void {
+    if (!this.properties.fillViewport) {
+      this.domElement.style.setProperty("--ctn-host-height", `${this.properties.heightPx || 820}px`);
+      return;
+    }
+    const top = this.domElement.getBoundingClientRect().top;
+    // 下端に少し余白を残す。0 にすると枠線が切れて見える
+    const MARGIN = 8;
+    // 極端に小さくならないよう下限を設ける（プロパティペインを開くと幅が狭まり
+    // レイアウトが変わるため、一時的に上端が下がることがある）
+    const height = Math.max(480, Math.round(window.innerHeight - top - MARGIN));
+    this.domElement.style.setProperty("--ctn-host-height", `${height}px`);
+  }
+
+  /** ウィンドウのリサイズで高さを追随させる（fillViewport のときだけ） */
+  private _watchViewport(): void {
+    if (!this.properties.fillViewport) {
+      this._unwatchViewport();
+      return;
+    }
+    if (this._onResize) return; // 既に監視中
+    let timer: number | undefined;
+    this._onResize = () => {
+      // リサイズ中に毎回測ると重いので落ち着いてから反映する
+      if (timer !== undefined) window.clearTimeout(timer);
+      timer = window.setTimeout(() => this._applyHeight(), 120);
+    };
+    window.addEventListener("resize", this._onResize);
+  }
+
+  private _unwatchViewport(): void {
+    if (!this._onResize) return;
+    window.removeEventListener("resize", this._onResize);
+    this._onResize = undefined;
+  }
+
+  /**
    * データソースを切り替えたときに、その場で反映させる。
    * SPFx はプロパティ変更で onInit を再実行しない（render だけが呼ばれる）ため、
    * これが無いと mock ↔ sharepoint の切替がページ再読み込みまで効かない。
    */
   protected onPropertyPaneFieldChanged(propertyPath: string, oldValue: unknown, newValue: unknown): void {
     super.onPropertyPaneFieldChanged(propertyPath, oldValue, newValue);
+
+    // 高さの切替はスライダーの有効/無効も変わるのでペインを描き直す
+    if (propertyPath === "fillViewport" && oldValue !== newValue) {
+      this._applyHeight();
+      this._watchViewport();
+      this.context.propertyPane.refresh();
+      return;
+    }
+
     if (propertyPath !== "dataSource" || oldValue === newValue) return;
 
     this._initRepository()
@@ -202,6 +267,7 @@ export default class CtnSuiteWebPart extends BaseClientSideWebPart<ICtnSuiteWebP
   }
 
   protected onDispose(): void {
+    this._unwatchViewport();
     ReactDom.unmountComponentAtNode(this.domElement);
   }
 
@@ -230,11 +296,20 @@ export default class CtnSuiteWebPart extends BaseClientSideWebPart<ICtnSuiteWebP
                   onText: strings.DemoModeOn,
                   offText: strings.DemoModeOff,
                 }),
+                // ラベルは loc/en-us.js を使わず直接埋め込む。文言ファイルは
+                // ハッシュ付きの名前でマニフェストから参照されるため、変更すると
+                // アプリカタログへの再登録＝IT 依頼が必要になる。
+                PropertyPaneToggle("fillViewport", {
+                  label: "画面の高さに合わせる",
+                  onText: "オン",
+                  offText: "オフ（下の高さを使う）",
+                }),
                 PropertyPaneSlider("heightPx", {
                   label: strings.HeightFieldLabel,
                   min: 480,
                   max: 1600,
                   step: 20,
+                  disabled: !!this.properties.fillViewport,
                 }),
               ],
             },
