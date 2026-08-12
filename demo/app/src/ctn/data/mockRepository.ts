@@ -11,11 +11,12 @@ import {
   userById,
 } from "../refData";
 import {
+  applyInheritance,
   canApprove,
   canSubmit,
-  nextInvestigatorSerial,
-  nextStudyDrugSerial,
-  seriesStudyDrugSerials,
+  computeFilingNumbers,
+  finalizeSerials,
+  pickInheritanceSource,
 } from "../logic";
 import type {
   AuditEntry,
@@ -28,12 +29,20 @@ import type {
   SiteStaff,
   Sponsor,
 } from "../types";
+import { assertPermission, type CtnRole } from "../permissions";
 import type { CreateNotificationInput, CtnDb, CtnRepository } from "./repository";
 import { makeSeedDb } from "./seed";
 
 const clone = <T,>(v: T): T => structuredClone(v);
 
 export class MockCtnRepository implements CtnRepository {
+  /**
+   * actor → ロールの解決。既定はデモ利用者表から引く。
+   * SPFx の mock モードは操作者がサインインユーザー（表に無い）になるため、
+   * Web パーツ側から解決関数を差し替える。
+   */
+  public constructor(private readonly roleOf: (actorId: string) => CtnRole = (id) => userById(id)?.role ?? "viewer") {}
+
   private db: CtnDb = makeSeedDb();
   private seq = 1000;
   private nid() {
@@ -44,6 +53,9 @@ export class MockCtnRepository implements CtnRepository {
   }
   private actorName(actorId: string): string {
     return userById(actorId)?.name ?? actorId;
+  }
+  private actorRole(actorId: string): CtnRole {
+    return this.roleOf(actorId);
   }
 
   async getState(): Promise<CtnDb> {
@@ -176,57 +188,18 @@ export class MockCtnRepository implements CtnRepository {
     return this.db.notifications.filter((n) => n.compoundId === compoundId);
   }
 
-  /** 未採番（serialNo<=0）の順序番号を確定する（サーバー正本） */
+  /** 未採番（serialNo<=0）の順序番号を確定する（サーバー正本・logic.ts が本体） */
   private finalizeSerials(n: Notification) {
-    // 実施医療機関の順序番号（SERIALNO1・届内）をサーバーで確定（クライアント採番を信頼しない）
-    let maxSite = Math.max(0, ...n.sites.map((s) => (s.serialNo > 0 ? s.serialNo : 0)));
-    for (const s of n.sites) if (s.serialNo <= 0) s.serialNo = ++maxSite;
-
-    const series = this.seriesNotifs(n.compoundId).filter((x) => x.id !== n.id);
-    const known = new Set(seriesStudyDrugSerials(series));
-    for (const d of n.studyDrugs) known.add(d.serialNo > 0 ? d.serialNo : -1);
-    for (const d of n.studyDrugs) {
-      if (d.serialNo <= 0) {
-        const next = nextStudyDrugSerial([...known].filter((s) => s > 0));
-        d.serialNo = next;
-        known.add(next);
-      }
-    }
-    // 施設別数量は治験使用薬の順序番号を継承
-    for (const s of n.sites)
-      for (const q of s.quantities) {
-        const drug = n.studyDrugs.find((d) => d.id === q.studyDrugId);
-        if (drug) q.serialNo = drug.serialNo;
-      }
-    // 医師イベント行：届内で採番
-    for (const s of n.sites)
-      for (const inv of s.investigators)
-        if (inv.serialNo <= 0) inv.serialNo = nextInvestigatorSerial(n);
+    finalizeSerials(n, this.seriesNotifs(n.compoundId).filter((x) => x.id !== n.id));
   }
 
   async createNotification(input: CreateNotificationInput): Promise<Notification> {
+    assertPermission(this.actorRole(input.createdBy), "createNotification");
     const series = this.seriesNotifs(input.compoundId);
     const compound = this.db.compounds.find((c) => c.id === input.compoundId)!;
-    // 【根幹】手引きの番号体系（ツリー）に従う：
-    // 届出回数＝プロトコール（治験計画届）の通し番号。新規プロトコールの計画届のみ +1。
-    // 変更届・終了届・中止届・開発中止届は対象プロトコールの届出回数を「据え置き」、
-    // 変更届のみ「変更回数」を対象プロトコール内で採番する。
-    const protocols = series.filter((n) => n.notifType === "plan");
-    const maxProtocol = protocols.length ? Math.max(...protocols.map((p) => p.filingCount)) : 0;
-    let filingCount: number;
-    let changeCount: number | undefined;
-    if (input.notifType === "plan") {
-      // 新規プロトコール（N回届）または初回計画届 → 届出回数をインクリメント
-      filingCount = maxProtocol + 1;
-      changeCount = undefined;
-    } else {
-      // 既存プロトコールへの届 → 対象プロトコールの届出回数を継承（据え置き）
-      filingCount = input.targetFilingCount ?? (maxProtocol || 1);
-      changeCount =
-        input.notifType === "change"
-          ? Math.max(0, ...series.filter((n) => n.notifType === "change" && n.filingCount === filingCount).map((n) => n.changeCount ?? 0)) + 1
-          : undefined;
-    }
+    // 【根幹】手引きの番号体系（ツリー）は logic.ts の computeFilingNumbers が本体。
+    // SharePoint 版リポジトリも同じ関数を経由する（採番の単一ソース）。
+    const { filingCount, changeCount } = computeFilingNumbers(series, input);
 
     const base: Notification = {
       id: `nt-${this.nid()}`,
@@ -251,38 +224,9 @@ export class MockCtnRepository implements CtnRepository {
     };
 
     // 対象プロトコール（同一届出回数）の最新届から継承（転記の排除）。
-    // 新規プロトコールの計画届（N回届）は継承しない＝新しいプロトコールとして開始。
-    const from =
-      input.notifType === "plan"
-        ? undefined
-        : input.inheritFromNotificationId
-          ? this.db.notifications.find((n) => n.id === input.inheritFromNotificationId)
-          : [...series.filter((n) => n.filingCount === filingCount)].sort((a, b) => (b.changeCount ?? 0) - (a.changeCount ?? 0))[0]
-            ?? [...series].sort((a, b) => b.filingCount - a.filingCount)[0];
-    if (from) {
-      base.studyDrugs = clone(from.studyDrugs); // 順序番号（突合キー）ごと引き継ぐ
-      base.protocolNo = from.protocolNo;
-      base.phase = from.phase;
-      base.trialType = from.trialType;
-      base.objectives = from.objectives;
-      base.targetDisease = from.targetDisease;
-      base.plannedSubjDrug = from.plannedSubjDrug;
-      base.plannedSubjTotal = from.plannedSubjTotal;
-      base.periodStart = from.periodStart;
-      base.periodEnd = from.periodEnd;
-      base.plannedStartDate = from.plannedStartDate;
-      // 施設・医師ロスターを継続として引き継ぐ（イベント行は新規届で編集）
-      base.sites = from.sites.map((s) => ({
-        ...clone(s),
-        id: `site-${this.nid()}`,
-        enrolledSubjects: undefined,
-        investigators: s.investigators
-          .filter((iv) => iv.changeType !== 100001002) // 前届で削除済みは持ち越さない
-          // イベント行型：新しい届では順序番号を採番し直す（serialNo=0 → finalizeSerials で確定）
-          .map((iv) => ({ ...clone(iv), id: `inv-${this.nid()}`, serialNo: 0, changeType: 100001003, changeDate: undefined, changeReason: undefined })),
-        quantities: s.quantities.map((q) => ({ ...clone(q), qtySupplied: undefined, qtyUsed: undefined, qtyWithdrawn: undefined, qtyAbrogated: undefined })),
-      }));
-    }
+    // 選択と引き継ぎの規則は logic.ts が本体（SharePoint 版と共有）。
+    const from = pickInheritanceSource(series, this.db.notifications, input, filingCount);
+    if (from) applyInheritance(base, from, () => this.nid());
 
     this.db.notifications.push(base);
     this.pushAudit({ who: this.actorName(input.createdBy), action: "create", entity: "治験届", entityRef: `${compound.compoundCode} ${NOTIF_TYPE_SHORT[input.notifType]}届 #${filingCount}`, summary: `${NOTIF_TYPE_SHORT[input.notifType]}届を起票（届出回数 ${filingCount}${changeCount ? `・変更回数 ${changeCount}` : ""}）` });
@@ -290,6 +234,7 @@ export class MockCtnRepository implements CtnRepository {
   }
 
   async updateNotification(n: Notification, actor: string): Promise<Notification> {
+    assertPermission(this.actorRole(actor), "editNotification");
     const i = this.db.notifications.findIndex((x) => x.id === n.id);
     if (i === -1) throw new Error(`Not found: ${n.id}`);
     const saved = clone(n);
@@ -301,6 +246,7 @@ export class MockCtnRepository implements CtnRepository {
   }
 
   async deleteNotification(id: string, actor: string): Promise<void> {
+    assertPermission(this.actorRole(actor), "deleteNotification");
     const n = this.db.notifications.find((x) => x.id === id);
     if (!n) throw new Error(`Not found: ${id}`);
     if (n.status !== "draft") throw new Error("提出済・承認済の届は削除できません（起票中のみ削除可）。");
@@ -310,15 +256,35 @@ export class MockCtnRepository implements CtnRepository {
   }
 
   async sendForReview(id: string, actor: string): Promise<void> {
+    assertPermission(this.actorRole(actor), "sendForReview");
     const n = this.db.notifications.find((x) => x.id === id);
     if (!n) throw new Error(`Not found: ${id}`);
     n.status = "review";
+    // 差し戻しの記録は再送付で消す（起票中バナーを残さない）
+    delete n.rejectedBy;
+    delete n.rejectedAt;
+    delete n.rejectionReason;
     this.pushAudit({ who: this.actorName(actor), action: "update", entity: "治験届", entityRef: this.ref(n), summary: "社内レビューへ送付" });
+  }
+
+  async rejectNotification(id: string, actor: string, reason: string): Promise<void> {
+    assertPermission(this.actorRole(actor), "rejectNotification");
+    const n = this.db.notifications.find((x) => x.id === id);
+    if (!n) throw new Error(`Not found: ${id}`);
+    if (n.status !== "review") throw new Error("差し戻せるのはレビュー中の届のみです。");
+    const note = reason.trim();
+    if (!note) throw new Error("差し戻しには理由の入力が必要です。");
+    n.status = "draft";
+    n.rejectedBy = actor;
+    n.rejectedAt = TODAY;
+    n.rejectionReason = note;
+    this.pushAudit({ who: this.actorName(actor), action: "update", entity: "治験届", entityRef: this.ref(n), summary: `差し戻し：${note}` });
   }
 
   async approveNotification(id: string, approverUserId: string): Promise<void> {
     const n = this.db.notifications.find((x) => x.id === id);
     if (!n) throw new Error(`Not found: ${id}`);
+    assertPermission(this.actorRole(approverUserId), "approveNotification");
     const check = canApprove(n, approverUserId); // 職務分離：起票者≠承認者
     if (!check.ok) throw new Error(check.reason);
     n.status = "approved";
@@ -330,6 +296,7 @@ export class MockCtnRepository implements CtnRepository {
   async submitNotification(id: string, actor: string): Promise<void> {
     const n = this.db.notifications.find((x) => x.id === id);
     if (!n) throw new Error(`Not found: ${id}`);
+    assertPermission(this.actorRole(actor), "submitNotification");
     const gate = canSubmit(n); // 提出ゲート：承認済のみ
     if (!gate.ok) throw new Error(gate.reason);
     this.finalizeSerials(n);

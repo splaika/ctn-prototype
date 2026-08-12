@@ -1,0 +1,49 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/spfx-build/package-solution.schema.json",
+  "solution": {
+    "name": "ctn-suite-client-side-solution",
+    "id": "d73e8018-634a-4e25-8190-58cf5fa3b481",
+    // リリースのたびに上げる。同じ版のままだとアプリカタログでどのビルドが
+    // 入っているか判別できず、更新も認識されないことがある。
+    "version": "1.6.0.0",
+    // false = JS を .sppkg に同梱せず、下の cdnBasePath から配信する（ライブラリ配信）。
+    // これによりコード修正は cdnBasePath へのファイル差し替えだけで反映でき、
+    // アプリカタログへの再登録（＝SharePoint 管理者への依頼）が不要になる。
+    // 成立の前提は gulpfile.js でバンドル名のハッシュを固定していること。
+    // ハッシュが付くとマニフェストの参照先が毎回変わり、再登録が必要になる。
+    "includeClientSideAssets": false,
+    // false = サイトごとに「アプリを追加」してから使う。true にすると承認と同時に
+    // 全サイトで利用可能になり、承認範囲が必要以上に広くなるため false のままにする。
+    "skipFeatureDeployment": false,
+    "isDomainIsolated": false,
+    "developer": {
+      "name": "Seven to One, Inc.",
+      "websiteUrl": "https://github.com/splaika/ctn-prototype",
+      "privacyUrl": "",
+      "termsOfUseUrl": "",
+      "mpnId": "Undefined-1.21.1"
+    },
+    "metadata": {
+      "shortDescription": {
+        "default": "治験届（CTN）の作成・レビュー・承認・提出とXML生成"
+      },
+      "longDescription": {
+        "default": "治験届（CTN）管理システム。届の起票から社内レビュー・承認・提出、CTN XML の生成までを扱います。データは同一サイト内の SharePoint リストに保存され、サインインユーザーの権限で動作します。追加の API アクセス許可は要求しません。"
+      },
+      "screenshotPaths": [],
+      "videoUrl": "",
+      "categories": []
+    },
+    "features": [
+      {
+        "title": "ctn-suite Feature",
+        "description": "The feature that activates elements of the ctn-suite solution.",
+        "id": "b780d7db-61c4-416b-86b7-005f4143c7ca",
+        "version": "1.0.0.0"
+      }
+    ]
+  },
+  "paths": {
+    "zippedPackage": "solution/ctn-suite.sppkg"
+  }
+}

@@ -5,6 +5,7 @@ import { getRepository } from "./ctn/data/repository";
 import type { CtnDb } from "./ctn/data/repository";
 import { deriveAlerts } from "./ctn/derive";
 import { USERS, userById, roleLabel, TARGET_CATEGORY, DEV_STATUS } from "./ctn/refData";
+import { requirePermission } from "./ctn/permissions";
 import { Sidebar, type ViewKey } from "./ctn/components/Sidebar";
 import { Dashboard } from "./ctn/components/Dashboard";
 import { NotificationsView } from "./ctn/components/NotificationList";
@@ -73,6 +74,8 @@ export default function App() {
   const t = useMemo(() => makeT(lang), [lang]);
   const repo = getRepository();
   const user = userById(userId)!;
+  /** 起票の可否（ロール別）。permissions.ts が単一ソース */
+  const mayCreate = requirePermission(user.role, "createNotification");
 
   useEffect(() => {
     document.body.classList.toggle("ja", lang === "ja");
@@ -156,9 +159,22 @@ export default function App() {
     return saved; // サーバー確定後の順序番号を detail の draft へ反映する
   };
   const handleSendReview = async (id: string) => {
-    await repo.sendForReview(id, userId);
-    await reload();
-    flash(t("Sent for review", "社内レビューへ送付しました"));
+    try {
+      await repo.sendForReview(id, userId);
+      await reload();
+      flash(t("Sent for review", "社内レビューへ送付しました"));
+    } catch (e) {
+      flash((e as Error).message, true);
+    }
+  };
+  const handleReject = async (id: string, reason: string) => {
+    try {
+      await repo.rejectNotification(id, userId, reason);
+      await reload();
+      flash(t("Sent back", "差し戻しました"));
+    } catch (e) {
+      flash((e as Error).message, true);
+    }
   };
   const handleApprove = async (id: string) => {
     try {
@@ -257,7 +273,7 @@ export default function App() {
               <button className={lang === "en" ? "on" : ""} onClick={() => setLang("en")}>EN</button>
               <button className={lang === "ja" ? "on" : ""} onClick={() => setLang("ja")}>JA</button>
             </div>
-            <button className="btn btn-p" onClick={() => setWizard(true)}>
+            <button className="btn btn-p" onClick={() => setWizard(true)} disabled={!mayCreate.ok} title={mayCreate.reason ?? ""}>
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5}><path d="M12 5v14M5 12h14" /></svg>
               {t("New filing", "新規届作成")}
             </button>
@@ -273,6 +289,7 @@ export default function App() {
                 onBack={backToList}
                 onSave={handleSave}
                 onSendReview={handleSendReview}
+                onReject={handleReject}
                 onApprove={handleApprove}
                 onSubmit={handleSubmit}
                 onDelete={handleDelete}
