@@ -7,6 +7,23 @@
 - UI・ドメインロジックの単一ソースは同リポジトリの [`demo/app`](../demo/app)
 - 本フォルダは SPFx 側の実装・プロビジョニング・ドキュメントを保持する
 
+## デモサイト（フィードバック受付中）
+
+**クライアントに渡すURL**（SharePoint の枠を隠した表示）
+
+```
+https://seventoone.sharepoint.com/sites/ClinicalTrialSubmissionAssistant-Demo/SitePages/Home.aspx?env=Embedded
+```
+
+**通常URL**（開発・確認用）
+
+```
+https://seventoone.sharepoint.com/sites/ClinicalTrialSubmissionAssistant-Demo/SitePages/Home.aspx
+```
+
+初回は `Ctrl+Shift+R` で開く（キャッシュ対策）。右上の「操作ユーザー」で4つの役割を
+切り替えられるので、1人でワークフロー全体を通せる。
+
 ## 状態（2026-08-04）
 
 **実テナント（seventoone）で 1.6.0.0 が稼働中。** 通常URLでの読み書きが成立している。

@@ -7,6 +7,36 @@ UX フィードバックを受け付けている段階。
 
 ---
 
+## デモサイト（フィードバック受付中）
+
+**クライアントに渡すURL**（SharePoint の枠を隠した表示）
+
+```
+https://seventoone.sharepoint.com/sites/ClinicalTrialSubmissionAssistant-Demo/SitePages/Home.aspx?env=Embedded
+```
+
+**通常URL**（開発・確認用。サイトの設定やリストへ辿れる）
+
+```
+https://seventoone.sharepoint.com/sites/ClinicalTrialSubmissionAssistant-Demo/SitePages/Home.aspx
+```
+
+### 触ってもらう前に伝えること
+
+- **初回は `Ctrl+Shift+R`（強制リロード）で開く。** 更新後にブラウザが古い版を
+  キャッシュしていることがある（[理由](ctn-spfx/docs/ライブラリ配信の仕組み.md#8-制約とトレードオフ)）
+- **右上の「操作ユーザー」で役割を切り替えられる。** 起票担当 → レビュー担当 →
+  承認者 → 薬事担当 の順に切り替えれば、1人でワークフロー全体を通せる
+- 入力したデータは実際に SharePoint リストへ保存される（消えない）
+
+### アクセスできるようにするには
+
+SharePoint サイトの**メンバー（編集権限）**に追加する。M365 グループではなく
+SharePoint グループへ直接追加すると、サイトだけに範囲を限定できる。
+手順は [構築・デプロイ手順.md の6章](ctn-spfx/docs/構築・デプロイ手順.md)。
+
+---
+
 ## どこを見ればよいか
 
 | 目的 | 場所 |
