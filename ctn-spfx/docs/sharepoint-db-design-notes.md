@@ -10,7 +10,7 @@
 
 | 成果物 | パス | 内容 |
 | --- | --- | --- |
-| DB（リスト）設計書 | `outputs/CTN_SharePoint_DB設計_20260726.xlsx` | 版1.1。11シート・リスト13本・列133件・Payload項目173件。書体は Noto Sans JP / 本文10pt で統一 |
+| DB（リスト）設計書 | `archive/outputs/CTN_SharePoint_DB設計_20260726.xlsx` | 版1.1。11シート・リスト13本・列133件・Payload項目173件。書体は Noto Sans JP / 本文10pt で統一 |
 | 生成スクリプト | `tools/gen-sharepoint-db-design.py` | `ctn-schema.json` を読んで必須マーク・XSD要素名・選択肢・要確認列を自動で埋める |
 
 再生成: `python tools/gen-sharepoint-db-design.py`
@@ -108,7 +108,7 @@ DB 構築は必要作業の4分の1。UI が実データで動くには以下が
 
 1. `CtnNotifications` に `CtnPdfGeneratedAt` を1列追加（`CtnXmlGeneratedAt` と対称）
 2. `CtnGeneratedOutputs` ドキュメントライブラリを追加（8列）。既存の SharePoint 文書設計
-   （`outputs/ctn-lp-static-safe-*/docs-html/sharepoint-design.html` の
+   （`archive/outputs/ctn-lp-static-safe-*/docs-html/sharepoint-design.html` の
    Source PDFs / Attachments / **Generated Outputs** の3ライブラリ構成）へ寄せる。
    `CtnOutputKind` で `pdf-review`（現行）/ `pdf-submission`（将来）/ `xml` を区別する
 3. `06_ロジック実装マップ` に「届書PDF生成」「提出パッケージ結合」の2件を追加（No.17-18）

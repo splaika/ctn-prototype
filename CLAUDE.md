@@ -57,18 +57,34 @@ React + TypeScript + Vite。単一ソース `src/ctn/ctn-schema.json`。デモ�
 
 ---
 
-## 同期・公開フロー
+## リポジトリの構成
 
-- 開発は pharma-goals ブランチ `claude/ctn-production-ui-testdata-muw0qv`（**pharma-goals main へはマージしない**）。
-- ライブ反映は `/workspace/ctn-prototype` の `demo/app/src` に `cp -r`→`npm run build:demo`→PR→merge。
-- ビルド/テスト: `cd demo/app && npm run build:demo`（tsc+vite+singlefile）、`npm test`（Vitest）。
+| 場所 | 内容 |
+| --- | --- |
+| `ctn-spfx/` | **現行の実装。** SPFx Web パーツ + SharePoint リスト。実テナントで稼働中 |
+| `demo/app/` | **UI とドメインロジックの単一ソース。** ここが正 |
+| `docs-hub/` | 初期の仕様書・設計 HTML（GitHub Pages で公開・参照用） |
+| `archive/` | 旧構想の資料・LP ドラフト・CTN 固有でない手順。**現行の判断材料ではない** |
+
+作業を再開するときは **[`ctn-spfx/docs/引き継ぎ.md`](ctn-spfx/docs/引き継ぎ.md)** を最初に読む。
+
+## ビルド・テスト
+
+```bash
+cd demo/app && npm ci && npm test          # 94件
+cd ctn-spfx && npm ci && npm run sync && npm test   # 146件（sync は必須）
+```
+
+`ctn-spfx/src/shared/` は `demo/app/src` からの生成物で Git 管理外。**直接編集しない。**
+共有コードは `demo/app/src` を編集して `npm run sync` する。
 
 ## 開発環境（別PC・別アカウントで始めるとき）
 
 Azure DevOps / VS Code / Claude Code のセットアップと役割分担は
-[`docs/dev-environment-setup.md`](docs/dev-environment-setup.md) を参照。
+[`archive/dev-environment-setup.md`](archive/dev-environment-setup.md) を参照。
+CTN 固有ではない汎用の作業環境手順なので `archive/` に置いている。
 
-**規律**: 会話で決めた設計判断は、その場で `CLAUDE.md` か `docs/` に書いてコミットする。
+**規律**: 会話で決めた設計判断は、その場で `CLAUDE.md` か各 `docs/` に書いてコミットする。
 チャット履歴と Claude のメモリは環境をまたいで共有されないため、書き残さないと次に開いた
 環境からは存在しないのと同じになる。
 

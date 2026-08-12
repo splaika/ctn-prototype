@@ -108,7 +108,7 @@ SharePoint ページ / Teams タブ
 
 ### 添付ファイル(スコープ外・設計整合のみ)
 
-リポジトリ既存の SharePoint 設計書(`outputs/.../docs-html/sharepoint-design.html`: Source PDFs / Attachments / Generated Outputs ライブラリ)は**文書保管**の設計であり、本件のリスト設計と競合しない。現アプリの添付はメタデータのみなので今回は Payload 内に保持し、実ファイル格納(ライブラリ連携)は将来フェーズとして README に記載するに留める。
+リポジトリ既存の SharePoint 設計書(`archive/outputs/.../docs-html/sharepoint-design.html`: Source PDFs / Attachments / Generated Outputs ライブラリ)は**文書保管**の設計であり、本件のリスト設計と競合しない。現アプリの添付はメタデータのみなので今回は Payload 内に保持し、実ファイル格納(ライブラリ連携)は将来フェーズとして README に記載するに留める。
 
 ## 5. 二層検証(サーバー正本)の扱い — 明示的なトレードオフ
 
@@ -194,7 +194,7 @@ Phase 1〜4 の全成果物(`.sppkg`、テスト済みリポジトリ、プロ�
 
 - 対象リポジトリ: https://github.com/splaika/ctn-prototype (`demo/app/` が本体)
 - ドメイン正: リポジトリ直下 `CLAUDE.md`、`demo/app/docs/CTN_ハンドオフ.md`、`demo/IMPLEMENTATION.md`
-- 既存 SharePoint 文書設計: `outputs/ctn-lp-static-safe-*/docs-html/sharepoint-design.html`
+- 既存 SharePoint 文書設計: `archive/outputs/ctn-lp-static-safe-*/docs-html/sharepoint-design.html`
 - SPFx 互換性マトリクス: https://learn.microsoft.com/sharepoint/dev/spfx/compatibility
 - SP REST(リスト項目 CRUD / etag): https://learn.microsoft.com/sharepoint/dev/sp-add-ins/working-with-lists-and-list-items-with-rest
 - PnP.PowerShell: https://pnp.github.io/powershell/
