@@ -27,6 +27,7 @@
 | --- | --- |
 | [`ctn-spfx/docs/引き継ぎ.md`](ctn-spfx/docs/引き継ぎ.md) | **作業を再開するとき最初に読む。** 現在の状態・踏んだ落とし穴・再開手順 |
 | [`ctn-spfx/docs/構築・デプロイ手順.md`](ctn-spfx/docs/構築・デプロイ手順.md) | **ゼロから組み立て直す手順。** 環境・リスト構築・パッケージ化・デプロイ・権限・外部招待・更新・移行 |
+| [`ctn-spfx/docs/ライブラリ配信の仕組み.md`](ctn-spfx/docs/ライブラリ配信の仕組み.md) | **管理者への登録依頼を繰り返さずに更新できる理由と境界。** 成立の3条件・依頼が要る変更の一覧・判定方法・制約 |
 | [`ctn-spfx/docs/IT依頼-これを渡す.md`](ctn-spfx/docs/IT依頼-これを渡す.md) | SharePoint 管理者への依頼内容 |
 | [`ctn-spfx/docs/spfx-methodology.md`](ctn-spfx/docs/spfx-methodology.md) | なぜこの方式か、設計トレードオフ |
 
