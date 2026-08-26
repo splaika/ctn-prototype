@@ -51,6 +51,20 @@ export interface ICtnSuiteWebPartProps {
    * 埋め込んでいる（文言ファイルはハッシュ付きの名前でマニフェストから参照される）。
    */
   fillViewport?: boolean;
+  /**
+   * true で「画面の幅に合わせる」。SharePoint 標準セクションの幅制限（約1200px・
+   * 中央寄せ）を、祖先のキャンバス要素から取り除いて全幅にする。
+   *
+   * 幅は Web パーツ側では決められずセクションのレイアウトで決まる、というのが
+   * SharePoint の建前で、正攻法は「全幅列セクション」への配置（`supportsFullBleed`
+   * は対応済）。ただし全幅列はコミュニケーションサイト向けの機能で、**チームサイトでは
+   * レイアウトの選択肢に出ない**。配置先のサイト種別を選べない場面があるため、
+   * Web パーツ側から外す道も用意する。
+   *
+   * fillViewport と同じ理由で preconfiguredEntries には**入れず**、ラベルも
+   * loc/en-us.js を使わず直接埋め込む（マニフェストが変わると IT 依頼になる）。
+   */
+  fillWidth?: boolean;
 }
 
 /** 生成CSSを一度だけ document.head へ入れる（Web パーツ複数配置でも1回） */
@@ -63,8 +77,10 @@ export default class CtnSuiteWebPart extends BaseClientSideWebPart<ICtnSuiteWebP
   private _sp: SpRestClient | undefined;
   /** 未作成のリスト。空でなければセットアップ画面を出す */
   private _missingLists: string[] = [];
-  /** fillViewport のときだけ張るリサイズ監視。onDispose で外す */
+  /** fillViewport / fillWidth のときだけ張るリサイズ監視。onDispose で外す */
   private _onResize: (() => void) | undefined;
+  /** fillWidth で幅制限を外した祖先要素と、触る前の inline style。戻せるように控える */
+  private _widened: { el: HTMLElement; maxWidth: string; width: string }[] = [];
 
   protected async onInit(): Promise<void> {
     this._injectStyles();
@@ -169,6 +185,9 @@ export default class CtnSuiteWebPart extends BaseClientSideWebPart<ICtnSuiteWebP
     const cultureName = this.context.pageContext.cultureInfo.currentUICultureName || "";
     const initialLang: Lang = cultureName.toLowerCase().indexOf("ja") === 0 ? "ja" : "en";
 
+    this._applyWidth();
+    // 幅を先に決めてから高さを測る。全幅にすると折り返しが変わって Web パーツの
+    // 上端位置が動くことがあり、逆順だと fillViewport の実測が1フレーム古くなる。
     this._applyHeight();
     this._watchViewport();
 
@@ -218,9 +237,70 @@ export default class CtnSuiteWebPart extends BaseClientSideWebPart<ICtnSuiteWebP
     this.domElement.style.setProperty("--ctn-host-height", `${height}px`);
   }
 
-  /** ウィンドウのリサイズで高さを追随させる（fillViewport のときだけ） */
+  /**
+   * 幅を決める。
+   *
+   * SharePoint の標準セクションは中央寄せ＋幅上限で、Web パーツはその内側に
+   * 押し込まれる。余白の出どころは Web パーツではなくページ側なので、自分の
+   * domElement を広げても効かない。**祖先のキャンバス要素の幅制限を外す**のが
+   * 唯一の手（ページのレイアウトを全幅列にできない場合）。
+   *
+   * 実測（2026-08-26・`dia-product-demo/SitePages/ctn-suite-demo.aspx`・幅1920px）:
+   * ```
+   * data-automation-id="CanvasControl"                 max-width:none  padding:8px
+   * data-automation-id="CanvasSection"                 max-width:none  padding:8px
+   * data-automation-id="CanvasZone-SectionContainer"   max-width:1236px  ← 犯人
+   * data-automation-id="CanvasZone"                    max-width:none  padding:16px
+   * ```
+   * **上限を持っているのは `CanvasZone-SectionContainer` だけ**で、`CanvasZone` 自体は
+   * `none` だった。ただし将来どこに移るか分からないので、キャンバスの階層はまとめて外す。
+   * これで 1204px → 1535px（右余白 375px → 44px。残りは各層の padding 合計32px と
+   * スクロールバー）。横スクロールは発生せず、KPI グリッドは5列に展開することを確認済み。
+   *
+   * クラス名（`r_R06PK_y298L` のようなハッシュ付き）はビルドごとに変わるので
+   * `data-automation-id` を主に見て、取れない場合に備えてクラス名でも拾う。触った要素は
+   * 控えておき、オフに戻したときと onDispose で元に戻す（ページに痕跡を残さない）。
+   */
+  private _applyWidth(): void {
+    this._restoreWidth();
+    if (!this.properties.fillWidth) return;
+
+    const CANVAS_IDS = [
+      "CanvasZone",
+      "CanvasZone-SectionContainer",
+      "CanvasSection",
+      "CanvasControl",
+      "ControlZone",
+    ];
+    let el: HTMLElement | null = this.domElement.parentElement;
+    while (el && el !== document.body) {
+      const automationId = el.getAttribute("data-automation-id") || "";
+      const className = typeof el.className === "string" ? el.className : "";
+      if (CANVAS_IDS.indexOf(automationId) >= 0 || /CanvasZone|CanvasSection/.test(className)) {
+        this._widened.push({ el, maxWidth: el.style.maxWidth, width: el.style.width });
+        // SharePoint 側は class 由来のスタイルなので !important で確実に上書きする
+        el.style.setProperty("max-width", "none", "important");
+        el.style.setProperty("width", "100%", "important");
+      }
+      el = el.parentElement;
+    }
+  }
+
+  /** _applyWidth で触った要素を元に戻す */
+  private _restoreWidth(): void {
+    for (const w of this._widened) {
+      w.el.style.removeProperty("max-width");
+      w.el.style.removeProperty("width");
+      // 元から inline で指定されていた場合だけ書き戻す
+      if (w.maxWidth) w.el.style.maxWidth = w.maxWidth;
+      if (w.width) w.el.style.width = w.width;
+    }
+    this._widened = [];
+  }
+
+  /** ウィンドウのリサイズで高さ・幅を追随させる（fillViewport / fillWidth のときだけ） */
   private _watchViewport(): void {
-    if (!this.properties.fillViewport) {
+    if (!this.properties.fillViewport && !this.properties.fillWidth) {
       this._unwatchViewport();
       return;
     }
@@ -229,7 +309,12 @@ export default class CtnSuiteWebPart extends BaseClientSideWebPart<ICtnSuiteWebP
     this._onResize = () => {
       // リサイズ中に毎回測ると重いので落ち着いてから反映する
       if (timer !== undefined) window.clearTimeout(timer);
-      timer = window.setTimeout(() => this._applyHeight(), 120);
+      timer = window.setTimeout(() => {
+        // 編集モードなどで SharePoint がセクションを描き直すと inline style が
+        // 消える。リサイズのたびに張り直しておく
+        this._applyWidth();
+        this._applyHeight();
+      }, 120);
     };
     window.addEventListener("resize", this._onResize);
   }
@@ -256,6 +341,15 @@ export default class CtnSuiteWebPart extends BaseClientSideWebPart<ICtnSuiteWebP
       return;
     }
 
+    // 幅の切替はその場で反映する（再描画は不要）。全幅にすると上端がずれることが
+    // あるので高さも測り直す
+    if (propertyPath === "fillWidth" && oldValue !== newValue) {
+      this._applyWidth();
+      this._applyHeight();
+      this._watchViewport();
+      return;
+    }
+
     if (propertyPath !== "dataSource" || oldValue === newValue) return;
 
     this._initRepository()
@@ -268,6 +362,8 @@ export default class CtnSuiteWebPart extends BaseClientSideWebPart<ICtnSuiteWebP
 
   protected onDispose(): void {
     this._unwatchViewport();
+    // Web パーツを外してもページのセクションが広がったままにならないようにする
+    this._restoreWidth();
     ReactDom.unmountComponentAtNode(this.domElement);
   }
 
@@ -299,6 +395,11 @@ export default class CtnSuiteWebPart extends BaseClientSideWebPart<ICtnSuiteWebP
                 // ラベルは loc/en-us.js を使わず直接埋め込む。文言ファイルは
                 // ハッシュ付きの名前でマニフェストから参照されるため、変更すると
                 // アプリカタログへの再登録＝IT 依頼が必要になる。
+                PropertyPaneToggle("fillWidth", {
+                  label: "画面の幅に合わせる",
+                  onText: "オン",
+                  offText: "オフ（セクションの幅に従う）",
+                }),
                 PropertyPaneToggle("fillViewport", {
                   label: "画面の高さに合わせる",
                   onText: "オン",
