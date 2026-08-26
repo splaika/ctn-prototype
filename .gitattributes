@@ -1,0 +1,4 @@
+# SPFx のマニフェストは文言バンドルをハッシュ付きの名前で参照する。改行コードが
+# 変わるだけでハッシュが変わり、アプリカタログへの再登録＝IT 依頼が発生する。
+# core.autocrlf の設定に関わらず LF で固定する。
+ctn-spfx/src/webparts/*/loc/*.js text eol=lf
