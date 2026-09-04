@@ -29,9 +29,14 @@ export function Kpi({ label, value, meta, tone, onClick }: { label: string; valu
 }
 
 // ---- 「要確認」バッジ（設計上の未確定箇所） ----
-export function UnconfirmedBadge({ label }: { label?: string }) {
+/**
+ * 要確認バッジ。title に「何が未確定なのか」を必ず出す。
+ * 手引きとの突合（2026-09）で確定した項目からは外し、残っているのは
+ * 「届書は繰り返し可だが本デモは単数入力」という実装の制約だけ。
+ */
+export function UnconfirmedBadge({ label, title }: { label?: string; title?: string }) {
   return (
-    <span className="unconf" title="設計上の未確定箇所（本番仕様は手引きと突合が必要）">
+    <span className="unconf" title={title ?? "設計上の未確定箇所（本番仕様は手引きと突合が必要）"}>
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.4}><path d="M12 9v4M12 17h.01M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z" /></svg>
       {label ?? "要確認"}
     </span>
@@ -118,14 +123,14 @@ export function FormBlock({
 }
 
 // ---- フォーム項目 ----
-export function Field({ label, required, mark, unconfirmed, hint, children, wide }: { label: string; required?: boolean; mark?: "always" | "conditional" | "optional" | "na" | "auto"; unconfirmed?: boolean; hint?: string; children: ReactNode; wide?: boolean }) {
+export function Field({ label, required, mark, unconfirmed, unconfirmedNote, hint, children, wide }: { label: string; required?: boolean; mark?: "always" | "conditional" | "optional" | "na" | "auto"; unconfirmed?: boolean; unconfirmedNote?: string; hint?: string; children: ReactNode; wide?: boolean }) {
   return (
     <div className={`field${wide ? " field-wide" : ""}`}>
       <label>
         {mark && <ReqMark mark={mark} />}
         {label}
         {required && <span className="req-star">*</span>}
-        {unconfirmed && <> <UnconfirmedBadge /></>}
+        {unconfirmed && <> <UnconfirmedBadge title={unconfirmedNote} /></>}
       </label>
       {children}
       {hint && <div className="field-hint">{hint}</div>}

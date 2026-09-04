@@ -14,12 +14,16 @@
 // ============================================================================
 import {
   APPLICABILITY_OPTIONS,
+  BIOLOGICAL_OPTIONS,
+  CARTAGENA_OPTIONS,
   DOCTOR_ROLE,
   DRUG_ROLE,
   KUBUN,
   NOTIF_TYPE_VALUE,
+  OFFICIAL_PHASE,
   SET,
   SUBJ30_OPTIONS,
+  TRIAL_POSITION_OPTIONS,
   label,
   notifTypeName,
 } from "./refData";
@@ -89,28 +93,21 @@ const coded = (display: string, codeValue?: string | number): Resolved => ({
   xmlValue: codeValue == null ? "" : String(codeValue),
 });
 
-/** 該当の有無（0/1 → 該当なし/該当あり）。未設定は空欄 */
-const applic = (v?: number): Resolved =>
-  v == null
-    ? plain("")
-    : coded(APPLICABILITY_OPTIONS.find((o) => o.value === v)?.label ?? String(v), v);
-
 /**
- * 「該当の有無等」欄。生物由来製品・臨床試験の位置付けは公式様式にこの欄しか
- * 無く、詳述の欄が別に存在しない（カルタヘナには「該当する場合の詳述」がある）。
- * 項目名の「等」がそれを含む趣旨なので、詳述があれば同じ欄に続けて出す。
- * 書式は判断が要るため画面に要確認を出している。
+ * 選択肢セットから届書に出す文字列を引く。
+ * 届書には選んだ文字列がそのまま印字される（参照出力 AMG 410 も「該当あり」
+ * 「該当なし」「新有効成分」のような文字列）。未設定は空欄。
  */
-const applicWithDetail = (v?: number, detail?: string | null): Resolved => {
-  const base = applic(v);
-  const d = txt(detail).trim();
-  if (!d) return base;
-  const merged = base.display ? `${base.display}　${d}` : d;
-  return { display: merged, xmlValue: merged };
-};
+const fromOptions = (
+  opts: readonly { value: number; label: string }[],
+  v?: number
+): Resolved => (v == null ? plain("") : coded(opts.find((o) => o.value === v)?.label ?? String(v), v));
 
-const subj30 = (v?: number): Resolved =>
-  v == null ? plain("") : coded(SUBJ30_OPTIONS.find((o) => o.value === v)?.label ?? String(v), v);
+/** 該当の有無（該当あり／該当なし）。手引き 5.2(13)3）4）・(14)2）〜5） */
+const applic = (v?: number): Resolved => fromOptions(APPLICABILITY_OPTIONS, v);
+
+/** 30日調査対応被験薬区分（新有効成分／新投与経路／新医療用配合剤）。手引き 5.2(5) */
+const subj30 = (v?: number): Resolved => fromOptions(SUBJ30_OPTIONS, v);
 
 /**
  * 届出区分は公式様式では 1 / 2 / 3 と印字される。内部は Dataverse の選択肢
@@ -309,8 +306,10 @@ export function valueOf(el: string, s: RowScope): Resolved | undefined {
     // 治験計画の概要
     case "PROTOCOLNUM":
       return plain(txt(n.protocolNo));
+    // 届書に出るのは開発相コード（半角数字1桁）。画面は「第I相」等で選ぶが、
+            // 印字は "1" になる（手引き 5.2(12)2）・参照出力 AMG 410 も "1"）
     case "PHASECLINTRIAL":
-      return n.phase == null ? plain("") : coded(label(SET.phase, n.phase), n.phase);
+      return n.phase == null ? plain("") : coded(OFFICIAL_PHASE[n.phase] ?? "", n.phase);
     case "TYPECLINTRIAL":
       return n.trialType == null ? plain("") : coded(label(SET.trialType, n.trialType), n.trialType);
     case "TRIALOBJECTIVES":
@@ -349,18 +348,17 @@ export function valueOf(el: string, s: RowScope): Resolved | undefined {
       return plain(txt(n.croService));
 
     // 主たる被験薬のその他の情報
+    // 「該当の有無等」は単なる有無ではなく、手引きが指定する区分を入力する
     case "TYPECLINTRIALWITHDRUGCARTAGENA":
-      return applic(d ? d.drugApplicCartagena : n.applicCartagena);
+      return fromOptions(CARTAGENA_OPTIONS, d ? d.drugApplicCartagena : n.applicCartagena);
     case "TYPEBIOLOGICALPROD":
-      return d
-        ? applic(d.drugApplicBiological)
-        : applicWithDetail(n.applicBiological, n.applicBiologicalDetail);
+      return fromOptions(BIOLOGICAL_OPTIONS, d ? d.drugApplicBiological : n.applicBiological);
     case "OTHERCOMMENTS_PRIMARY":
       return plain(txt(n.otherCommentsPrimary));
 
     // 当該届出に関するその他の情報
     case "TYPEEXPANDEDACCESSPROG":
-      return applicWithDetail(n.applicExpandedAccess, n.applicExpandedAccessDetail);
+      return fromOptions(TRIAL_POSITION_OPTIONS, n.applicExpandedAccess);
     case "OTHERCOMMENTS_PROTOCOL":
       return plain(txt(n.otherCommentsProtocol));
     // 「その他の情報 › その他」。その他備考（COMB_REMARKS）とは別項目

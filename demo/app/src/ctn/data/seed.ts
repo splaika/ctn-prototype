@@ -131,33 +131,33 @@ function qty(studyDrugId: string, serialNo: number, planned: number, terminal?: 
 const abcMain = (): StudyDrug => ({
   id: "sd-abc-main", drugRole: DRUG_ROLE.main, serialNo: 1, drugName: "ABC-123錠 25mg",
   plantName: "サンライズ製薬株式会社 湘南工場", plantAddress1: "神奈川県藤沢市城南4-2-1", plantAddress2: "", plantCode: "6A1234",
-  ingredients: "1錠中 ABC-123 25mg", intendEffects: "関節リウマチ", efficacyClassCode: "3999", intendDosage: "1日1回1錠を経口投与",
+  ingredients: "1錠中 ABC-123 25mg", intendEffects: "関節リウマチ", efficacyClassCode: "399", intendDosage: "1日1回1錠を経口投与",
   manufactMethod: "化学合成した ABC-123 を含有する錠剤を製剤として製する。", dosageAdmin: "1日1回1錠を経口投与する。",
 });
 const abcPlacebo = (): StudyDrug => ({
   id: "sd-abc-plc", drugRole: DRUG_ROLE.other, serialNo: 2, drugName: "ABC-123 プラセボ錠", combCategory: COMB_PLACEHOLDER,
-  idType: "識別記号", applicationStatus: "国内未承認", adrReport: "無",
+  idType: "治験識別記号", applicationStatus: "未承認", adrReport: "有",
   plantName: "サンライズ製薬株式会社 湘南工場", plantAddress1: "神奈川県藤沢市城南4-2-1", plantAddress2: "", plantCode: "6A1234",
-  ingredients: "有効成分を含まない", intendEffects: "（対照薬）", efficacyClassCode: "3999", intendDosage: "1日1回1錠を経口投与",
+  ingredients: "有効成分を含まない", intendEffects: "（対照薬）", efficacyClassCode: "399", intendDosage: "1日1回1錠を経口投与",
   manufactMethod: "被験薬と同一の外観を有する錠剤を製剤として製する。", dosageAdmin: "1日1回1錠を経口投与する。",
 });
 const srpMain = (): StudyDrug => ({
   id: "sd-srp-main", drugRole: DRUG_ROLE.main, serialNo: 1, drugName: "SRP-204注 50mg",
   plantName: "サンライズ製薬株式会社 富士工場", plantAddress1: "静岡県富士市大渕2-7", plantAddress2: "", plantCode: "6A5678",
-  ingredients: "1バイアル中 SRP-204 50mg", intendEffects: "潰瘍性大腸炎", efficacyClassCode: "2399", intendDosage: "2週間ごとに点滴静注",
+  ingredients: "1バイアル中 SRP-204 50mg", intendEffects: "潰瘍性大腸炎", efficacyClassCode: "239", intendDosage: "2週間ごとに点滴静注",
   manufactMethod: "遺伝子組換え技術により産生した SRP-204 を含有する注射剤を製剤として製する。", dosageAdmin: "2週間ごとに1バイアルを点滴静注する。",
 });
 const srpAdjunct = (): StudyDrug => ({
   id: "sd-srp-adj", drugRole: DRUG_ROLE.other, serialNo: 2, drugName: "タクロリムスカプセル（併用薬）", combCategory: 100001102,
-  idType: "一般的名称", applicationStatus: "国内承認済", adrReport: "有",
+  idType: "一般的名称", applicationStatus: "既承認", adrReport: "有",
   plantName: "アステラ製薬株式会社 高岡工場", plantAddress1: "富山県高岡市長慶寺700", plantAddress2: "", plantCode: "3B0011",
-  ingredients: "1カプセル中 タクロリムス 0.5mg", intendEffects: "（併用薬）", efficacyClassCode: "3999", intendDosage: "1日2回経口投与",
+  ingredients: "1カプセル中 タクロリムス 0.5mg", intendEffects: "（併用薬）", efficacyClassCode: "399", intendDosage: "1日2回経口投与",
   manufactMethod: "国内承認製剤を購入して用いる。", dosageAdmin: "1日2回1カプセルを経口投与する。",
 });
 const klmMain = (): StudyDrug => ({
   id: "sd-klm-main", drugRole: DRUG_ROLE.main, serialNo: 1, drugName: "KLM-330カプセル 100mg",
   plantName: "サンライズ製薬株式会社 湘南工場", plantAddress1: "神奈川県藤沢市城南4-2-1", plantAddress2: "", plantCode: "6A1234",
-  ingredients: "1カプセル中 KLM-330 100mg", intendEffects: "非小細胞肺癌", efficacyClassCode: "4291", intendDosage: "1日2回 食後経口投与",
+  ingredients: "1カプセル中 KLM-330 100mg", intendEffects: "非小細胞肺癌", efficacyClassCode: "429", intendDosage: "1日2回 食後経口投与",
 });
 
 // ===========================================================================

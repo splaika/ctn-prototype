@@ -24,6 +24,17 @@ import {
   COMB,
   SUBJ30_OPTIONS,
   APPLICABILITY_OPTIONS,
+  ADR_REPORT_DEFAULT,
+  ADR_REPORT_OPTIONS,
+  APPROVAL_STATUS_OPTIONS,
+  BIOLOGICAL_OPTIONS,
+  CARTAGENA_OPTIONS,
+  COMPOUND_CODE_MAX,
+  EFFICACY_CLASS_DIGITS,
+  ID_TYPE_OPTIONS,
+  MANUFACTURER_CODE_DIGITS,
+  REF_TYPE_OPTIONS,
+  TRIAL_POSITION_OPTIONS,
   daysUntil,
   fmtDate,
   label,
@@ -399,7 +410,7 @@ export function NotificationDetail({
       {activeTab === "basic" && (<>
       <Section title={xsdTitle("COMMONINFOCLINTRIALPLANNOTE")} sub={t("Common items — inherited from the series where possible", "共通事項。シリーズ（治験成分記号）から継承できるものは参照表示。")}>
         <div className="fblock-b">
-          <Field label={ofl("治験成分記号")} mark="always"><input className="tin" value={compound.compoundCode} disabled /></Field>
+          <Field label={ofl("治験成分記号")} mark="always" hint={t(`Alphanumerics, up to ${COMPOUND_CODE_MAX} characters (Guide 5.1(1))`, `手引き：アルファベット及び数字で計${COMPOUND_CODE_MAX}桁以内・半角`)}><input className="tin" value={compound.compoundCode} disabled /></Field>
           <Field label={ofl("治験の種類")}><input className="tin" value={compound.trialKind ?? ""} disabled /></Field>
           <Field label={ofl("初回届出受付番号")}><input className="tin" value={compound.initReceptNo ?? ""} disabled /></Field>
           <Field label={ofl("初回届出年月日")}><input className="tin" value={compound.initNoteDate ?? ""} disabled /></Field>
@@ -407,6 +418,7 @@ export function NotificationDetail({
           {show("cr_receptno") && (
             <Field label={ofl("当該届出受付番号")} mark={mk("cr_receptno")}>
               <input className="tin" value={draft.receptNo ?? ""} disabled={!editable} onChange={(e) => set((n) => (n.receptNo = e.target.value))} placeholder={draft.notifType === "plan" ? "（計画届は空欄）" : "例：R6薬第1234号"} />
+              {draft.notifType === "plan" && <div className="field-hint">{t("Guide 5.1(6): submit blank on the plan notification.", "手引き 5.1(6)：治験計画届は空欄で届出します。")}</div>}
             </Field>
           )}
           {show("cr_receptdate") && (
@@ -444,7 +456,8 @@ export function NotificationDetail({
             )}
           </Field>
           {show("cr_subj30dayreview") && (
-            <Field label={ofl("30日調査対応被験薬区分")} mark={mk("cr_subj30dayreview")} unconfirmed>
+            <Field label={ofl("30日調査対応被験薬区分")} mark={mk("cr_subj30dayreview")}
+              hint={t("Guide 5.2(5): only when the 30-day review applies. Blank for microdose studies, or when the drug has already been given to humans (state it in Remarks).", "手引き 5.2(5)：30日調査の対象となる場合のみ入力します。マイクロドーズ臨床試験、既に人に投与済みの場合は空欄とし、備考にその旨を入力します。")}>
               <select className="sel" value={draft.subj30dayReview ?? ""} disabled={!editable} onChange={(e) => set((n) => (n.subj30dayReview = e.target.value ? Number(e.target.value) : undefined))}>
                 <option value="">—</option>
                 {SUBJ30_OPTIONS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
@@ -509,7 +522,7 @@ export function NotificationDetail({
           {sponsor && <Field label={ofl("届出者の代表者氏名")}><input className="tin" value={sponsor.repName} disabled /></Field>}
           {sponsor && <Field label={ofl("届出者所在地1")}><input className="tin" value={sponsor.address1} disabled /></Field>}
           {sponsor && <Field label={ofl("届出者所在地2")}><input className="tin" value={sponsor.address2} disabled /></Field>}
-          {sponsor && <Field label={ofl("届出者業者コード")}><input className="tin" value={sponsor.manufacturerCode} disabled /></Field>}
+          {sponsor && <Field label={ofl("届出者業者コード")} hint={t(`Guide 5.2(17): ${MANUFACTURER_CODE_DIGITS} half-width digits.`, `手引き 5.2(17)：業者コードは${MANUFACTURER_CODE_DIGITS}桁。`)}><input className="tin" value={sponsor.manufacturerCode} disabled /></Field>}
         </FormBlock>
 
         {sponsor && (
@@ -523,7 +536,7 @@ export function NotificationDetail({
 
         {/* 海外依頼者、外国製造業者（該当時のみ・本デモは単数入力） */}
         <FormBlock el="INFOFOREIGNMANUFACTURER"
-          note={t("Only when applicable. This demo takes a single entry.", "該当する場合のみ入力します（本デモは単数入力）。")}>
+          note={t("Guide 5.2(18): name and address in Japanese and in the foreign language. 海外依頼者 applies when the notifier is an in-country caretaker; 外国製造業者 applies when the main drug is imported. List the 海外依頼者 first when there are several.", "手引き 5.2(18)：氏名・住所を邦文及び英文で入力します。「海外依頼者」は届出者が治験国内管理人である場合、「外国製造業者」は主たる被験薬を海外から輸入する場合。複数ある場合は海外依頼者を一番上に記載します（本デモは単数入力）。")}>
           <Field label={ofl("海外依頼者 名称（邦文）")}><input className="tin" value={draft.foreignName ?? ""} disabled={!editable} onChange={(e) => set((n) => (n.foreignName = e.target.value))} /></Field>
           <Field label={ofl("海外依頼者 氏名（邦文）")}><input className="tin" value={draft.foreignRepName ?? ""} disabled={!editable} onChange={(e) => set((n) => (n.foreignRepName = e.target.value))} /></Field>
           <Field label={ofl("海外依頼者 所在地1（邦文）")}><input className="tin" value={draft.foreignAddress1 ?? ""} disabled={!editable} onChange={(e) => set((n) => (n.foreignAddress1 = e.target.value))} /></Field>
@@ -570,36 +583,37 @@ export function NotificationDetail({
           <FormBlock el="INFODOSAGEADMIN" cols="1"
             note={t("Entered on the Study drugs tab (main investigational drug).", "この欄は「治験使用薬」タブの主たる被験薬で入力します。")} />
 
-          <FormBlock el="WHOLEDURATIONCLINTRIAL">
+          <FormBlock el="WHOLEDURATIONCLINTRIAL"
+            note={t("Guide 5.2(12)8): earliest planned contract date across sites to the latest planned end-of-observation date.", "手引き 5.2(12)8）：実施医療機関ごとの予定契約締結日のうち最も早い日から、観察終了予定日のうち最も遅い日まで。")}>
             {show("cr_periodstart") && <Field label={ofl("実施期間（開始）")} mark={mk("cr_periodstart")}><input className="tin" value={draft.periodStart ?? ""} disabled={!editable} onChange={(e) => set((n) => (n.periodStart = e.target.value))} placeholder="YYYY-MM-DD" /></Field>}
             {show("cr_periodend") && <Field label={ofl("実施期間（終了）")} mark={mk("cr_periodend")}><input className="tin" value={draft.periodEnd ?? ""} disabled={!editable} onChange={(e) => set((n) => (n.periodEnd = e.target.value))} placeholder="YYYY-MM-DD" /></Field>}
           </FormBlock>
 
           {show("cr_reasononerous") && (
             <div className="fblock-b" style={{ marginTop: "18px" }}>
-              <Field label={ofl("有償の理由等")} mark={mk("cr_reasononerous")} unconfirmed wide><textarea className="ta" value={draft.reasonOnerous ?? ""} disabled={!editable} onChange={(e) => set((n) => (n.reasonOnerous = e.target.value))} placeholder={t("Only for onerous (paid) trials", "有償治験の場合のみ")} /></Field>
+              <Field label={ofl("有償の理由等")} hint={t("Guide 5.2(12)9): blank when free of charge — trials are free of charge in principle.", "手引き 5.2(12)9）：無償の場合は空欄。治験は原則無償で、有償で譲渡する場合にその理由を記載します。")} mark={mk("cr_reasononerous")} wide><textarea className="ta" value={draft.reasonOnerous ?? ""} disabled={!editable} onChange={(e) => set((n) => (n.reasonOnerous = e.target.value))} placeholder={t("Only for onerous (paid) trials", "有償治験の場合のみ")} /></Field>
             </div>
           )}
 
           <FormBlock el="CHARGEOUTPERSONCLINTRIAL" cols="1"
-            note={t("Only when applicable. This demo takes a single entry.", "該当する場合のみ入力します（本デモは単数入力）。")}>
+            note={t("Guide 5.2(12)10): submit blank.", "手引き 5.2(12)10）：空欄とすること。")}>
             {show("cr_chargeoutperson") && <Field label={ofl("費用負担者氏名")} mark={mk("cr_chargeoutperson")}><input className="tin" value={draft.chargeOutPersonName ?? ""} disabled={!editable} onChange={(e) => set((n) => (n.chargeOutPersonName = e.target.value))} /></Field>}
             {show("cr_validityreasons") && <Field label={ofl("費用負担の妥当性の理由")} mark={mk("cr_validityreasons")} wide><textarea className="ta" value={draft.validityReasons ?? ""} disabled={!editable} onChange={(e) => set((n) => (n.validityReasons = e.target.value))} /></Field>}
           </FormBlock>
 
           <FormBlock el="INFOCOORDINVESTIGATOR"
-            note={t("This demo takes a single entry.", "本デモは単数入力です（届書は繰り返し可）。")}>
-            {show("cr_coordname") && <Field label={ofl("治験調整医師 氏名")} mark={mk("cr_coordname")} unconfirmed><input className="tin" value={draft.coordName ?? ""} disabled={!editable} onChange={(e) => set((n) => (n.coordName = e.target.value))} /></Field>}
-            {show("cr_coordinstitution") && <Field label={ofl("医療機関名")} mark={mk("cr_coordinstitution")} unconfirmed><input className="tin" value={draft.coordInstitution ?? ""} disabled={!editable} onChange={(e) => set((n) => (n.coordInstitution = e.target.value))} /></Field>}
-            {show("cr_coordaffiliation") && <Field label={ofl("所属")} mark={mk("cr_coordaffiliation")} unconfirmed><input className="tin" value={draft.coordAffiliation ?? ""} disabled={!editable} onChange={(e) => set((n) => (n.coordAffiliation = e.target.value))} /></Field>}
+            note={t("Guide 5.2(12)11): only when coordination of trial details is entrusted. This demo takes a single entry.", "手引き 5.2(12)11）：治験の細目について調整する業務を委嘱する場合に入力します（本デモは単数入力）。")}>
+            {show("cr_coordname") && <Field label={ofl("治験調整医師 氏名")} mark={mk("cr_coordname")} unconfirmed unconfirmedNote="届書はこの枠を繰り返せますが、本デモは単数入力です（複数ある場合の入力・出力は未対応）。項目の記載方法は手引きと一致しています。"><input className="tin" value={draft.coordName ?? ""} disabled={!editable} onChange={(e) => set((n) => (n.coordName = e.target.value))} /></Field>}
+            {show("cr_coordinstitution") && <Field label={ofl("医療機関名")} mark={mk("cr_coordinstitution")} unconfirmed unconfirmedNote="届書はこの枠を繰り返せますが、本デモは単数入力です（複数ある場合の入力・出力は未対応）。項目の記載方法は手引きと一致しています。"><input className="tin" value={draft.coordInstitution ?? ""} disabled={!editable} onChange={(e) => set((n) => (n.coordInstitution = e.target.value))} /></Field>}
+            {show("cr_coordaffiliation") && <Field label={ofl("所属")} mark={mk("cr_coordaffiliation")} unconfirmed unconfirmedNote="届書はこの枠を繰り返せますが、本デモは単数入力です（複数ある場合の入力・出力は未対応）。項目の記載方法は手引きと一致しています。"><input className="tin" value={draft.coordAffiliation ?? ""} disabled={!editable} onChange={(e) => set((n) => (n.coordAffiliation = e.target.value))} /></Field>}
           </FormBlock>
 
           <FormBlock el="INFOCRO"
-            note={t("This demo takes a single entry.", "本デモは単数入力です（届書は繰り返し可）。")}>
-            {show("cr_croname") && <Field label={ofl("CRO 名称")} mark={mk("cr_croname")} unconfirmed><input className="tin" value={draft.croName ?? ""} disabled={!editable} onChange={(e) => set((n) => (n.croName = e.target.value))} /></Field>}
-            {show("cr_croaddress1") && <Field label={ofl("CRO 所在地1")} mark={mk("cr_croaddress1")} unconfirmed><input className="tin" value={draft.croAddress1 ?? ""} disabled={!editable} onChange={(e) => set((n) => (n.croAddress1 = e.target.value))} /></Field>}
-            {show("cr_croaddress2") && <Field label={ofl("CRO 所在地2")} mark={mk("cr_croaddress2")} unconfirmed><input className="tin" value={draft.croAddress2 ?? ""} disabled={!editable} onChange={(e) => set((n) => (n.croAddress2 = e.target.value))} /></Field>}
-            {show("cr_croservice") && <Field label={ofl("CRO 受託業務の範囲")} mark={mk("cr_croservice")} unconfirmed wide><textarea className="ta" value={draft.croService ?? ""} disabled={!editable} onChange={(e) => set((n) => (n.croService = e.target.value))} /></Field>}
+            note={t("Guide 5.2(12)12): only when the work is (partly) outsourced. This demo takes a single entry.", "手引き 5.2(12)12）：治験の依頼及び管理に係る業務の全部又は一部を委託する場合に入力します（本デモは単数入力）。")}>
+            {show("cr_croname") && <Field label={ofl("CRO 名称")} mark={mk("cr_croname")} unconfirmed unconfirmedNote="届書はこの枠を繰り返せますが、本デモは単数入力です（複数ある場合の入力・出力は未対応）。項目の記載方法は手引きと一致しています。"><input className="tin" value={draft.croName ?? ""} disabled={!editable} onChange={(e) => set((n) => (n.croName = e.target.value))} /></Field>}
+            {show("cr_croaddress1") && <Field label={ofl("CRO 所在地1")} mark={mk("cr_croaddress1")} unconfirmed unconfirmedNote="届書はこの枠を繰り返せますが、本デモは単数入力です（複数ある場合の入力・出力は未対応）。項目の記載方法は手引きと一致しています。"><input className="tin" value={draft.croAddress1 ?? ""} disabled={!editable} onChange={(e) => set((n) => (n.croAddress1 = e.target.value))} /></Field>}
+            {show("cr_croaddress2") && <Field label={ofl("CRO 所在地2")} mark={mk("cr_croaddress2")} unconfirmed unconfirmedNote="届書はこの枠を繰り返せますが、本デモは単数入力です（複数ある場合の入力・出力は未対応）。項目の記載方法は手引きと一致しています。"><input className="tin" value={draft.croAddress2 ?? ""} disabled={!editable} onChange={(e) => set((n) => (n.croAddress2 = e.target.value))} /></Field>}
+            {show("cr_croservice") && <Field label={ofl("CRO 受託業務の範囲")} mark={mk("cr_croservice")} unconfirmed unconfirmedNote="届書はこの枠を繰り返せますが、本デモは単数入力です（複数ある場合の入力・出力は未対応）。項目の記載方法は手引きと一致しています。" wide><textarea className="ta" value={draft.croService ?? ""} disabled={!editable} onChange={(e) => set((n) => (n.croService = e.target.value))} /></Field>}
           </FormBlock>
         </Section>
 
@@ -609,15 +623,13 @@ export function NotificationDetail({
             どの治験のことかはブロックの見出しが示す（届書と同じ形）。 */}
         <Section title={xsdTitle("INFOOTHERS_PRIMARY")} sub={t("Applicability per topic — the block heading is the topic, as on the form.", "何についての該当性かはブロック見出しが示します（届書と同じ形）。")}>
           <FormBlock el="INFOCLINTRIALWITHDRUGCARTAGENA">
-            {show("cr_cartagena") && <Field label={ofl("カルタヘナ法 該当有無")} mark={mk("cr_cartagena")}><select className="sel" value={draft.applicCartagena ?? ""} disabled={!editable} onChange={(e) => set((n) => (n.applicCartagena = e.target.value === "" ? undefined : Number(e.target.value)))}><option value="">—</option>{APPLICABILITY_OPTIONS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}</select></Field>}
-            {draft.applicCartagena === 1 && <Field label={ofl("カルタヘナ法 詳細")} mark={mk("cr_cartagenadetail")} wide><textarea className="ta" value={draft.applicCartagenaDetail ?? ""} disabled={!editable} onChange={(e) => set((n) => (n.applicCartagenaDetail = e.target.value))} /></Field>}
+            {show("cr_cartagena") && <Field label={ofl("カルタヘナ法 該当有無")} mark={mk("cr_cartagena")}><select className="sel" value={draft.applicCartagena ?? ""} disabled={!editable} onChange={(e) => set((n) => (n.applicCartagena = e.target.value === "" ? undefined : Number(e.target.value)))}><option value="">—</option>{CARTAGENA_OPTIONS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}</select></Field>}
+            {draft.applicCartagena != null && draft.applicCartagena > 0 && <Field label={ofl("カルタヘナ法 詳細")} mark={mk("cr_cartagenadetail")} hint={t("Guide 5.2(13)1): approval status of the Type 1 use regulation, and whether the Type 2 containment measures are confirmed, plus the planned work level — per site when there are several.", "手引き 5.2(13)1）：第一種使用規程の承認取得状況、第二種使用等拡散防止措置確認の有無、予定される作業レベル（施設が複数ある場合は施設ごと）。")} wide><textarea className="ta" value={draft.applicCartagenaDetail ?? ""} disabled={!editable} onChange={(e) => set((n) => (n.applicCartagenaDetail = e.target.value))} /></Field>}
           </FormBlock>
 
-          {/* 生物由来製品は届書に詳述の欄が無く、欄名が「該当の有無等」。
-              詳述は同じ欄に続けて出す（書式は要確認）。 */}
-          <FormBlock el="INFOCLINTRIALWITHBIOLOGICALPROD">
-            {show("cr_biological") && <Field label={ofl("生物由来製品 該当有無")} mark={mk("cr_biological")}><select className="sel" value={draft.applicBiological ?? ""} disabled={!editable} onChange={(e) => set((n) => (n.applicBiological = e.target.value === "" ? undefined : Number(e.target.value)))}><option value="">—</option>{APPLICABILITY_OPTIONS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}</select></Field>}
-            {draft.applicBiological === 1 && <Field label={t("Detail (written into the same column)", "詳述（同じ欄に続けて出力）")} hint={t("The form has no separate detail column here; the text follows the applicability in the same column.", "届書に詳述の欄はありません。「該当の有無等」の欄に続けて出力します。")} mark={mk("cr_biologicaldetail")} unconfirmed wide><textarea className="ta" value={draft.applicBiologicalDetail ?? ""} disabled={!editable} onChange={(e) => set((n) => (n.applicBiologicalDetail = e.target.value))} /></Field>}
+          {/* 届書に詳述の欄が無いのは、手引きの4区分が詳述を兼ねているため */}
+          <FormBlock el="INFOCLINTRIALWITHBIOLOGICALPROD" cols="1">
+            {show("cr_biological") && <Field label={ofl("生物由来製品 該当有無")} mark={mk("cr_biological")} hint={t("Guide 5.2(13)2): pick the category; there is no separate detail column.", "手引き 5.2(13)2）：見込み／指定済み、生物由来／特定生物由来の区分を選びます（詳述欄はありません）。")}><select className="sel" value={draft.applicBiological ?? ""} disabled={!editable} onChange={(e) => set((n) => (n.applicBiological = e.target.value === "" ? undefined : Number(e.target.value)))}><option value="">—</option>{BIOLOGICAL_OPTIONS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}</select></Field>}
           </FormBlock>
 
           <FormBlock el="INFORESEARCHFORCODX" cols="1">
@@ -637,9 +649,13 @@ export function NotificationDetail({
 
         {/* ===== 当該届出に関するその他の情報 ===== */}
         <Section title={xsdTitle("INFOOTHERS_PROTOCOL")} sub={t("Applicability per topic — the block heading is the topic, as on the form.", "何についての該当性かはブロック見出しが示します（届書と同じ形）。")}>
-          <FormBlock el="INFOEXPANDEDACCESSPROG">
-            {show("cr_expandedaccess") && <Field label={ofl("臨床試験の位置付け（拡大治験）")} mark={mk("cr_expandedaccess")}><select className="sel" value={draft.applicExpandedAccess ?? ""} disabled={!editable} onChange={(e) => set((n) => (n.applicExpandedAccess = e.target.value === "" ? undefined : Number(e.target.value)))}><option value="">—</option>{APPLICABILITY_OPTIONS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}</select></Field>}
-            {draft.applicExpandedAccess === 1 && <Field label={t("Detail (written into the same column)", "詳述（同じ欄に続けて出力）")} hint={t("The form has no separate detail column here; the text follows the applicability in the same column.", "届書に詳述の欄はありません。「該当の有無等」の欄に続けて出力します。")} mark={mk("cr_expandedaccessdetail")} unconfirmed wide><textarea className="ta" value={draft.applicExpandedAccessDetail ?? ""} disabled={!editable} onChange={(e) => set((n) => (n.applicExpandedAccessDetail = e.target.value))} /></Field>}
+          <FormBlock el="INFOEXPANDEDACCESSPROG" cols="1">
+            {show("cr_expandedaccess") && <Field label={ofl("臨床試験の位置付け（拡大治験）")} mark={mk("cr_expandedaccess")}
+              hint={draft.applicExpandedAccess === 2
+                ? t("Guide 5.2(14)6): when choosing 拡大治験, enter “拡大治験、主たる治験の受付番号○○-○○○○” in Other below.", "手引き 5.2(14)6）：「拡大治験」を選ぶ場合は、下の「その他」に『拡大治験、主たる治験の受付番号○○-○○○○』と入力します。")
+                : t("Guide 5.2(14)1): 主たる治験 / 拡大治験 / 該当なし.", "手引き 5.2(14)1）：主たる治験・拡大治験・該当なし のいずれかを選びます。")}>
+              <select className="sel" value={draft.applicExpandedAccess ?? ""} disabled={!editable} onChange={(e) => set((n) => (n.applicExpandedAccess = e.target.value === "" ? undefined : Number(e.target.value)))}><option value="">—</option>{TRIAL_POSITION_OPTIONS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}</select>
+            </Field>}
           </FormBlock>
 
           <FormBlock el="INFOGLOBALCLINTRIAL">
@@ -657,7 +673,7 @@ export function NotificationDetail({
 
           <FormBlock el="INFOCOMBEQUIPMENT">
             {show("cr_combequipment") && <Field label={ofl("併用する機械器具等の記載")} mark={mk("cr_combequipment")}><select className="sel" value={draft.applicCombEquipment ?? ""} disabled={!editable} onChange={(e) => set((n) => (n.applicCombEquipment = e.target.value === "" ? undefined : Number(e.target.value)))}><option value="">—</option>{APPLICABILITY_OPTIONS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}</select></Field>}
-            {draft.applicCombEquipment === 1 && show("cr_combequipmentcontents") && <Field label={ofl("併用する機械器具等 内容")} mark={mk("cr_combequipmentcontents")} wide><textarea className="ta" value={draft.combEquipmentContents ?? ""} disabled={!editable} onChange={(e) => set((n) => (n.combEquipmentContents = e.target.value))} /></Field>}
+            {draft.applicCombEquipment === 1 && show("cr_combequipmentcontents") && <Field label={ofl("併用する機械器具等 内容")} mark={mk("cr_combequipmentcontents")} hint={t("Guide 5.2(14)5): class, generic name, class classification, whatever else identifies the device, and the quantity.", "手引き 5.2(14)5）：治験機器の類別・一般的名称・クラス分類・特定に必要な事項・数量を入力します。")} wide><textarea className="ta" value={draft.combEquipmentContents ?? ""} disabled={!editable} onChange={(e) => set((n) => (n.combEquipmentContents = e.target.value))} /></Field>}
           </FormBlock>
 
           {show("cr_othercommentsprotocol") && (
@@ -698,7 +714,7 @@ export function NotificationDetail({
           {/* 脚注は施設ごとではなく実施医療機関情報の末尾に1つ出る */}
           {show("cr_footnote") && (
             <div className="fblock-b one">
-              <Field label={ofl("脚注")} hint={ofHint("脚注")} mark={mk("cr_footnote")} unconfirmed wide><textarea className="ta" value={draft.footnote ?? ""} disabled={!editable} onChange={(e) => set((n) => (n.footnote = e.target.value))} /></Field>
+              <Field label={ofl("脚注")} hint={t("Guide 5.4(10): items common to every site, e.g. the allocation quantity per set. Some GCP systems cap this at 512 full-width / 1024 half-width characters.", "手引き 5.4(10)：1組当たりの割付数量など、すべての実施医療機関に共通の事項を入力します。GCP業務支援システムによっては全角512／半角1024文字の制限があります。")} mark={mk("cr_footnote")} wide><textarea className="ta" value={draft.footnote ?? ""} disabled={!editable} onChange={(e) => set((n) => (n.footnote = e.target.value))} /></Field>
             </div>
           )}
         </Section>
@@ -717,7 +733,8 @@ export function NotificationDetail({
                   <span><select className="sel sel-sm" value={r.refCategory} disabled={!editable} onChange={(e) => setRef(r.id, (x) => (x.refCategory = e.target.value))}>{options(SET.targetCategory).map((o) => <option key={o.value} value={o.label}>{o.label}</option>)}</select></span>
                   <span><input className="tin tin-sm" value={r.refCode} disabled={!editable} onChange={(e) => setRef(r.id, (x) => (x.refCode = e.target.value))} /></span>
                   <span><input className="tin tin-sm" value={r.refCount} disabled={!editable} onChange={(e) => setRef(r.id, (x) => (x.refCount = e.target.value))} /></span>
-                  <span><input className="tin tin-sm" value={r.refType} disabled={!editable} onChange={(e) => setRef(r.id, (x) => (x.refType = e.target.value))} /></span>
+                  {/* 手引き 5.5：参照の区分は「1」又は「2」を半角数字で入力する */}
+                  <span><select className="sel sel-sm" value={r.refType} disabled={!editable} onChange={(e) => setRef(r.id, (x) => (x.refType = e.target.value))}><option value="">—</option>{REF_TYPE_OPTIONS.map((o) => <option key={o} value={o}>{o}</option>)}</select></span>
                   <span><input className="tin tin-sm" value={r.refContents} disabled={!editable} onChange={(e) => setRef(r.id, (x) => (x.refContents = e.target.value))} /></span>
                   <span>{editable && <button className="icon-btn danger" onClick={() => rmReference(r.id)}>{Icon.trash}</button>}</span>
                 </div>
@@ -729,7 +746,7 @@ export function NotificationDetail({
 
       {/* ===== 添付資料 ===== */}
       {draft.notifType !== "devDiscontinuation" && (
-        <Section title={xsdTitle("DOCATTACHEDNOTE")} sub={t("Only the document name is printed on the form; type and status are operational. Files live in SharePoint (demo uses pseudo paths).", "届書に出るのは資料名だけです（資料種別・状態は運用項目）。実体はSharePoint（デモは擬似パス）。")}
+        <Section title={xsdTitle("DOCATTACHEDNOTE")} sub={t("Guide 5.2(16): only the document name is printed on the form (type and status are operational). For a first-in-human drug, state in the remarks whether the final non-clinical safety report is submitted, and why not if it isn't. Files live in SharePoint (demo uses pseudo paths).", "手引き 5.2(16)：届書に出るのは資料名だけです（資料種別・状態は運用項目）。初めてヒトに投与する薬物では、備考に非臨床安全性試験の最終報告書を提出する旨（提出しない場合はその理由）を記載します。実体はSharePoint（デモは擬似パス）。")}
           right={editable ? <Btn small onClick={() => set((n) => n.attachments.push({ id: `att-${Math.random().toString(36).slice(2, 7)}`, docType: options(SET.docType)[0].value, docName: "", spReference: "", hasBookmarks: false, hasText: false, attachStatus: ATTACH_STATUS.checking }))}>{Icon.plus} {t("Add", "追加")}</Btn> : undefined}>
           {draft.attachments.length === 0 ? <div className="rt-empty">{t("No attachments.", "添付資料はありません。")}</div> : (
             <div className="row-table">
@@ -930,23 +947,44 @@ function StudyDrugCard({ drug, editable, onField, onRemove, codes }: { drug: Stu
           {!isMain && (<>
             <div className="fblock-b">
               <Field label={ofl("医薬品等の別（薬別）")} mark="conditional"><select className="sel" value={drug.productCategory ?? ""} disabled={!editable} onChange={(e) => onField((d) => (d.productCategory = e.target.value ? Number(e.target.value) : undefined))}><option value="">—</option>{options(SET.targetCategory).map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}</select></Field>
-              <Field label={ofl("国内における承認状況")} mark="conditional" unconfirmed><input className="tin" value={drug.applicationStatus ?? ""} disabled={!editable} onChange={(e) => onField((d) => (d.applicationStatus = e.target.value))} /></Field>
+              <Field label={ofl("国内における承認状況")} mark="conditional"
+                hint={t("Guide 5.3(4): 未承認 when the active ingredient is not approved in Japan (including an overseas-approved reference biologic), 適応外 when approved but used off-label.", "手引き 5.3(4)：有効成分が国内未承認なら「未承認」（海外承認の先行バイオ医薬品を対照薬に用いる場合も未承認）、国内既承認だが適応外の使用なら「適応外」。")}>
+                <select className="sel" value={drug.applicationStatus ?? ""} disabled={!editable} onChange={(e) => onField((d) => (d.applicationStatus = e.target.value || undefined))}>
+                  <option value="">—</option>
+                  {APPROVAL_STATUS_OPTIONS.map((o) => <option key={o} value={o}>{o}</option>)}
+                </select>
+              </Field>
             </div>
 
             <FormBlock el="INFOCOMBINATIONID">
               <Field label={ofl("治験薬名称（薬別）")} mark="always"><input className="tin" value={drug.drugName} disabled={!editable} onChange={(e) => onField((d) => (d.drugName = e.target.value))} /></Field>
-              <Field label={ofl("記号・名称等の種類")} mark="conditional" unconfirmed><input className="tin" value={drug.idType ?? ""} disabled={!editable} onChange={(e) => onField((d) => (d.idType = e.target.value))} /></Field>
-              <Field label={ofl("記号・名称等の種類 詳述")}><input className="tin" value={drug.idTypeDetail ?? ""} disabled={!editable} onChange={(e) => onField((d) => (d.idTypeDetail = e.target.value))} /></Field>
+              <Field label={ofl("記号・名称等の種類")} mark="conditional"
+                hint={t("Guide 5.3(2): 被験薬 → compound code; other study drugs → generic name (JAN, else INN); devices/products → identification code.", "手引き 5.3(2)：被験薬は治験成分記号、被験薬以外の治験使用薬は一般的名称（JAN、無ければINN）、機器・製品相当は治験識別記号。")}>
+                <select className="sel" value={drug.idType ?? ""} disabled={!editable} onChange={(e) => onField((d) => (d.idType = e.target.value || undefined))}>
+                  <option value="">—</option>
+                  {ID_TYPE_OPTIONS.map((o) => <option key={o} value={o}>{o}</option>)}
+                </select>
+              </Field>
+              {/* 「その他」を選んだときだけ詳述を入力する（手引き 5.3(2)） */}
+              {drug.idType === "その他" && <Field label={ofl("記号・名称等の種類 詳述")} mark="conditional"><input className="tin" value={drug.idTypeDetail ?? ""} disabled={!editable} onChange={(e) => onField((d) => (d.idTypeDetail = e.target.value))} /></Field>}
             </FormBlock>
 
             <FormBlock el="INFOCOMBINATIONCATEGORY">
-              <Field label={ofl("区別")} mark="conditional" unconfirmed><select className="sel" value={drug.combCategory ?? ""} disabled={!editable} onChange={(e) => onField((d) => (d.combCategory = e.target.value ? Number(e.target.value) : undefined))}><option value="">—</option>{options(SET.combCategory).map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}</select></Field>
+              <Field label={ofl("区別")} mark="conditional"
+                hint={t("Guide 5.3(3): when several apply, pick in the order 被験薬 > 対照薬 > 併用薬 > レスキュー薬 > その他. Devices/products map onto the drug categories.", "手引き 5.3(3)：該当が複数ある場合は 被験薬＞対照薬＞併用薬＞レスキュー薬＞その他 の順で選びます。機器・製品相当は対応する薬の区分を選びます。")}><select className="sel" value={drug.combCategory ?? ""} disabled={!editable} onChange={(e) => onField((d) => (d.combCategory = e.target.value ? Number(e.target.value) : undefined))}><option value="">—</option>{options(SET.combCategory).map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}</select></Field>
               {drug.combCategory === COMB.other && <Field label={ofl("区別の詳述")}><input className="tin" value={drug.combCategoryOther ?? ""} disabled={!editable} onChange={(e) => onField((d) => (d.combCategoryOther = e.target.value))} /></Field>}
             </FormBlock>
 
-            <FormBlock el="COMB_INFONOTE">
-              <Field label={ofl("30日調査対応被験薬区分（薬別）")} unconfirmed><select className="sel" value={drug.drugSubj30dayReview ?? ""} disabled={!editable} onChange={(e) => onField((d) => (d.drugSubj30dayReview = e.target.value ? Number(e.target.value) : undefined))}><option value="">—</option>{SUBJ30_OPTIONS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}</select></Field>
-              <Field label={ofl("副作用報告の有無")} mark="conditional" unconfirmed><select className="sel" value={drug.adrReport ?? ""} disabled={!editable} onChange={(e) => onField((d) => (d.adrReport = e.target.value))}><option value="">—</option><option value="有">{t("Yes", "有")}</option><option value="無">{t("No", "無")}</option></select></Field>
+            <FormBlock el="COMB_INFONOTE"
+              note={t("Guide 5.3(5): follow the main drug's method. For study drugs that are not the investigational drug, filling only 成分及び分量情報 and leaving the rest blank is acceptable.", "手引き 5.3(5)：主たる被験薬の記載方法に倣います。被験薬以外の治験使用薬は「成分及び分量情報」のみを記載し、その他を空欄とすることでも差し支えありません。")}>
+              <Field label={ofl("30日調査対応被験薬区分（薬別）")}
+                hint={t("Guide 5.3(5): follow the main investigational drug. Same 30-day category even when the route differs.", "手引き 5.3(5)：主たる被験薬の記載方法に倣います。投与経路が異なる場合も同じ区分とするようPMDAの指示例があります。")}><select className="sel" value={drug.drugSubj30dayReview ?? ""} disabled={!editable} onChange={(e) => onField((d) => (d.drugSubj30dayReview = e.target.value ? Number(e.target.value) : undefined))}><option value="">—</option>{SUBJ30_OPTIONS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}</select></Field>
+              <Field label={ofl("副作用報告の有無")} mark="conditional"
+                hint={t("Guide 5.3(5): enter 有.", "手引き 5.3(5)：「有」を入力すること。")}>
+                <select className="sel" value={drug.adrReport ?? ADR_REPORT_DEFAULT} disabled={!editable} onChange={(e) => onField((d) => (d.adrReport = e.target.value))}>
+                  {ADR_REPORT_OPTIONS.map((o) => <option key={o} value={o}>{o}</option>)}
+                </select>
+              </Field>
               <Field label={ofl("その他備考（薬別）")} wide><textarea className="ta" value={drug.drugRemarks ?? ""} disabled={!editable} onChange={(e) => onField((d) => (d.drugRemarks = e.target.value))} placeholder={t("e.g. imported product note", "例：海外輸入品の記載 等")} /></Field>
             </FormBlock>
           </>)}
@@ -954,17 +992,28 @@ function StudyDrugCard({ drug, editable, onField, onRemove, codes }: { drug: Stu
           {/* ---- 製造所又は営業所（治験薬提供者） ---- */}
           <FormBlock el={gb("INFONAMEADDRESSMANUFACTPLANT", "COMB_INFONAMEADDRESSMANUFACTPLANT")}
             note={t("This demo takes a single entry.", "本デモは単数入力です（届書は繰り返し可）。")}>
-            <Field label={ofl(dk("製造所名称"))} mark="always" unconfirmed><input className="tin" value={drug.plantName} disabled={!editable} onChange={(e) => onField((d) => (d.plantName = e.target.value))} /></Field>
-            <Field label={ofl(dk("製造所業者コード"))} mark="always"><input className="tin" value={drug.plantCode} disabled={!editable} onChange={(e) => onField((d) => (d.plantCode = e.target.value))} /></Field>
+            <Field label={ofl(dk("製造所名称"))} mark="always" unconfirmed unconfirmedNote="届書はこの枠を繰り返せますが、本デモは単数入力です（複数ある場合の入力・出力は未対応）。項目の記載方法は手引きと一致しています。"
+              hint={t("Guide 5.2(7): the plant when manufactured, the office when imported.", "手引き 5.2(7)：製造の場合は製造所、輸入の場合は営業所の名称。")}>
+              <input className="tin" value={drug.plantName} disabled={!editable} onChange={(e) => onField((d) => (d.plantName = e.target.value))} />
+            </Field>
+            <Field label={ofl(dk("製造所業者コード"))} mark="always"
+              hint={t(`Guide 5.2(7): ${MANUFACTURER_CODE_DIGITS} half-width digits. No code: last 3 digits “999” when licensed, otherwise “999999999”.`, `手引き 5.2(7)：半角数字${MANUFACTURER_CODE_DIGITS}桁。コードが付されていない場所で製造する場合は、薬機法上の許可があれば下3桁を「999」、許可が無ければ「999999999」。`)}>
+              <input className="tin" value={drug.plantCode} disabled={!editable} onChange={(e) => onField((d) => (d.plantCode = e.target.value))} />
+            </Field>
             <Field label={ofl(dk("製造所所在地1"))} mark="always"><input className="tin" value={drug.plantAddress1} disabled={!editable} onChange={(e) => onField((d) => (d.plantAddress1 = e.target.value))} /></Field>
-            <Field label={ofl(dk("製造所所在地2"))} mark="always"><input className="tin" value={drug.plantAddress2} disabled={!editable} onChange={(e) => onField((d) => (d.plantAddress2 = e.target.value))} /></Field>
+            <Field label={ofl(dk("製造所所在地2"))} mark="always"
+              hint={t("Guide 5.2(7) case note: use this when address 1 exceeds the character limit, or for a building name.", "手引き 5.2(7) 事例：所在地1の文字数制限を超える場合やビル名等はこちらに入力します。")}>
+              <input className="tin" value={drug.plantAddress2} disabled={!editable} onChange={(e) => onField((d) => (d.plantAddress2 = e.target.value))} />
+            </Field>
           </FormBlock>
 
           {/* ---- 成分及び分量情報（＋剤形コード情報） ---- */}
           <FormBlock el={gb("INFOINGREDIENTQUANTITY", "COMB_INFOINGREDIENTQUANTITY")} cols="1">
-            <Field label={ofl(dk("成分及び分量"))} mark="always" wide><textarea className="ta" value={drug.ingredients} disabled={!editable} onChange={(e) => onField((d) => (d.ingredients = e.target.value))} /></Field>
+            <Field label={ofl(dk("成分及び分量"))} mark="always"
+              hint={t("Guide 5.2(8): generic name (JAN or INN; the compound code when no generic name yet), and the content of the active ingredient per dosage unit.", "手引き 5.2(8)：成分名は一般名（JAN又はINN。未定なら治験成分記号）、分量は剤形当たりの有効成分の含量が分かるように入力します。")} wide><textarea className="ta" value={drug.ingredients} disabled={!editable} onChange={(e) => onField((d) => (d.ingredients = e.target.value))} /></Field>
           </FormBlock>
-          <FormBlock el={gb("INFODOSAGEFORMCODE", "COMB_INFODOSAGEFORMCODE")} cols="1">
+          <FormBlock el={gb("INFODOSAGEFORMCODE", "COMB_INFODOSAGEFORMCODE")} cols="1"
+            note={t("Guide 5.2(8): the first 2 alphanumerics of the 4-digit JP code, half-width.", "手引き 5.2(8)：日本薬局方が定める剤形コード（4桁）のうち頭の英数字2桁を半角で入力します。")}>
             <Field label={ofl(dk("剤形コード"))}>
               <CodePicker kind="dosageForm" codes={codes} value={drug.dosageFormCode ?? ""} disabled={!editable}
                 onChange={(v) => onField((d) => (d.dosageFormCode = v))} />
@@ -973,13 +1022,14 @@ function StudyDrugCard({ drug, editable, onField, onRemove, codes }: { drug: Stu
 
           {/* ---- 製造方法（入れ物要素の無い単独の欄） ---- */}
           <div className="fblock-b one" style={{ marginTop: "18px" }}>
-            <Field label={ofl(dk("製造方法"))} hint={ofHint(dk("製造方法"))} wide><textarea className="ta" value={drug.manufactMethod ?? ""} disabled={!editable} onChange={(e) => onField((d) => (d.manufactMethod = e.target.value))} /></Field>
+            <Field label={ofl(dk("製造方法"))} hint={t("Guide 5.2(9): make clear whether the drug substance is chemically synthesised / extracted / cultured / recombinant; state the dosage form; state manufacture vs import (for import, the country, manufacturer and the brand name there).", "手引き 5.2(9)：原薬は化学合成・抽出・培養・遺伝子組換え等の区別、製剤は剤形を明確に。製造／輸入の別を入力し、輸入の場合は原薬か製剤か、輸入先の国名・製造業者名・輸入先での販売名も入力します。")} wide><textarea className="ta" value={drug.manufactMethod ?? ""} disabled={!editable} onChange={(e) => onField((d) => (d.manufactMethod = e.target.value))} /></Field>
           </div>
 
           {/* ---- 予定される効能又は効果情報 ---- */}
           <FormBlock el={gb("INFOINTENDINDICATIONSEFFECTS", "COMB_INFOINTENDINDICATIONSEFFECTS")} cols="1">
             <Field label={ofl(dk("予定される効能効果"))} mark="always" wide><textarea className="ta" value={drug.intendEffects} disabled={!editable} onChange={(e) => onField((d) => (d.intendEffects = e.target.value))} /></Field>
-            <Field label={ofl(dk("薬効分類番号"))} mark="always">
+            <Field label={ofl(dk("薬効分類番号"))} mark="always"
+              hint={t(`Guide 5.2(10): ${EFFICACY_CLASS_DIGITS} half-width digits. When it spans two or more, the main one will do.`, `手引き 5.2(10)：半角数字${EFFICACY_CLASS_DIGITS}桁。2つ以上に跨る場合は主たる薬効分類番号で差し支えありません。`)}>
               <CodePicker kind="therapeuticClass" codes={codes} value={drug.efficacyClassCode ?? ""} disabled={!editable}
                 onChange={(v) => onField((d) => (d.efficacyClassCode = v))} />
             </Field>
@@ -992,7 +1042,8 @@ function StudyDrugCard({ drug, editable, onField, onRemove, codes }: { drug: Stu
           {/* 投与経路コードは届書では「投与経路コード情報」の中。同じ値が
               治験計画の概要側の投与経路コード情報にも出力される */}
           <FormBlock el={gb("INFOADMINROUTECODE", "COMB_INFOADMINROUTECODE")}
-            under={gb("INFOINTENDDOSAGEADMIN", "COMB_INFOINTENDDOSAGEADMIN")} cols="1">
+            under={gb("INFOINTENDDOSAGEADMIN", "COMB_INFOINTENDDOSAGEADMIN")} cols="1"
+            note={t("Guide 5.2(11): 2 half-width digits.", "手引き 5.2(11)：投与経路コード情報（2桁）は半角数字で入力します。")}>
             <Field label={ofl(dk("投与経路コード"))}>
               <CodePicker kind="adminRoute" codes={codes} value={drug.adminRouteCode ?? ""} disabled={!editable}
                 onChange={(v) => onField((d) => (d.adminRouteCode = v))} />
@@ -1001,8 +1052,10 @@ function StudyDrugCard({ drug, editable, onField, onRemove, codes }: { drug: Stu
 
           {/* ---- 治験計画の概要（薬ごとの用法及び用量／対象疾患） ---- */}
           <FormBlock el={gb("INFODOSAGEADMIN", "COMB_INFODOSAGEADMIN")} cols="1">
-            {!isMain && <Field label={ofl("対象疾患（薬別）")}><input className="tin" value={drug.drugTargetDisease ?? ""} disabled={!editable} onChange={(e) => onField((d) => (d.drugTargetDisease = e.target.value))} /></Field>}
-            <Field label={ofl(dk("用法及び用量"))} mark="always" unconfirmed wide><textarea className="ta" value={drug.dosageAdmin ?? ""} disabled={!editable} onChange={(e) => onField((d) => (d.dosageAdmin = e.target.value))} /></Field>
+            {!isMain && <Field label={ofl("対象疾患（薬別）")}
+              hint={t("Guide 5.2(12)6): the specific disease name. Say so when healthy volunteers are the subjects.", "手引き 5.2(12)6）：具体的な疾患名を入力します。健康人を対象とする場合はその旨を入力します。")}><input className="tin" value={drug.drugTargetDisease ?? ""} disabled={!editable} onChange={(e) => onField((d) => (d.drugTargetDisease = e.target.value))} /></Field>}
+            <Field label={ofl(dk("用法及び用量"))} mark="always"
+              hint={t("Guide 5.2(12)7): the dosage and administration actually used, in detail.", "手引き 5.2(12)7）：用いられる用法及び用量を詳細に入力します。")} wide><textarea className="ta" value={drug.dosageAdmin ?? ""} disabled={!editable} onChange={(e) => onField((d) => (d.dosageAdmin = e.target.value))} /></Field>
           </FormBlock>
 
           {/* ---- その他の情報（薬別のみ。主たる被験薬は「治験計画の概要」タブ側） ---- */}
@@ -1091,9 +1144,12 @@ function SiteCard({
               {(activeInstitutions.find((i) => i.id === site.institutionId)?.departments ?? []).map((d) => <option key={d} value={d} />)}
             </datalist>
           </Field>
-          <Field label={ofl("予定被験者数")} mark="always"><input type="number" className="tin tin-sm" value={site.plannedSubjects} disabled={!editable} onChange={(e) => onField((s) => (s.plannedSubjects = Number(e.target.value)))} /></Field>
-          {terminal && <Field label={ofl("実施医療機関被験者数")} mark="always"><input type="number" className="tin tin-sm" value={site.enrolledSubjects ?? ""} disabled={!editable} onChange={(e) => onField((s) => (s.enrolledSubjects = Number(e.target.value)))} /></Field>}
-          <Field label={ofl("その他")} unconfirmed><input className="tin tin-sm" value={site.others ?? ""} disabled={!editable} onChange={(e) => onField((s) => (s.others = e.target.value))} /></Field>
+          <Field label={ofl("予定被験者数")} mark="always"
+            hint={t("Guide 5.4(5): per site, including both the drug arm and the control arm.", "手引き 5.4(5)：実施医療機関ごとの予定被験者数（被験薬群及び対照薬群を含む）。")}><input type="number" className="tin tin-sm" value={site.plannedSubjects} disabled={!editable} onChange={(e) => onField((s) => (s.plannedSubjects = Number(e.target.value)))} /></Field>
+          {terminal && <Field label={ofl("実施医療機関被験者数")} mark="always"
+            hint={t("Guide 5.4(6): blank on the plan notification; filled on the completion / discontinuation notification.", "手引き 5.4(6)：治験計画届では空欄。終了届・中止届で入力します。")}><input type="number" className="tin tin-sm" value={site.enrolledSubjects ?? ""} disabled={!editable} onChange={(e) => onField((s) => (s.enrolledSubjects = Number(e.target.value)))} /></Field>}
+          <Field label={ofl("その他")}
+            hint={t("Guide 5.4(9): anything to note about this particular site.", "手引き 5.4(9)：各実施医療機関に関する特記事項があれば入力します。")}><input className="tin tin-sm" value={site.others ?? ""} disabled={!editable} onChange={(e) => onField((s) => (s.others = e.target.value))} /></Field>
         </FormBlock>
 
         <FormBlock el="INFOSMOINMEDINST"
@@ -1105,7 +1161,7 @@ function SiteCard({
         </FormBlock>
 
         <FormBlock el="INFOIRB"
-          note={t("Selected from the master; type and address come from it.", "マスタから選択します。院内・外部の区分と所在地は登録内容が出力されます。")}>
+          note={t("Guide 5.4(8): entering “院内IRB” is enough for an IRB set up by the head of this site alone (no name/address needed). For a jointly established IRB, give its name and the address of its secretariat.", "手引き 5.4(8)：当該実施医療機関の長が単独で設置した治験審査委員会なら「院内IRB」と入力すれば設置者の名称・所在地は不要。共同設置の場合は委員会の名称と事務局の所在地を入力します。")}>
           <Field label={ofl("IRB")} mark="always"><select className="sel sel-sm" value={site.irbId} disabled={!editable} onChange={(e) => onField((s) => (s.irbId = e.target.value))}><option value="">{t("Select IRB…", "IRBを選択…")}</option>{activeIrbs.map((i) => <option key={i.id} value={i.id}>{i.ownerName}</option>)}</select></Field>
         </FormBlock>
 
@@ -1146,7 +1202,7 @@ function SiteCard({
       {/* 数量マトリクス */}
       {draft.studyDrugs.length > 0 && (
         <div className="qty">
-          <div className="qty-h">{xsdLabel("INFOQUANTITIESINVESTPRODUCT")}{terminal && <UnconfirmedBadge label={t("supply→abrogation required", "交付〜廃棄が必須")} />}</div>
+          <div className="qty-h" title={t("Guide 5.4(4): planned supply quantity per type (dosage form, content). For a set-based double-blind design you may enter the number of sets and put the breakdown in the footnote.", "手引き 5.4(4)：予定交付（入手）数量を種類（剤形・含量）別に入力。組単位で割付する二重盲検では組数を入力し、1組当たりの内訳を脚注に示すことができます。")}>{xsdLabel("INFOQUANTITIESINVESTPRODUCT")}{terminal && <UnconfirmedBadge label={t("supply→abrogation required", "交付〜廃棄が必須")} />}</div>
           <table className="qty-tbl">
             <thead><tr><th>{ofl("治験使用薬の名称")}</th><th>{ofl("予定交付（入手）数量")}</th>{terminal && <><th>{ofl("交付数量")}</th><th>{ofl("使用数量")}</th><th>{ofl("回収数量")}</th><th>{ofl("廃棄数量")}</th></>}</tr></thead>
             <tbody>

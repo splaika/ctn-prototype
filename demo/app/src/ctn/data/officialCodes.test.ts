@@ -14,6 +14,7 @@ import {
   DOSAGE_FORM_GROUPS,
   OFFICIAL_CODES,
   THERAPEUTIC_CLASS_CODES,
+  THERAPEUTIC_CLASS_GROUPS,
 } from "./officialCodes";
 import { CODES, makeSeedDb } from "./seed";
 
@@ -92,10 +93,25 @@ describe("コード表全体", () => {
     expect(OFFICIAL_CODES.filter((c) => !c.active)).toEqual([]);
   });
 
-  it("薬効分類番号は入手できた分だけ（推測で埋めない）", () => {
-    // 全表が手元に無いことを明示するための検査。入手したら件数を上げる。
-    expect(THERAPEUTIC_CLASS_CODES.length).toBeGreaterThan(0);
-    expect(THERAPEUTIC_CLASS_CODES.every((c) => /^[0-9]{3,4}$/.test(c.code))).toBe(true);
+  it("薬効分類番号は手引きの表と同じ件数（179件）", () => {
+    expect(THERAPEUTIC_CLASS_CODES).toHaveLength(179);
+  });
+
+  it("薬効分類番号はすべて3桁の半角数字（手引き 5.2(10)：3桁）", () => {
+    const bad = THERAPEUTIC_CLASS_CODES.filter((c) => !/^[0-9]{3}$/.test(c.code));
+    expect(bad.map((c) => c.code)).toEqual([]);
+  });
+
+  it("薬効分類番号のコードが重複せず、表の順（昇順）に並ぶ", () => {
+    const codes = THERAPEUTIC_CLASS_CODES.map((c) => c.code);
+    expect(new Set(codes).size).toBe(codes.length);
+    expect(codes).toEqual([...codes].sort());
+  });
+
+  it("薬効分類番号の大分類が36件すべて使われている", () => {
+    const used = new Set(THERAPEUTIC_CLASS_CODES.map((c) => c.group));
+    expect(THERAPEUTIC_CLASS_GROUPS).toHaveLength(36);
+    expect([...THERAPEUTIC_CLASS_GROUPS].filter((g) => !used.has(g))).toEqual([]);
   });
 
   it("デモデータのマスタが公式コード表そのものである", () => {
@@ -128,15 +144,12 @@ describe("デモデータが参照するコードがマスタにある", () => {
     expect([...new Set(missing)]).toEqual([]);
   });
 
-  it("薬効分類番号は未登録が残る（全表が入手できていない）", () => {
-    // 薬効分類番号は薬価基準の分類で、手引きにも剤形コード一覧の資料にも表が無い。
-    // 推測で名称を作らないため、デモデータの一部はマスタ未登録のまま
-    // （画面では直接入力になり、登録先の案内が出る）。
-    // 全表を入手したら officialCodes.ts に足して、この期待値を [] にする。
+  it("薬効分類番号はすべてマスタにある", () => {
+    // 以前デモデータに4桁の 4291 が入っていた。手引き 5.2(10) は3桁なので 429 に直した。
     const missing = db.notifications
       .flatMap((n) => n.studyDrugs)
       .map((d) => d.efficacyClassCode)
       .filter((c) => !has("therapeuticClass", c));
-    expect([...new Set(missing)]).toEqual(["4291"]);
+    expect([...new Set(missing)]).toEqual([]);
   });
 });

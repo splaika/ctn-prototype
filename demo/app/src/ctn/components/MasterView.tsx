@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useLang } from "../../i18n";
-import { DOSAGE_FORM_GROUPS } from "../data/officialCodes";
+import { DOSAGE_FORM_GROUPS, THERAPEUTIC_CLASS_GROUPS } from "../data/officialCodes";
 import { detectGaiji } from "../logic";
 import { label, SET, options, IRB_TYPE, userById, CODE_KINDS, CODE_KIND_LABEL } from "../refData";
 import { Modal, Btn, Field, Icon, Empty } from "./common";
@@ -385,10 +385,10 @@ function CodeForm({ rec, onClose, onSave }: { rec: CodeItem | null; onClose: () 
         <Field label={t("Code", "コード")} mark="always"><input className="tin" value={v.code} onChange={on("code")} /></Field>
         <Field label={t("Name", "名称")} mark="always"><input className="tin" value={v.name} onChange={on("name")} /></Field>
         {/* 分類は剤形コードだけが持つ（手引きの表の見出し）。候補から選べるが直接入力もできる */}
-        <Field label={t("Category", "分類")} hint={t("Dosage form codes only — the heading in the Guide's table.", "剤形コードのみ。手引きの表の見出しです。")}>
+        <Field label={t("Category", "分類")} hint={t("Dosage form / therapeutic class codes — the heading in the Guide's table.", "剤形コード・薬効分類番号の分類（手引きの表の見出し）。投与経路コードの表に見出しはありません。")}>
           <input className="tin" list="code-groups" value={v.group ?? ""} onChange={(e) => setV((x) => ({ ...x, group: e.target.value || undefined }))} />
           <datalist id="code-groups">
-            {DOSAGE_FORM_GROUPS.map((g) => <option key={g} value={g} />)}
+            {[...DOSAGE_FORM_GROUPS, ...THERAPEUTIC_CLASS_GROUPS].map((g) => <option key={g} value={g} />)}
           </datalist>
         </Field>
       </div>

@@ -318,11 +318,9 @@ export interface Notification {
   chargeOutPersonName?: string; // 費用負担者氏名（CHARGEOUTPERSONNAME）
   validityReasons?: string; // 費用負担の妥当性の理由（VALIDITYREASONS）
   applicBiological?: number; // 生物由来製品 該当有無（TYPEBIOLOGICALPROD/APPLICABLEORNOT）
-  applicBiologicalDetail?: string; // 生物由来製品 詳細（DETAIL）
   applicCartagena?: number; // カルタヘナ法 該当有無（TYPECLINTRIALWITHDRUGCARTAGENA）
   applicCartagenaDetail?: string;
   applicExpandedAccess?: number; // 拡大治験 該当有無（TYPEEXPANDEDACCESSPROG）
-  applicExpandedAccessDetail?: string;
   otherCommentsPrimary?: string; // その他コメント・主たる被験薬（OTHERCOMMENTS_PRIMARY）
   otherCommentsProtocol?: string; // その他コメント・治験計画書（OTHERCOMMENTS_PROTOCOL）
   // ---- 「その他の情報」該当性トグル（INFONOTE配下・XSD v3.0.0。カルタヘナ/生物由来と兄弟要素） ----

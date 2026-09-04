@@ -11,7 +11,7 @@
     "legend": {
       "required": "◎=常時必須 / ○=届出種別により必須 / △=任意 / 計算=自動 / ◎(system)=標準列",
       "requiredByType": "計画届/変更届/中止届/終了届/開発中止届 の順",
-      "status": "「要確認」=手引き・XSDと突合して確定させる箇所。デモでは仮実装可・本番判断には使用しない"
+      "status": "「要確認」=手引き・XSDと突合して確定させる箇所。2026-09 に手引き（2024年3月版）と全件突合し、残っているのは「届書は繰り返し可だが本デモは単数入力」の枠のみ。確定した項目は note に手引きの参照箇所を書いてある。"
     }
   },
   "tables": [
@@ -278,7 +278,8 @@
           "xsdLevelStatus": "ルート・UPDATE型",
           "requiredByType": "◎/◎/◎/◎/◎",
           "notes": "XSD突合で追加。当該届出年月日と別要素であることを手引きと要確認",
-          "status": "要確認"
+          "status": "設計済",
+          "note": "手引き 5.2(1)：当該届出の届出年月日を入力する。"
         },
         {
           "displayName": "届出区分",
@@ -314,7 +315,8 @@
           "xsdLevelStatus": "ルート・UPDATE型（値なし可）",
           "requiredByType": "○/○/―/―/―",
           "notes": "XSD突合で追加。コード値の定義を手引きと要確認",
-          "status": "要確認"
+          "status": "設計済",
+          "note": "手引き 5.2(5)：30日調査の対象となる場合に「新有効成分」「新投与経路」「新医療用配合剤」のいずれかを入力。マイクロドーズ臨床試験・既に人に投与済みの場合は空欄とし備考に記載。選択肢は refData.ts の SUBJ30_OPTIONS。"
         },
         {
           "displayName": "30日調査対象",
@@ -350,7 +352,8 @@
           "xsdLevelStatus": "―",
           "requiredByType": "◎/◎/―/―/―",
           "notes": "実施期間（開始）と同値になる想定 → 一本化の要否を要確認",
-          "status": "要確認"
+          "status": "設計済",
+          "note": "届書には出力しない運用項目（提出期限の起点。30日調査対象は−30日／N回届は−14日）。実施期間の開始日とは別に入力する。"
         },
         {
           "displayName": "提出期限",
@@ -656,7 +659,8 @@
           "xsdLevelStatus": "ルート・UPDATE型",
           "requiredByType": "○/○/―/―/―",
           "notes": "XSD突合で追加。表示条件（有償該当時）を要確認",
-          "status": "要確認"
+          "status": "設計済",
+          "note": "手引き 5.2(12)9）：無償の場合は空欄。治験は原則無償で、有償で譲渡する場合に理由を記載する。"
         },
         {
           "displayName": "備考（通信欄）",
@@ -692,7 +696,8 @@
           "xsdLevelStatus": "ルート・UPDATE型",
           "requiredByType": "△/△/△/△/△",
           "notes": "XSD突合で追加。バイト数制限はXSDに無いため業務ロジックで実装",
-          "status": "要確認"
+          "status": "設計済",
+          "note": "手引き 5.4(10)：1組当たりの割付数量など全実施医療機関に共通の事項。GCP業務支援システムによっては全角512／半角1024文字の制限がある。"
         },
         {
           "displayName": "GW受付番号",
@@ -782,7 +787,8 @@
           "xsdLevelStatus": "NONE",
           "requiredByType": "△/△/△/△/―",
           "notes": "コード値は手引き突合が必要（要確認）。",
-          "status": "要確認"
+          "status": "設計済",
+          "note": "手引き 5.2(13)2）：生物由来製品（見込み／指定済み）・特定生物由来製品（見込み／指定済み）・該当なしの5区分。詳述の欄は無い（区分が詳述を兼ねる）。選択肢は refData.ts の BIOLOGICAL_OPTIONS。"
         },
         {
           "displayName": "生物由来製品 詳細",
@@ -818,7 +824,8 @@
           "xsdLevelStatus": "NONE",
           "requiredByType": "△/△/△/△/―",
           "notes": "",
-          "status": "要確認"
+          "status": "設計済",
+          "note": "手引き 5.2(13)1）：第一種／第二種／第一種及び第二種／該当なし。該当時は「該当する場合の詳述」に承認取得状況・拡散防止措置確認の有無・作業レベルを入力。選択肢は refData.ts の CARTAGENA_OPTIONS。"
         },
         {
           "displayName": "カルタヘナ法 詳細",
@@ -854,7 +861,8 @@
           "xsdLevelStatus": "NONE",
           "requiredByType": "△/△/△/△/―",
           "notes": "",
-          "status": "要確認"
+          "status": "設計済",
+          "note": "手引き 5.2(14)1）：主たる治験／拡大治験／該当なし。拡大治験の場合は「その他」に主たる治験の受付番号を記載。選択肢は refData.ts の TRIAL_POSITION_OPTIONS。"
         },
         {
           "displayName": "拡大治験 詳細",
@@ -926,7 +934,8 @@
           "xsdLevelStatus": "NONE",
           "requiredByType": "△/△/△/△/―",
           "notes": "INFOCROは繰り返し可。本デモは単数入力（複数対応は要確認）。",
-          "status": "要確認"
+          "status": "要確認",
+          "note": "記載方法は手引きと一致（CRO＝5.2(12)12）／治験調整医師＝5.2(12)11）／製造所＝5.2(7)）。届書はこの枠を繰り返せるが本デモは単数入力のため要確認のまま。"
         },
         {
           "displayName": "CRO 所在地1",
@@ -944,7 +953,8 @@
           "xsdLevelStatus": "NONE",
           "requiredByType": "△/△/△/△/―",
           "notes": "",
-          "status": "要確認"
+          "status": "要確認",
+          "note": "記載方法は手引きと一致（CRO＝5.2(12)12）／治験調整医師＝5.2(12)11）／製造所＝5.2(7)）。届書はこの枠を繰り返せるが本デモは単数入力のため要確認のまま。"
         },
         {
           "displayName": "CRO 所在地2",
@@ -962,7 +972,8 @@
           "xsdLevelStatus": "NONE",
           "requiredByType": "△/△/△/△/―",
           "notes": "",
-          "status": "要確認"
+          "status": "要確認",
+          "note": "記載方法は手引きと一致（CRO＝5.2(12)12）／治験調整医師＝5.2(12)11）／製造所＝5.2(7)）。届書はこの枠を繰り返せるが本デモは単数入力のため要確認のまま。"
         },
         {
           "displayName": "CRO 受託業務の範囲",
@@ -980,7 +991,8 @@
           "xsdLevelStatus": "NONE",
           "requiredByType": "△/△/△/△/―",
           "notes": "",
-          "status": "要確認"
+          "status": "要確認",
+          "note": "記載方法は手引きと一致（CRO＝5.2(12)12）／治験調整医師＝5.2(12)11）／製造所＝5.2(7)）。届書はこの枠を繰り返せるが本デモは単数入力のため要確認のまま。"
         },
         {
           "displayName": "治験調整医師 氏名",
@@ -998,7 +1010,8 @@
           "xsdLevelStatus": "NONE",
           "requiredByType": "△/△/△/△/―",
           "notes": "INFOCOORDINVESTIGATORは繰り返し可。本デモは単数入力（複数対応は要確認）。",
-          "status": "要確認"
+          "status": "要確認",
+          "note": "記載方法は手引きと一致（CRO＝5.2(12)12）／治験調整医師＝5.2(12)11）／製造所＝5.2(7)）。届書はこの枠を繰り返せるが本デモは単数入力のため要確認のまま。"
         },
         {
           "displayName": "治験調整医師 所属",
@@ -1016,7 +1029,8 @@
           "xsdLevelStatus": "NONE",
           "requiredByType": "△/△/△/△/―",
           "notes": "",
-          "status": "要確認"
+          "status": "要確認",
+          "note": "記載方法は手引きと一致（CRO＝5.2(12)12）／治験調整医師＝5.2(12)11）／製造所＝5.2(7)）。届書はこの枠を繰り返せるが本デモは単数入力のため要確認のまま。"
         },
         {
           "displayName": "治験調整医師 医療機関名",
@@ -1034,7 +1048,8 @@
           "xsdLevelStatus": "NONE",
           "requiredByType": "△/△/△/△/―",
           "notes": "",
-          "status": "要確認"
+          "status": "要確認",
+          "note": "記載方法は手引きと一致（CRO＝5.2(12)12）／治験調整医師＝5.2(12)11）／製造所＝5.2(7)）。届書はこの枠を繰り返せるが本デモは単数入力のため要確認のまま。"
         },
         {
           "displayName": "変更年月日",
@@ -1457,7 +1472,8 @@
           "xsdLevelStatus": "子・UPDATE型",
           "requiredByType": "○/○/○/○/―",
           "notes": "XSD突合で追加。その他治験使用薬のみ",
-          "status": "要確認"
+          "status": "設計済",
+          "note": "手引き 5.3(2)：治験成分記号／治験識別記号／一般的名称／その他の4択。「その他」は詳述を入力。選択肢は refData.ts の ID_TYPE_OPTIONS。"
         },
         {
           "displayName": "区別（被験薬/対照薬/併用薬等）",
@@ -1475,7 +1491,8 @@
           "xsdLevelStatus": "子・UPDATE型",
           "requiredByType": "○/○/○/○/―",
           "notes": "XSD突合で追加。「その他」選択時は詳述必須",
-          "status": "要確認"
+          "status": "設計済",
+          "note": "手引き 5.3(3)：被験薬／対照薬／併用薬／レスキュー薬／その他。複数該当時はこの順で優先。機器・製品相当は対応する薬の区分を選ぶ。"
         },
         {
           "displayName": "国内における承認状況",
@@ -1493,7 +1510,8 @@
           "xsdLevelStatus": "子・UPDATE型",
           "requiredByType": "○/○/○/○/―",
           "notes": "XSD突合で追加",
-          "status": "要確認"
+          "status": "設計済",
+          "note": "手引き 5.3(4)：未承認／適応外／既承認の3択。選択肢は refData.ts の APPROVAL_STATUS_OPTIONS。"
         },
         {
           "displayName": "副作用報告の有無",
@@ -1511,7 +1529,8 @@
           "xsdLevelStatus": "子・UPDATE型",
           "requiredByType": "○/○/○/○/―",
           "notes": "XSD突合で追加",
-          "status": "要確認"
+          "status": "設計済",
+          "note": "手引き 5.3(5)：「有」を入力する。既定値を「有」にしている。"
         },
         {
           "displayName": "製造所名称",
@@ -1529,7 +1548,8 @@
           "xsdLevelStatus": "子・SERIALNO1・ADD型",
           "requiredByType": "◎/◎/◎/◎/―",
           "notes": "XSDは繰り返し要素 → 複数製造所が必要なら子テーブル（cr_manufactplant）化を検討",
-          "status": "要確認"
+          "status": "要確認",
+          "note": "記載方法は手引きと一致（CRO＝5.2(12)12）／治験調整医師＝5.2(12)11）／製造所＝5.2(7)）。届書はこの枠を繰り返せるが本デモは単数入力のため要確認のまま。"
         },
         {
           "displayName": "製造所所在地１",
@@ -1655,7 +1675,8 @@
           "xsdLevelStatus": "ルート/子・UPDATE型",
           "requiredByType": "◎/◎/◎/◎/―",
           "notes": "XSD突合で追加",
-          "status": "要確認"
+          "status": "設計済",
+          "note": "手引き 5.2(10)：3桁の半角数字。手引き p.77-80 の表179件をコード表マスタに取り込み済み（data/officialCodes.ts）。2つ以上に跨る場合は主たる番号でよい。"
         },
         {
           "displayName": "予定される用法用量",
@@ -1691,7 +1712,8 @@
           "xsdLevelStatus": "ルート/子・UPDATE型",
           "requiredByType": "◎/◎/◎/◎/―",
           "notes": "XSD突合で追加。「予定される用法用量」と別要素",
-          "status": "要確認"
+          "status": "設計済",
+          "note": "手引き 5.2(12)7）：用いられる用法及び用量を詳細に入力する。"
         },
         {
           "displayName": "剤形コード",
@@ -1709,7 +1731,8 @@
           "xsdLevelStatus": "子・SERIALNO1・ADD型",
           "requiredByType": "△/△/△/△/―",
           "notes": "XSD突合で追加。繰り返し要素（複数剤形）",
-          "status": "要確認"
+          "status": "設計済",
+          "note": "手引き 5.2(8)：日本薬局方の剤形コード（4桁）のうち頭の英数字2桁。手引きの表42件をコード表マスタに取り込み済み（data/officialCodes.ts）。"
         },
         {
           "displayName": "投与経路コード",
@@ -1799,7 +1822,8 @@
           "xsdLevelStatus": "子・UPDATE型（値なし可）",
           "requiredByType": "△/△/△/△/―",
           "notes": "AMG410実データ突合で追加。",
-          "status": "要確認"
+          "status": "設計済",
+          "note": "手引き 5.3(5)：主たる被験薬の記載方法に倣う。投与経路が異なる場合も同じ区分とするようPMDAの指示例がある。"
         },
         {
           "displayName": "対象疾患（薬別）",
@@ -2276,7 +2300,8 @@
           "xsdLevelStatus": "子・UPDATE型",
           "requiredByType": "△/△/△/△/―",
           "notes": "責任医師⇄分担医師の役割入替等の記載に使用（未決事項）",
-          "status": "要確認"
+          "status": "設計済",
+          "note": "手引き 5.4(9)：各実施医療機関に関する特記事項。"
         }
       ],
       "kind": "明細",
@@ -2375,7 +2400,8 @@
           "xsdLevelStatus": "―",
           "requiredByType": "◎/◎/◎/◎/―",
           "notes": "「変更」のSTATUS表現（フラグ方式③④との対応）は手引きと要突合",
-          "status": "要確認"
+          "status": "設計済",
+          "note": "手引きには無い内部区分。XSD の ATTR_ADD_TYPE（STATUS が NONE／APPEND／DELETE）に対応させて出力する。"
         },
         {
           "displayName": "異動日付",
@@ -2636,7 +2662,8 @@
           "xsdLevelStatus": "―",
           "requiredByType": "○/○/○/○/―",
           "notes": "XSDは全数量がstring型。「1式」等の非数値表記の扱いを要確認",
-          "status": "要確認"
+          "status": "設計済",
+          "note": "手引き 5.4(4)：予定交付（入手）数量は種類（剤形・含量）別。組単位で割付する二重盲検では組数を入力し、1組当たりの内訳を脚注に示せる。"
         },
         {
           "displayName": "交付数量",
@@ -3320,7 +3347,8 @@
           "xsdLevelStatus": "子・ADD型",
           "requiredByType": "○/○/○/○/○",
           "notes": "XSD突合で追加。列展開か子テーブル化（cr_foreignsponsor）かを要決定",
-          "status": "要確認"
+          "status": "要確認",
+          "note": "手引き 5.2(18)：氏名・住所を邦文及び英文で入力。「海外依頼者」は届出者が治験国内管理人である場合、「外国製造業者」は主たる被験薬を海外から輸入する場合。複数ある場合は海外依頼者を一番上に記載する。届書は繰り返し可だが本デモは単数入力のため要確認のまま。"
         }
       ],
       "kind": "マスタ",
@@ -3347,7 +3375,8 @@
           "xsdLevelStatus": "子・UPDATE型（展開先）",
           "requiredByType": "◎/◎/◎/◎/―",
           "notes": "",
-          "status": "要確認"
+          "status": "設計済",
+          "note": "手引き 5.4(1)：実施医療機関の名称・実施診療科・所在地・代表電話番号を入力する。"
         },
         {
           "displayName": "所在地１",
@@ -3788,7 +3817,8 @@
           "xsdLevelStatus": "―",
           "requiredByType": "―",
           "notes": "縮退マップの整備方針は未決事項",
-          "status": "要確認"
+          "status": "設計済",
+          "note": "手引き 5.2(17) 事例／PMDA FAQ Q2-13：常用漢字（JIS第1・第2水準）に置き換え、どのように置換したかを説明する資料を届書添付資料として提出する。"
         },
         {
           "displayName": "判定区分",
@@ -3897,7 +3927,7 @@
     },
     {
       "setName": "対象区分",
-      "note": "当面のスコープは医薬品",
+      "note": "手引き 5.3(1)：治験使用薬等の別は医薬品／医療機器／体外診断用医薬品／再生医療等製品の4区分。参照する治験届出情報（手引き 5.5）は体外診断用医薬品を含まない3区分。",
       "values": [
         {
           "label": "医薬品",
@@ -3910,6 +3940,10 @@
         {
           "label": "再生医療等製品",
           "value": 100000102
+        },
+        {
+          "label": "体外診断用医薬品",
+          "value": 100000103
         }
       ]
     },
@@ -3983,8 +4017,12 @@
     },
     {
       "setName": "開発の相",
-      "note": "",
+      "note": "手引き 5.2(12)2）。届書には開発相コード（半角数字1桁）が出る（早期探索的=0/第I相=1/第II相=2/第III相=3/第I/II相=4/第II/III相=5/第I/III相=6）。写像は refData.ts の OFFICIAL_PHASE。",
       "values": [
+        {
+          "label": "早期探索的臨床試験",
+          "value": 100000605
+        },
         {
           "label": "第I相",
           "value": 100000600
@@ -3992,6 +4030,10 @@
         {
           "label": "第I/II相",
           "value": 100000601
+        },
+        {
+          "label": "第I/III相",
+          "value": 100000606
         },
         {
           "label": "第II相",
