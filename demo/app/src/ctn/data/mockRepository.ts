@@ -249,7 +249,7 @@ export class MockCtnRepository implements CtnRepository {
     assertPermission(this.actorRole(actor), "deleteNotification");
     const n = this.db.notifications.find((x) => x.id === id);
     if (!n) throw new Error(`Not found: ${id}`);
-    if (n.status !== "draft") throw new Error("提出済・承認済の届は削除できません（起票中のみ削除可）。");
+    if (n.status !== "draft") throw new Error("レビュー中・提出済の届は削除できません（作成中のみ削除可）。");
     this.db.notifications = this.db.notifications.filter((x) => x.id !== id);
     const compound = this.db.compounds.find((c) => c.id === n.compoundId);
     this.pushAudit({ who: this.actorName(actor), action: "delete", entity: "治験届", entityRef: `${compound?.compoundCode ?? ""} ${NOTIF_TYPE_SHORT[n.notifType]}届`, summary: "起票中の届を削除" });

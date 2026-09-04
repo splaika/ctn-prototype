@@ -143,7 +143,6 @@ export function NotificationsView({ db, onOpen }: { db: CtnDb; onOpen: (id: stri
             <option value="all">{t("All", "すべて")}</option>
             <option value="draft">{t("Draft", "作成中")}</option>
             <option value="review">{t("In Review", "レビュー中")}</option>
-            <option value="approved">{t("Approved", "承認済み")}</option>
             <option value="submitted">{t("Submitted", "提出済み")}</option>
           </select>
         </div>

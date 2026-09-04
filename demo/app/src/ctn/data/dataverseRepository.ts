@@ -91,9 +91,6 @@ export class DataverseCtnRepository implements CtnRepository {
   async rejectNotification(): Promise<void> {
     this.fail();
   }
-  async approveNotification(): Promise<void> {
-    this.fail();
-  }
   async submitNotification(): Promise<void> {
     this.fail();
   }

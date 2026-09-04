@@ -31,6 +31,8 @@ import {
   NOTIF_TYPE_SHORT,
   userById,
   type DemoUser,
+  statusName,
+  STATUS_ORDER,
 } from "../refData";
 import { Section, Field, StatusPill, TypeBadge, Btn, Icon, UnconfirmedBadge, Modal } from "./common";
 import { requirePermission } from "../permissions";
@@ -336,15 +338,15 @@ export function NotificationDetail({
 
       {/* ===== ワークフロー進捗 ===== */}
       <div className="wf">
-        {(["draft", "review", "approved", "submitted"] as const).map((s, i) => {
-          const order = ["draft", "review", "approved", "submitted"];
-          const cur = order.indexOf(draft.status);
+        {/* 段数・順序・表示名はすべて refData の STATUS_ORDER / STATUS_LABEL が単一ソース */}
+        {STATUS_ORDER.map((s, i) => {
+          const cur = STATUS_ORDER.indexOf(draft.status);
           const state = i < cur ? "done" : i === cur ? "cur" : "todo";
-          const names = { draft: ["Draft", "作成中"], review: ["In Review", "レビュー中"], approved: ["Approved", "承認済み"], submitted: ["Submitted", "提出済み"] } as const;
+          // 表示名は refData の STATUS_LABEL が単一ソース（ここで別に持つとズレる）
           return (
             <div key={s} className={`wf-step ${state}`}>
               <span className="wf-dot">{i < cur ? "✓" : i + 1}</span>
-              <span className="wf-name">{t(names[s][0], names[s][1])}</span>
+              <span className="wf-name">{statusName(s, lang)}</span>
             </div>
           );
         })}
