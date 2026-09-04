@@ -60,24 +60,22 @@ export const notifTypeName = (k: NotifTypeKey, lang: Lang) =>
   lang === "ja" ? NOTIF_TYPE_LABEL[k][1] : NOTIF_TYPE_LABEL[k][0];
 
 // ---- ステータス <-> choice値 / 表示 ----
+// choice値は SharePoint 側の既存データと整合させるため据え置く（承認済=…302 は欠番）
 export const STATUS_VALUE: Record<StatusKey, number> = {
   draft: 100000300,
   review: 100000301,
-  approved: 100000302,
   submitted: 100000303,
 };
-export const STATUS_ORDER: StatusKey[] = ["draft", "review", "approved", "submitted"];
+export const STATUS_ORDER: StatusKey[] = ["draft", "review", "submitted"];
 export const STATUS_LABEL: Record<StatusKey, [string, string]> = {
   draft: ["Draft", "作成中"],
   review: ["In Review", "レビュー中"],
-  approved: ["Approved", "承認済み"],
   submitted: ["Submitted", "提出済み"],
 };
 // UIステータス色クラス（index.css の g/a/r と別に専用）
 export const STATUS_CLASS: Record<StatusKey, string> = {
   draft: "st-draft",
   review: "st-review",
-  approved: "st-approved",
   submitted: "st-submitted",
 };
 export const statusName = (k: StatusKey, lang: Lang) =>
@@ -138,8 +136,8 @@ export interface DemoUser {
 export const USERS: DemoUser[] = [
   { id: "u-a", name: "青木 亮介", initials: "AR", role: "drafter", dept: "臨床開発部" },
   { id: "u-b", name: "別府 美咲", initials: "BM", role: "reviewer", dept: "臨床開発部" },
-  { id: "u-c", name: "千葉 健一", initials: "CK", role: "approver", dept: "開発本部" },
-  { id: "u-d", name: "土井 直樹", initials: "DN", role: "regulatory", dept: "薬事部" },
+  { id: "u-c", name: "千葉 健一", initials: "CK", role: "drafter", dept: "開発本部" },
+  { id: "u-d", name: "土井 直樹", initials: "DN", role: "reviewer", dept: "薬事部" },
 ];
 export const userById = (id: string) => USERS.find((u) => u.id === id);
 /** ロール表示名の単一ソースは permissions.ts（viewer を含む） */

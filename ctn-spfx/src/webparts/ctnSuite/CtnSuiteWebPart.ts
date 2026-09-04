@@ -121,8 +121,8 @@ export default class CtnSuiteWebPart extends BaseClientSideWebPart<ICtnSuiteWebP
       // mock はデモデータの砂場。デモ利用者（切替ドロップダウン）はそのロールで
       // 動かし、表に無いサインインユーザーは全操作を許して試せるようにする。
       // 実データに触れないため、ここを緩めても実害はない。
-      this._role = "regulatory";
-      setRepository(new MockCtnRepository((id) => userById(id)?.role ?? "regulatory"));
+      this._role = "reviewer";
+      setRepository(new MockCtnRepository((id) => userById(id)?.role ?? "reviewer"));
       return;
     }
 

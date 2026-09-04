@@ -21,7 +21,7 @@ export interface RuleSettings {
   batchMonths: number;
   /** 期限超過アラートを出す */
   overdue: boolean;
-  /** 承認済・提出待ちリマインダを出す */
+  /** レビュー中・提出待ちリマインダを出す */
   submitReminder: boolean;
   /** PMDA照会リマインダを出す */
   inquiryReminder: boolean;

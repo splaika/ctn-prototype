@@ -17,9 +17,7 @@
   "payloadVersion": "1",
   "groups": [
     { "name": "CTN 起票担当", "role": "drafter", "description": "治験届の起票・編集を行う" },
-    { "name": "CTN レビュー担当", "role": "reviewer", "description": "社内レビューを行う" },
-    { "name": "CTN 承認者", "role": "approver", "description": "承認を行う（起票者との兼務は職務分離で拒否される）" },
-    { "name": "CTN 薬事担当", "role": "regulatory", "description": "提出・XML生成を行う" }
+    { "name": "CTN レビュー担当", "role": "reviewer", "description": "社内レビュー・レビュー完了（提出）・XML生成を行う。起票者との兼務は職務分離で拒否される" }
   ],
   "lists": [
     {
@@ -33,11 +31,11 @@
         { "prop": "notifType", "name": "CtnNotifType", "type": "Choice", "choices": ["plan", "change", "termination", "completion", "devDiscontinuation"], "note": "NotifTypeKey の値をそのまま選択肢値に" },
         { "prop": "filingCount", "name": "CtnFilingCount", "type": "Number", "note": "届出回数" },
         { "prop": "changeCount", "name": "CtnChangeCount", "type": "Number", "note": "変更回数（計画届等は空）" },
-        { "prop": "status", "name": "CtnStatus", "type": "Choice", "choices": ["draft", "review", "approved", "submitted"] },
+        { "prop": "status", "name": "CtnStatus", "type": "Choice", "choices": ["draft", "review", "submitted"] },
         { "prop": "protocolNo", "name": "CtnProtocolNo", "type": "Text", "note": "実施計画書識別記号" },
         { "prop": "noteDate", "name": "CtnNoteDate", "type": "Text", "note": "届出年月日 YYYY-MM-DD（TZずれ回避のため日付型にしない）" },
         { "prop": "createdBy", "name": "CtnCreatedByUser", "type": "Text", "note": "loginName。職務分離の判定に使用" },
-        { "prop": "approvedBy", "name": "CtnApprovedByUser", "type": "Text", "note": "loginName。起票者と異なることを強制" },
+        { "prop": "reviewedBy", "name": "CtnReviewedByUser", "type": "Text", "note": "loginName。レビュー完了者。起票者と異なることを強制（職務分離）" },
         { "prop": "(集約全体)", "name": "CtnPayload", "type": "Note", "note": "Notification 集約全体の JSON（studyDrugs/sites/attachments/references/inquiries を含む）" },
         { "prop": "(スキーマ版)", "name": "CtnPayloadVersion", "type": "Text", "note": "ペイロードのスキーマ版。初期値 1" }
       ]
@@ -93,6 +91,7 @@
         { "prop": "address1", "name": "CtnAddress1", "type": "Text" },
         { "prop": "address2", "name": "CtnAddress2", "type": "Text" },
         { "prop": "telNo", "name": "CtnTelNo", "type": "Text", "note": "代表電話番号" },
+        { "prop": "departments", "name": "CtnDepartments", "type": "Note", "note": "実施診療科の候補（改行区切り）。届の実施診療科の選択肢になる" },
         { "prop": "active", "name": "CtnActive", "type": "Boolean" }
       ]
     },

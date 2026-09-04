@@ -22,9 +22,7 @@
 | グループ名 | ロール | 用途 |
 | --- | --- | --- |
 | CTN 起票担当 | `drafter` | 治験届の起票・編集を行う |
-| CTN レビュー担当 | `reviewer` | 社内レビューを行う |
-| CTN 承認者 | `approver` | 承認を行う（起票者との兼務は職務分離で拒否される） |
-| CTN 薬事担当 | `regulatory` | 提出・XML生成を行う |
+| CTN レビュー担当 | `reviewer` | 社内レビュー・レビュー完了（提出）・XML生成を行う。起票者との兼務は職務分離で拒否される |
 
 どのグループにも属さないユーザーは最小権限の `drafter` として扱われます（承認はできません）。
 
@@ -41,11 +39,11 @@
 | `notifType` | `CtnNotifType` | 選択肢（plan / change / termination / completion / devDiscontinuation） | NotifTypeKey の値をそのまま選択肢値に |
 | `filingCount` | `CtnFilingCount` | 数値 | 届出回数 |
 | `changeCount` | `CtnChangeCount` | 数値 | 変更回数（計画届等は空） |
-| `status` | `CtnStatus` | 選択肢（draft / review / approved / submitted） | — |
+| `status` | `CtnStatus` | 選択肢（draft / review / submitted） | — |
 | `protocolNo` | `CtnProtocolNo` | 1行テキスト | 実施計画書識別記号 |
 | `noteDate` | `CtnNoteDate` | 1行テキスト | 届出年月日 YYYY-MM-DD（TZずれ回避のため日付型にしない） |
 | `createdBy` | `CtnCreatedByUser` | 1行テキスト | loginName。職務分離の判定に使用 |
-| `approvedBy` | `CtnApprovedByUser` | 1行テキスト | loginName。起票者と異なることを強制 |
+| `reviewedBy` | `CtnReviewedByUser` | 1行テキスト | loginName。レビュー完了者。起票者と異なることを強制（職務分離） |
 | (集約全体) | `CtnPayload` | 複数行テキスト（プレーン） | Notification 集約全体の JSON（studyDrugs/sites/attachments/references/inquiries を含む） |
 | (スキーマ版) | `CtnPayloadVersion` | 1行テキスト | ペイロードのスキーマ版。初期値 1 |
 
@@ -104,6 +102,7 @@
 | `address1` | `CtnAddress1` | 1行テキスト | — |
 | `address2` | `CtnAddress2` | 1行テキスト | — |
 | `telNo` | `CtnTelNo` | 1行テキスト | 代表電話番号 |
+| `departments` | `CtnDepartments` | 複数行テキスト（プレーン） | 実施診療科の候補（改行区切り）。届の実施診療科の選択肢になる |
 | `active` | `CtnActive` | はい/いいえ | — |
 
 ## CtnDoctors

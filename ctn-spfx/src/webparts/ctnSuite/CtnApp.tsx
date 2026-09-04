@@ -266,15 +266,6 @@ export default function CtnApp({ demoMode, currentUser, initialLang }: ICtnAppPr
       flash((e as Error).message, true);
     }
   };
-  const handleApprove = async (id: string): Promise<void> => {
-    try {
-      await repo.approveNotification(id, userId);
-      await reload();
-      flash(t("Approved", "承認しました"));
-    } catch (e) {
-      flash((e as Error).message, true);
-    }
-  };
   const handleSubmit = async (id: string): Promise<void> => {
     try {
       await repo.submitNotification(id, userId);
@@ -468,7 +459,6 @@ export default function CtnApp({ demoMode, currentUser, initialLang }: ICtnAppPr
                   onSave={handleSave}
                   onSendReview={handleSendReview}
                   onReject={handleReject}
-                  onApprove={handleApprove}
                   onSubmit={handleSubmit}
                   onDelete={handleDelete}
                   onGenerateXml={(n) => setXmlFor(n)}

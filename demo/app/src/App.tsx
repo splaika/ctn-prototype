@@ -176,15 +176,6 @@ export default function App() {
       flash((e as Error).message, true);
     }
   };
-  const handleApprove = async (id: string) => {
-    try {
-      await repo.approveNotification(id, userId);
-      await reload();
-      flash(t("Approved", "承認しました"));
-    } catch (e) {
-      flash((e as Error).message, true);
-    }
-  };
   const handleSubmit = async (id: string) => {
     try {
       await repo.submitNotification(id, userId);
@@ -290,7 +281,6 @@ export default function App() {
                 onSave={handleSave}
                 onSendReview={handleSendReview}
                 onReject={handleReject}
-                onApprove={handleApprove}
                 onSubmit={handleSubmit}
                 onDelete={handleDelete}
                 onGenerateXml={(n) => setXmlFor(n)}

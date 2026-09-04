@@ -158,7 +158,7 @@ if (Test-CtnField 'CtnNotifications' 'CtnStatus') {
     Write-Host '  既存: CtnStatus' -ForegroundColor DarkGray
 } else {
     Write-Host '  追加: CtnStatus' -ForegroundColor Green
-    Add-PnPField -List 'CtnNotifications' -DisplayName 'CtnStatus' -InternalName 'CtnStatus' -Type Choice -Choices 'draft', 'review', 'approved', 'submitted' -AddToDefaultView | Out-Null
+    Add-PnPField -List 'CtnNotifications' -DisplayName 'CtnStatus' -InternalName 'CtnStatus' -Type Choice -Choices 'draft', 'review', 'submitted' -AddToDefaultView | Out-Null
 }
 if (Test-CtnField 'CtnNotifications' 'CtnProtocolNo') {
     Write-Host '  既存: CtnProtocolNo' -ForegroundColor DarkGray
@@ -178,11 +178,11 @@ if (Test-CtnField 'CtnNotifications' 'CtnCreatedByUser') {
     Write-Host '  追加: CtnCreatedByUser' -ForegroundColor Green
     Add-PnPField -List 'CtnNotifications' -DisplayName 'CtnCreatedByUser' -InternalName 'CtnCreatedByUser' -Type Text -AddToDefaultView | Out-Null
 }
-if (Test-CtnField 'CtnNotifications' 'CtnApprovedByUser') {
-    Write-Host '  既存: CtnApprovedByUser' -ForegroundColor DarkGray
+if (Test-CtnField 'CtnNotifications' 'CtnReviewedByUser') {
+    Write-Host '  既存: CtnReviewedByUser' -ForegroundColor DarkGray
 } else {
-    Write-Host '  追加: CtnApprovedByUser' -ForegroundColor Green
-    Add-PnPField -List 'CtnNotifications' -DisplayName 'CtnApprovedByUser' -InternalName 'CtnApprovedByUser' -Type Text -AddToDefaultView | Out-Null
+    Write-Host '  追加: CtnReviewedByUser' -ForegroundColor Green
+    Add-PnPField -List 'CtnNotifications' -DisplayName 'CtnReviewedByUser' -InternalName 'CtnReviewedByUser' -Type Text -AddToDefaultView | Out-Null
 }
 if (Test-CtnField 'CtnNotifications' 'CtnPayload') {
     Write-Host '  既存: CtnPayload' -ForegroundColor DarkGray
@@ -362,6 +362,12 @@ if (Test-CtnField 'CtnInstitutions' 'CtnTelNo') {
 } else {
     Write-Host '  追加: CtnTelNo' -ForegroundColor Green
     Add-PnPField -List 'CtnInstitutions' -DisplayName 'CtnTelNo' -InternalName 'CtnTelNo' -Type Text -AddToDefaultView | Out-Null
+}
+if (Test-CtnField 'CtnInstitutions' 'CtnDepartments') {
+    Write-Host '  既存: CtnDepartments' -ForegroundColor DarkGray
+} else {
+    Write-Host '  追加: CtnDepartments' -ForegroundColor Green
+    Add-PnPField -List 'CtnInstitutions' -DisplayName 'CtnDepartments' -InternalName 'CtnDepartments' -Type Note -AddToDefaultView | Out-Null
 }
 if (Test-CtnField 'CtnInstitutions' 'CtnActive') {
     Write-Host '  既存: CtnActive' -ForegroundColor DarkGray
@@ -622,19 +628,7 @@ if (Get-PnPGroup -Identity 'CTN レビュー担当' -ErrorAction SilentlyContinu
     Write-Host '既存グループ: CTN レビュー担当' -ForegroundColor DarkGray
 } else {
     Write-Host '作成グループ: CTN レビュー担当' -ForegroundColor Green
-    New-PnPGroup -Title 'CTN レビュー担当' -Description '社内レビューを行う' | Out-Null
-}
-if (Get-PnPGroup -Identity 'CTN 承認者' -ErrorAction SilentlyContinue) {
-    Write-Host '既存グループ: CTN 承認者' -ForegroundColor DarkGray
-} else {
-    Write-Host '作成グループ: CTN 承認者' -ForegroundColor Green
-    New-PnPGroup -Title 'CTN 承認者' -Description '承認を行う（起票者との兼務は職務分離で拒否される）' | Out-Null
-}
-if (Get-PnPGroup -Identity 'CTN 薬事担当' -ErrorAction SilentlyContinue) {
-    Write-Host '既存グループ: CTN 薬事担当' -ForegroundColor DarkGray
-} else {
-    Write-Host '作成グループ: CTN 薬事担当' -ForegroundColor Green
-    New-PnPGroup -Title 'CTN 薬事担当' -Description '提出・XML生成を行う' | Out-Null
+    New-PnPGroup -Title 'CTN レビュー担当' -Description '社内レビュー・レビュー完了（提出）・XML生成を行う。起票者との兼務は職務分離で拒否される' | Out-Null
 }
 
 Write-Host '' 

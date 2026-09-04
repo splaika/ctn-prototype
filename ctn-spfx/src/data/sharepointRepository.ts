@@ -16,7 +16,7 @@
 // ============================================================================
 import {
   applyInheritance,
-  canApprove,
+  canCompleteReview,
   canSubmit,
   computeFilingNumbers,
   devStatusAfterSubmit,
@@ -209,7 +209,7 @@ export class SharePointCtnRepository implements CtnRepository {
     ] = await Promise.all([
       this.sp.getItems(LIST.compounds, sel(["Id", "CtnCompoundCode", "CtnTargetCategory", "CtnTrialKind", "CtnInitReceptNo", "CtnInitNoteDate", "CtnDevStatus", "CtnSponsorId", "CtnDrugName", "CtnCreatedAt"])),
       this.sp.getItems(LIST.notifications, sel(["Id", "CtnCompoundId", "CtnPayload", "CtnPayloadVersion"])),
-      this.sp.getItems(LIST.institutions, sel(["Id", "CtnCode", "CtnName", "CtnAddress1", "CtnAddress2", "CtnTelNo", "CtnActive"])),
+      this.sp.getItems(LIST.institutions, sel(["Id", "CtnCode", "CtnName", "CtnAddress1", "CtnAddress2", "CtnTelNo", "CtnDepartments", "CtnActive"])),
       this.sp.getItems(LIST.doctors, sel(["Id", "CtnDoctorNo", "CtnNameOriginal", "CtnNameFiling", "CtnPronounce", "CtnMedSchoolNo", "CtnGraduationYear", "CtnHasGaiji", "CtnInstitutionId", "CtnActive"])),
       this.sp.getItems(LIST.siteStaff, sel(["Id", "CtnName", "CtnKana", "CtnStaffRole", "CtnInstitutionId", "CtnTelNo", "CtnMail", "CtnActive"])),
       this.sp.getItems(LIST.irbs, sel(["Id", "CtnIrbType", "CtnOwnerName", "CtnAddress1", "CtnAddress2", "CtnActive"])),
@@ -572,7 +572,7 @@ export class SharePointCtnRepository implements CtnRepository {
   public async deleteNotification(id: string, actor: string): Promise<void> {
     assertPermission(this.roleOf(actor), "deleteNotification");
     const n = await this.fetchNotification(id);
-    if (n.status !== "draft") throw new Error("提出済・承認済の届は削除できません（起票中のみ削除可）。");
+    if (n.status !== "draft") throw new Error("レビュー中・提出済の届は削除できません（作成中のみ削除可）。");
     const code = await this.compoundCodeOf(n.compoundId);
     await this.sp.deleteItem(LIST.notifications, Number(id), await this.etagFor(LIST.notifications, id));
     await this.pushAudit({
@@ -612,21 +612,8 @@ export class SharePointCtnRepository implements CtnRepository {
     await this.pushAudit({ who: this.actorName(actor), action: "update", entity: "治験届", entityRef: this.ref(n, code), summary: `差し戻し：${note}` });
   }
 
-  public async approveNotification(id: string, approverUserId: string): Promise<void> {
-    assertPermission(this.roleOf(approverUserId), "approveNotification");
-    const n = await this.fetchNotification(id);
-    const check = canApprove(n, approverUserId); // 職務分離：起票者≠承認者
-    if (!check.ok) throw new Error(check.reason);
-    n.status = "approved";
-    n.approvedBy = approverUserId;
-    n.approvedAt = TODAY;
-    const code = await this.compoundCodeOf(n.compoundId);
-    await this.writeNotificationItem(n, code);
-    await this.pushAudit({ who: this.actorName(approverUserId), action: "approve", entity: "治験届", entityRef: this.ref(n, code), summary: "承認（職務分離チェック通過）" });
-  }
-
   /**
-   * 提出。順序番号の確定は「最新を再取得 → 再計算 → etag 付き書き込み →
+   * レビュー完了・提出。順序番号の確定は「最新を再取得 → 再計算 → etag 付き書き込み →
    * 412 ならリトライ」で衝突を防ぐ（過去に採番衝突バグの前歴あり・ブリーフ 5章）。
    */
   public async submitNotification(id: string, actor: string): Promise<void> {
@@ -634,12 +621,16 @@ export class SharePointCtnRepository implements CtnRepository {
     let lastConflict: unknown;
     for (let attempt = 0; attempt < SUBMIT_RETRIES; attempt++) {
       const n = await this.fetchNotification(id); // 最新を再取得
-      const gate = canSubmit(n); // 提出ゲート：承認済のみ
+      const gate = canSubmit(n); // 提出ゲート：レビュー中のみ
       if (!gate.ok) throw new Error(gate.reason);
+      const sod = canCompleteReview(n, actor); // 職務分離：起票者≠レビュー完了者
+      if (!sod.ok) throw new Error(sod.reason);
 
       const series = await this.fetchSeries(n.compoundId);
       finalizeSerials(n, series.filter((x) => x.id !== n.id)); // 再計算
       n.status = "submitted";
+      n.reviewedBy = actor;
+      n.reviewedAt = TODAY;
       n.submittedAt = TODAY;
       n.noteDate = n.noteDate || TODAY;
 
@@ -723,7 +714,10 @@ export function readNotification(i: SpListItem): Notification {
     throw new Error(`治験届 ${i.Id} の CtnPayload を解釈できません: ${(e as Error).message}`);
   }
   // id と compoundId は SharePoint 側の値を正とする（Payload 内は保険）
-  return { ...parsed, id: String(i.Id), compoundId: lookupId(i.CtnCompoundId) || parsed.compoundId };
+  // 旧ステータス "approved"（承認を廃止する前のデータ）は "review" として読む。
+  // 既存サイトのリストには承認済の届が残っているため、これが無いと画面が壊れる。
+  const status = (parsed.status as string) === "approved" ? "review" : parsed.status;
+  return { ...parsed, status, id: String(i.Id), compoundId: lookupId(i.CtnCompoundId) || parsed.compoundId };
 }
 
 export function writeNotification(n: Notification, compoundCode: string): Record<string, unknown> {
@@ -739,7 +733,7 @@ export function writeNotification(n: Notification, compoundCode: string): Record
     CtnProtocolNo: n.protocolNo,
     CtnNoteDate: n.noteDate ?? "",
     CtnCreatedByUser: n.createdBy,
-    CtnApprovedByUser: n.approvedBy ?? "",
+    CtnReviewedByUser: n.reviewedBy ?? "",
     CtnPayload: JSON.stringify(n),
     CtnPayloadVersion: PAYLOAD_VERSION,
   };
@@ -817,6 +811,8 @@ function readInstitution(i: SpListItem): Institution {
     address1: toStr(i.CtnAddress1),
     address2: toStr(i.CtnAddress2),
     telNo: toStr(i.CtnTelNo),
+    // 実施診療科の候補は改行区切りの複数行テキスト。届の実施診療科の選択肢になる
+    departments: toStr(i.CtnDepartments).split("\n").map((d) => d.trim()).filter(Boolean),
     active: toBool(i.CtnActive),
   };
 }
@@ -828,6 +824,7 @@ function writeInstitution(x: Omit<Institution, "id">): Record<string, unknown> {
     CtnAddress1: x.address1,
     CtnAddress2: x.address2,
     CtnTelNo: x.telNo,
+    CtnDepartments: (x.departments ?? []).join("\n"),
     CtnActive: x.active,
   };
 }

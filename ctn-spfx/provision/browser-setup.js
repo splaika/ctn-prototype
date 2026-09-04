@@ -49,7 +49,6 @@
           "choices": [
             "draft",
             "review",
-            "approved",
             "submitted"
           ]
         },
@@ -66,7 +65,7 @@
           "type": "Text"
         },
         {
-          "name": "CtnApprovedByUser",
+          "name": "CtnReviewedByUser",
           "type": "Text"
         },
         {
@@ -199,6 +198,10 @@
         {
           "name": "CtnTelNo",
           "type": "Text"
+        },
+        {
+          "name": "CtnDepartments",
+          "type": "Note"
         },
         {
           "name": "CtnActive",
@@ -406,15 +409,7 @@
     },
     {
       "name": "CTN レビュー担当",
-      "description": "社内レビューを行う"
-    },
-    {
-      "name": "CTN 承認者",
-      "description": "承認を行う（起票者との兼務は職務分離で拒否される）"
-    },
-    {
-      "name": "CTN 薬事担当",
-      "description": "提出・XML生成を行う"
+      "description": "社内レビュー・レビュー完了（提出）・XML生成を行う。起票者との兼務は職務分離で拒否される"
     }
   ]
 };

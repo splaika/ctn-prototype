@@ -1,9 +1,9 @@
 // ============================================================================
 // roleResolver.ts — SharePoint グループ → アプリのロール
 // ----------------------------------------------------------------------------
-// 職務分離（起票者≠承認者）の同一性判定はログイン名で行うが、UI が出し分ける
-// 権限（承認ボタン等）はロールで決まる。ロールは SharePoint のサイトグループ
-// 所属から引く（provision-lists.ps1 が4グループを作成する）。
+// 職務分離（起票者≠レビュー完了者）の同一性判定はログイン名で行うが、UI が
+// 出し分ける権限（レビュー完了・提出ボタン等）はロールで決まる。ロールは
+// SharePoint のサイトグループ所属から引く（provision-lists.ps1 が2グループを作成する）。
 //
 // ロールをリストで持たずグループにした理由: 権限管理を SharePoint 側へ寄せられ、
 // サイト所有者権限だけで運用できる。ユーザー管理が二重にならない。
@@ -15,10 +15,9 @@ export type { CtnRole };
 
 /**
  * 複数所属していたときの優先順位（強い権限を優先）。
- * permissions.ts のランク（起票 < レビュー < 承認 < 薬事）と並びを一致させる。
- * 薬事が最上位なのは、提出が薬事のみの権限で、兼務時に失いたくないため。
+ * permissions.ts のランク（起票 < レビュー）と並びを一致させる。
  */
-const ROLE_PRIORITY: CtnRole[] = ["regulatory", "approver", "reviewer", "drafter"];
+const ROLE_PRIORITY: CtnRole[] = ["reviewer", "drafter"];
 
 /** グループ名 → ロール（provision/ctn-lists.schema.json の groups が単一ソース） */
 const GROUP_TO_ROLE = new Map<string, CtnRole>(

@@ -1,7 +1,7 @@
 // ============================================================================
 // mockRepository.test.ts — mock 実装の保存経路の検証
 // ----------------------------------------------------------------------------
-// logic.test.ts は純粋関数だけを見ており、リポジトリ経由の保存・承認・提出は
+// logic.test.ts は純粋関数だけを見ており、リポジトリ経由の保存・レビュー・提出は
 // どのテストも通っていなかった（logic.ts への採番抽出で壊しても気付けない）。
 // UI の「保存」ボタンが辿る経路をここで押さえる。
 // ============================================================================
@@ -92,7 +92,7 @@ describe("mock: 保存（UI の保存ボタンが辿る経路）", () => {
 });
 
 describe("mock: ワークフロー", () => {
-  it("レビュー送付 → 承認 → 提出 が通る", async () => {
+  it("レビュー送付 → レビュー完了・提出 が通る", async () => {
     const repo = new MockCtnRepository();
     const compoundId = await firstCompoundId(repo);
     const n = await repo.createNotification({ compoundId, notifType: "plan", createdBy: "u-a" });
@@ -100,26 +100,26 @@ describe("mock: ワークフロー", () => {
     await repo.sendForReview(n.id, "u-a");
     expect(find(await repo.getState(), n.id)?.status).toBe("review");
 
-    await repo.approveNotification(n.id, "u-c");
-    expect(find(await repo.getState(), n.id)?.status).toBe("approved");
-
-    await repo.submitNotification(n.id, "u-d");
-    expect(find(await repo.getState(), n.id)?.status).toBe("submitted");
+    await repo.submitNotification(n.id, "u-b");
+    const done = find(await repo.getState(), n.id);
+    expect(done?.status).toBe("submitted");
+    expect(done?.reviewedBy).toBe("u-b");
   });
 
-  it("起票者は自分の届を承認できない（職務分離）", async () => {
+  it("起票者は自分の届をレビュー完了できない（職務分離）", async () => {
     const repo = new MockCtnRepository();
     const compoundId = await firstCompoundId(repo);
-    // 承認者ロール（u-c）が自分で起票した届。ロールは満たすが職務分離で止まる
-    const n = await repo.createNotification({ compoundId, notifType: "plan", createdBy: "u-c" });
-    await expect(repo.approveNotification(n.id, "u-c")).rejects.toThrow(/職務分離/);
+    // レビュー担当（u-b）が自分で起票した届。ロールは満たすが職務分離で止まる
+    const n = await repo.createNotification({ compoundId, notifType: "plan", createdBy: "u-b" });
+    await repo.sendForReview(n.id, "u-b");
+    await expect(repo.submitNotification(n.id, "u-b")).rejects.toThrow(/職務分離/);
   });
 
-  it("承認前は提出できない（提出ゲート）", async () => {
+  it("レビューを経ていない届は提出できない（提出ゲート）", async () => {
     const repo = new MockCtnRepository();
     const compoundId = await firstCompoundId(repo);
     const n = await repo.createNotification({ compoundId, notifType: "plan", createdBy: "u-a" });
-    await expect(repo.submitNotification(n.id, "u-d")).rejects.toThrow(/提出ゲート/);
+    await expect(repo.submitNotification(n.id, "u-b")).rejects.toThrow(/提出ゲート/);
   });
 });
 

@@ -28,7 +28,9 @@ export const NOTIF_TYPE_ORDER: NotifTypeKey[] = [
 ];
 
 // --- ステータス（cr_status）: BPFステージと連動・手動変更不可 ---
-export type StatusKey = "draft" | "review" | "approved" | "submitted";
+// 承認は Veeva（RIM）側で行われるため、このシステムには置かない（2026-09-04 決定）。
+// 作成 → レビュー → 提出 の3状態。
+export type StatusKey = "draft" | "review" | "submitted";
 
 // ============================================================================
 // マスタ
@@ -39,7 +41,7 @@ export interface User {
   id: string;
   name: string;
   initials: string;
-  role: "drafter" | "reviewer" | "approver" | "regulatory";
+  role: "drafter" | "reviewer";
   dept: string;
 }
 
@@ -68,6 +70,11 @@ export interface Institution {
   address1: string;
   address2: string;
   telNo: string; // 代表電話番号
+  /**
+   * 実施診療科の候補。届の入力で選択式にして表記ブレを防ぐ（R-19）。
+   * 1機関に複数科があるため配列。候補に無い科は届側で直接入力もできる。
+   */
+  departments: string[];
   active: boolean; // statecode（無効化＝論理削除）
 }
 
@@ -333,9 +340,8 @@ export interface Notification {
   // ---- 運用メタ ----
   createdBy: string; // 起票者（職務分離の判定に使用）
   createdAt: string;
-  reviewedBy?: string;
-  approvedBy?: string; // 承認者（起票者と異なることを強制）
-  approvedAt?: string;
+  reviewedBy?: string; // レビュー完了者（起票者と異なることを強制＝職務分離）
+  reviewedAt?: string;
   submittedAt?: string;
   xmlGeneratedAt?: string;
   // ---- 差し戻し（review → draft）。再度レビュー送付すると消える ----

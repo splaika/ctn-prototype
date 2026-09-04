@@ -57,7 +57,7 @@
   const VIEW_FIELDS = {
     CtnNotifications: [
       "Title", "CtnStatus", "CtnNotifType", "CtnFilingCount", "CtnChangeCount",
-      "CtnProtocolNo", "CtnNoteDate", "CtnCreatedByUser", "CtnApprovedByUser", "Modified",
+      "CtnProtocolNo", "CtnNoteDate", "CtnCreatedByUser", "CtnReviewedByUser", "Modified",
     ],
     CtnCompounds: [
       "Title", "CtnCompoundCode", "CtnDrugName", "CtnTargetCategory",
@@ -87,7 +87,7 @@
     CtnProtocolNo: "protocolNo",
     CtnNoteDate: "noteDate",
     CtnCreatedByUser: "createdBy",
-    CtnApprovedByUser: "approvedBy",
+    CtnReviewedByUser: "reviewedBy",
   };
 
   async function api(path) {
@@ -129,7 +129,7 @@
     async latest(top = 10) {
       const rows = await items(
         LIST.notifications,
-        `$select=Id,Title,CtnStatus,CtnNotifType,CtnFilingCount,CtnChangeCount,CtnProtocolNo,CtnCreatedByUser,CtnApprovedByUser,Modified&$orderby=Modified desc&$top=${top}`
+        `$select=Id,Title,CtnStatus,CtnNotifType,CtnFilingCount,CtnChangeCount,CtnProtocolNo,CtnCreatedByUser,CtnReviewedByUser,Modified&$orderby=Modified desc&$top=${top}`
       );
       console.table(rows);
       return rows;

@@ -48,11 +48,11 @@ export const SPONSORS: Sponsor[] = [
 ];
 
 export const INSTITUTIONS: Institution[] = [
-  { id: "inst-1", code: "H001", name: "北央大学医学部附属病院", address1: "北海道札幌市北区北15条西7丁目", address2: "", telNo: "011-706-5000", active: true },
-  { id: "inst-2", code: "H002", name: "東京メディカルセンター", address1: "東京都目黒区東が丘2-5-1", address2: "", telNo: "03-3411-0111", active: true },
-  { id: "inst-3", code: "H003", name: "浪速総合医療センター", address1: "大阪府大阪市住吉区東粉浜4-1-8", address2: "", telNo: "06-6672-1221", active: true },
-  { id: "inst-4", code: "H004", name: "名古屋臨床研究病院", address1: "愛知県名古屋市昭和区妙見町2-9", address2: "", telNo: "052-832-1181", active: true },
-  { id: "inst-5", code: "H005", name: "九州先端医療病院", address1: "福岡県福岡市南区大楠3-1-1", address2: "", telNo: "092-541-4936", active: true },
+  { id: "inst-1", code: "H001", name: "北央大学医学部附属病院", address1: "北海道札幌市北区北15条西7丁目", address2: "", telNo: "011-706-5000", active: true , departments: ["血液内科", "腫瘍内科", "呼吸器内科"] },
+  { id: "inst-2", code: "H002", name: "東京メディカルセンター", address1: "東京都目黒区東が丘2-5-1", address2: "", telNo: "03-3411-0111", active: true , departments: ["消化器内科", "内科", "外科"] },
+  { id: "inst-3", code: "H003", name: "浪速総合医療センター", address1: "大阪府大阪市住吉区東粉浜4-1-8", address2: "", telNo: "06-6672-1221", active: true , departments: ["リウマチ・膠原病内科", "整形外科"] },
+  { id: "inst-4", code: "H004", name: "名古屋臨床研究病院", address1: "愛知県名古屋市昭和区妙見町2-9", address2: "", telNo: "052-832-1181", active: true , departments: ["腫瘍内科", "乳腺外科", "皮膚科"] },
+  { id: "inst-5", code: "H005", name: "九州先端医療病院", address1: "福岡県福岡市南区大楠3-1-1", address2: "", telNo: "092-541-4936", active: true , departments: ["神経内科", "脳神経外科"] },
 ];
 
 export const IRBS: Irb[] = [
@@ -204,7 +204,7 @@ export const NOTIFICATIONS: Notification[] = [
     inquiries: [
       { id: "inq-abc1-1", inquiryDate: "2026-07-05", inquiryContent: "非臨床安全性試験（反復投与毒性）の追加データ提出について", responseDeadline: "2026-07-20", hasReplacement: false },
     ],
-    createdBy: "u-a", createdAt: "2026-03-20", reviewedBy: "u-b", approvedBy: "u-c", approvedAt: "2026-03-24", submittedAt: "2026-03-25", xmlGeneratedAt: "2026-03-25",
+    createdBy: "u-a", createdAt: "2026-03-20", reviewedBy: "u-c", reviewedAt: "2026-03-24", submittedAt: "2026-03-25", xmlGeneratedAt: "2026-03-25",
   },
 
   // (2) 治験計画変更届（分担医師の追加・削除 → イベント行自動生成・提出済）
@@ -231,13 +231,13 @@ export const NOTIFICATIONS: Notification[] = [
     attachments: [],
     references: [],
     inquiries: [],
-    createdBy: "u-b", createdAt: "2026-06-08", reviewedBy: "u-a", approvedBy: "u-c", approvedAt: "2026-06-11", submittedAt: "2026-06-12", xmlGeneratedAt: "2026-06-12",
+    createdBy: "u-b", createdAt: "2026-06-08", reviewedBy: "u-c", reviewedAt: "2026-06-11", submittedAt: "2026-06-12", xmlGeneratedAt: "2026-06-12",
   },
 
-  // (3) 治験終了届（数量列必須・承認済で提出待ち＝リマインダ）
+  // (3) 治験終了届（数量列必須・レビュー中で提出待ち＝リマインダ）
   {
     id: "nt-abc-3", compoundId: "cmp-abc", notifType: "completion", filingCount: 1, kubun: KUBUN.k3,
-    receptNo: "R6薬第1234号", receptDate: "2028-04-05", noteDate: "2028-04-05", status: "approved",
+    receptNo: "R6薬第1234号", receptDate: "2028-04-05", noteDate: "2028-04-05", status: "review",
     changeLocations: [], protocolNo: "ABC-123-001", objectives: "治験終了報告", plannedSubjDrug: 120, plannedSubjTotal: 240, targetDisease: "関節リウマチ",
     periodStart: "2026-05-01", periodEnd: "2028-03-31", isGlobal: false, sponsorId: "sp-1",
     remarks: "全施設で予定症例登録を完了し、治験を終了した。", footnote: "",
@@ -267,7 +267,7 @@ export const NOTIFICATIONS: Notification[] = [
     attachments: [],
     references: [],
     inquiries: [],
-    createdBy: "u-a", createdAt: "2028-03-28", reviewedBy: "u-b", approvedBy: "u-c", approvedAt: "2028-04-04",
+    createdBy: "u-a", createdAt: "2028-03-28",
   },
 
   // -------- SRP-204 シリーズ（N回作成：計画→変更→変更（下書き）） --------
@@ -289,7 +289,7 @@ export const NOTIFICATIONS: Notification[] = [
     ],
     attachments: [{ id: "att-srp1-1", docType: 100001200, docName: "SRP-204-01_実施計画書_v1.0.pdf", spReference: "/CTN/SRP-204/plan/protocol_v1.0.pdf", hasBookmarks: true, hasText: true, attachStatus: ATTACH_STATUS.attached }],
     references: [], inquiries: [],
-    createdBy: "u-a", createdAt: "2026-01-10", reviewedBy: "u-b", approvedBy: "u-c", approvedAt: "2026-01-14", submittedAt: "2026-01-15", xmlGeneratedAt: "2026-01-15",
+    createdBy: "u-a", createdAt: "2026-01-10", reviewedBy: "u-c", reviewedAt: "2026-01-14", submittedAt: "2026-01-15", xmlGeneratedAt: "2026-01-15",
   },
   {
     id: "nt-srp-2", compoundId: "cmp-srp", notifType: "change", filingCount: 1, changeCount: 1, changeDate: "2026-01-05", changeReason: "対象疾患にクローン病を追加。", kubun: KUBUN.k1,
@@ -307,7 +307,7 @@ export const NOTIFICATIONS: Notification[] = [
       },
     ],
     attachments: [], references: [], inquiries: [],
-    createdBy: "u-b", createdAt: "2026-04-05", reviewedBy: "u-a", approvedBy: "u-c", approvedAt: "2026-04-09", submittedAt: "2026-04-10", xmlGeneratedAt: "2026-04-10",
+    createdBy: "u-b", createdAt: "2026-04-05", reviewedBy: "u-c", reviewedAt: "2026-04-09", submittedAt: "2026-04-10", xmlGeneratedAt: "2026-04-10",
   },
   // 下書き（起票中・提出期限接近＝アラート）。ユーザーが継続入力できる。
   {
@@ -346,7 +346,7 @@ export const NOTIFICATIONS: Notification[] = [
       },
     ],
     attachments: [], references: [], inquiries: [],
-    createdBy: "u-a", createdAt: "2025-11-05", reviewedBy: "u-b", approvedBy: "u-c", approvedAt: "2025-11-09", submittedAt: "2025-11-10", xmlGeneratedAt: "2025-11-10",
+    createdBy: "u-a", createdAt: "2025-11-05", reviewedBy: "u-c", reviewedAt: "2025-11-09", submittedAt: "2025-11-10", xmlGeneratedAt: "2025-11-10",
   },
   {
     id: "nt-klm-2", compoundId: "cmp-klm", notifType: "devDiscontinuation", filingCount: 1, kubun: KUBUN.k3,
@@ -355,7 +355,7 @@ export const NOTIFICATIONS: Notification[] = [
     targetDisease: "非小細胞肺癌", isGlobal: false, sponsorId: "sp-1",
     remarks: "開発中止のため、以降の治験届出は行わない。安全性情報は継続してフォローする。", footnote: "",
     studyDrugs: [], sites: [], attachments: [], references: [], inquiries: [],
-    createdBy: "u-a", createdAt: "2026-06-22", reviewedBy: "u-b", approvedBy: "u-c", approvedAt: "2026-06-24", submittedAt: "2026-06-25", xmlGeneratedAt: "2026-06-25",
+    createdBy: "u-a", createdAt: "2026-06-22", reviewedBy: "u-c", reviewedAt: "2026-06-24", submittedAt: "2026-06-25", xmlGeneratedAt: "2026-06-25",
   },
 ];
 
@@ -363,7 +363,7 @@ export const NOTIFICATIONS: Notification[] = [
 // 監査ログ（初期・代表例）
 // ---------------------------------------------------------------------------
 const initialAudit: CtnDb["audit"] = [
-  { id: "au-1", at: "2026-03-25T09:12:00", who: "千葉 健一", action: "submit", entity: "治験届", entityRef: "ABC-123 計画届 #1", summary: "承認済 → 提出済（GW受付待ち）" },
+  { id: "au-1", at: "2026-03-25T09:12:00", who: "千葉 健一", action: "submit", entity: "治験届", entityRef: "ABC-123 計画届 #1", summary: "レビュー完了 → 提出済（GW受付待ち）" },
   { id: "au-2", at: "2026-06-12T14:05:00", who: "千葉 健一", action: "submit", entity: "治験届", entityRef: "ABC-123 変更届 #2", summary: "分担医師 追加1・削除1 を提出" },
   { id: "au-3", at: "2026-06-25T10:30:00", who: "千葉 健一", action: "submit", entity: "治験届", entityRef: "KLM-330 開発中止届", summary: "提出に伴いシリーズ開発状態を『開発中止』へ更新" },
   { id: "au-4", at: "2026-07-08T16:40:00", who: "青木 亮介", action: "create", entity: "治験届", entityRef: "SRP-204 変更届 #3", summary: "治験使用薬の追加（併用薬）を起票" },

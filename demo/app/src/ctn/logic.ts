@@ -236,20 +236,25 @@ export function checkByteLimit(value: string, rule: ByteRule): ValidationResult 
 }
 
 // ---------------------------------------------------------------------------
-// (S10) 職務分離の強制 — 起票者 ≠ 承認者
+// (S10) 職務分離の強制 — 起票者 ≠ レビュー完了者
 // ---------------------------------------------------------------------------
-export function canApprove(notification: Pick<Notification, "createdBy">, approverUserId: string): { ok: boolean; reason?: string } {
-  if (notification.createdBy === approverUserId)
-    return { ok: false, reason: "職務分離違反：起票者は自分が起票した届を承認できません。別の承認者で操作してください。" };
+// 承認を廃止したので「起票者≠承認者」は成立しない。代わりに入力フェーズと
+// レビューフェーズを分ける関門として「起票者は自分の届をレビュー完了できない」
+// を置く（2026-09-04 決定。入力した本人がそのまま出せると品質が担保されない
+// という運用上の指摘に対応）。
+export function canCompleteReview(notification: Pick<Notification, "createdBy">, reviewerUserId: string): { ok: boolean; reason?: string } {
+  if (notification.createdBy === reviewerUserId)
+    return { ok: false, reason: "職務分離違反：起票者は自分が起票した届をレビュー完了できません。別のレビュー担当で操作してください。" };
   return { ok: true };
 }
 
 // ---------------------------------------------------------------------------
-// (S11) 提出ゲート — ステータス=承認済 でなければ提出不可
+// (S11) 提出ゲート — ステータス=レビュー中 でなければ提出不可
 // ---------------------------------------------------------------------------
+// レビューを経ていない届が出ていかないようにする。draft から直接は提出できない。
 export function canSubmit(notification: Pick<Notification, "status">): { ok: boolean; reason?: string } {
-  if (notification.status !== "approved")
-    return { ok: false, reason: "提出ゲート：承認済ステータスでなければ提出できません（人間の最終承認が必要）。" };
+  if (notification.status !== "review")
+    return { ok: false, reason: "提出ゲート：レビュー中の届でなければ提出できません。まずレビューへ送付してください。" };
   return { ok: true };
 }
 

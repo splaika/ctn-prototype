@@ -127,7 +127,7 @@ function InstTable({ db, onEdit, onToggle }: { db: CtnDb; onEdit: (r: Institutio
   if (!db.institutions.length) return <Empty>{t("None", "なし")}</Empty>;
   return (
     <table className="mtbl">
-      <thead><tr><th>{t("Code", "コード")}</th><th>{t("Name", "機関名称")}</th><th>{t("Address", "所在地")}</th><th>{t("Tel", "電話")}</th><th></th></tr></thead>
+      <thead><tr><th>{t("Code", "コード")}</th><th>{t("Name", "機関名称")}</th><th>{t("Address", "所在地")}</th><th>{t("Tel", "電話")}</th><th>{t("Depts", "診療科")}</th><th></th></tr></thead>
       <tbody>
         {db.institutions.map((r) => (
           <tr key={r.id} className={r.active ? "" : "inactive"}>
@@ -135,6 +135,7 @@ function InstTable({ db, onEdit, onToggle }: { db: CtnDb; onEdit: (r: Institutio
             <td className="nm">{r.name}{!r.active && <span className="del-badge">論理削除</span>}</td>
             <td className="muted small">{r.address1}{r.address2}</td>
             <td className="muted small">{r.telNo}</td>
+            <td className="muted small">{(r.departments ?? []).length ? `${r.departments.length}科` : "—"}</td>
             <td className="acts"><button className="icon-btn" onClick={() => onEdit(r)}>{Icon.edit}</button><ActiveCell active={r.active} onToggle={(a) => onToggle(r.id, a)} /></td>
           </tr>
         ))}
@@ -242,7 +243,7 @@ function FormFooter({ onClose, onSave }: { onClose: () => void; onSave: () => vo
 
 function InstForm({ rec, onClose, onSave }: { rec: Institution | null; onClose: () => void; onSave: (r: Institution | Omit<Institution, "id">, isNew: boolean) => void }) {
   const { t } = useLang();
-  const { v, on } = useForm<Omit<Institution, "id">>(rec ?? { code: "", name: "", address1: "", address2: "", telNo: "", active: true });
+  const { v, on, setV } = useForm<Omit<Institution, "id">>(rec ?? { code: "", name: "", address1: "", address2: "", telNo: "", departments: [], active: true });
   return (
     <Modal title={rec ? t("Edit institution", "医療機関を編集") : t("Register institution", "医療機関を登録")} onClose={onClose} footer={<FormFooter onClose={onClose} onSave={() => onSave(rec ? { ...v, id: rec.id } : v, !rec)} />}>
       <div className="form-grid">
@@ -251,6 +252,12 @@ function InstForm({ rec, onClose, onSave }: { rec: Institution | null; onClose: 
         <Field label={t("Tel", "代表電話番号")} mark="always"><input className="tin" value={v.telNo} onChange={on("telNo")} /></Field>
         <Field label={t("Address 1", "所在地1")} mark="always" wide><input className="tin" value={v.address1} onChange={on("address1")} /></Field>
         <Field label={t("Address 2", "所在地2")} mark="always" wide><input className="tin" value={v.address2} onChange={on("address2")} /></Field>
+        {/* 届の「実施診療科」をここから選べるようにする（表記ブレ防止・R-19） */}
+        <Field label={t("Departments (one per line)", "実施診療科の候補（1行に1科）")} mark="optional" wide
+          hint={t("Used as the dropdown for 実施診療科 on each filing.", "届の「実施診療科」の選択肢になります。")}>
+          <textarea className="ta" value={(v.departments ?? []).join("\n")}
+            onChange={(e) => setV((x) => ({ ...x, departments: e.target.value.split("\n").map((d) => d.trim()).filter(Boolean) }))} />
+        </Field>
       </div>
     </Modal>
   );

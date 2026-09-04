@@ -15,7 +15,7 @@ import {
   normalizeGaiji,
   checkByteLimit,
   BYTE_RULES,
-  canApprove,
+  canCompleteReview,
   canSubmit,
   diffRoster,
 } from "./logic";
@@ -135,13 +135,14 @@ describe("バイト数検証 (S8)", () => {
 });
 
 describe("職務分離 (S10) / 提出ゲート (S11)", () => {
-  it("起票者は自分の届を承認できない", () => {
-    expect(canApprove({ createdBy: "u-a" }, "u-a").ok).toBe(false);
-    expect(canApprove({ createdBy: "u-a" }, "u-c").ok).toBe(true);
+  it("起票者は自分の届をレビュー完了できない", () => {
+    expect(canCompleteReview({ createdBy: "u-a" }, "u-a").ok).toBe(false);
+    expect(canCompleteReview({ createdBy: "u-a" }, "u-d").ok).toBe(true);
   });
-  it("承認済でなければ提出不可", () => {
-    expect(canSubmit({ status: "review" }).ok).toBe(false);
-    expect(canSubmit({ status: "approved" }).ok).toBe(true);
+  it("レビュー中でなければ提出不可", () => {
+    expect(canSubmit({ status: "draft" }).ok).toBe(false);
+    expect(canSubmit({ status: "review" }).ok).toBe(true);
+    expect(canSubmit({ status: "submitted" }).ok).toBe(false);
   });
 });
 

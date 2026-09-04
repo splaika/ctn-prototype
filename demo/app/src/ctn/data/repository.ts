@@ -74,9 +74,11 @@ export interface CtnRepository {
   sendForReview(id: string, actor: string): Promise<void>;
   /** 差し戻し（review → draft）。レビュー担当以上。理由は届と監査に残す */
   rejectNotification(id: string, actor: string, reason: string): Promise<void>;
-  /** 承認（起票者≠承認者を強制） */
-  approveNotification(id: string, approverUserId: string): Promise<void>;
-  /** 提出（承認済ゲート）。順序番号確定・開発状態更新・保留クリアを伴う */
+  /**
+   * レビュー完了・提出（review → submitted）。
+   * 提出ゲート（レビュー中のみ）と職務分離（起票者≠レビュー完了者）を両方通す。
+   * 順序番号確定・開発状態更新・保留クリアを伴う。
+   */
   submitNotification(id: string, actor: string): Promise<void>;
   /** XML生成（生成日時記録） */
   markXmlGenerated(id: string, actor: string): Promise<void>;

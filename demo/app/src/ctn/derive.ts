@@ -38,7 +38,7 @@ export function deriveAlerts(db: CtnDb, today = TODAY): AlertItem[] {
     const dl = notifDeadline(n);
     const du = daysUntil(dl, today);
 
-    // 提出期限（起票・レビュー・承認済で未提出）
+    // 提出期限（作成中・レビュー中で未提出）
     if (dl && n.status !== "submitted" && du != null) {
       if (du < 0) {
         if (r.overdue)
@@ -48,9 +48,9 @@ export function deriveAlerts(db: CtnDb, today = TODAY): AlertItem[] {
       }
     }
 
-    // 承認済・提出待ち → リマインダ
-    if (r.submitReminder && n.status === "approved") {
-      items.push({ id: `rm-sub-${n.id}`, kind: "reminder", severity: "med", notificationId: n.id, titleJa: `提出待ち：${tag}`, titleEn: `Awaiting submission: ${tag}`, detailJa: "承認済です。提出（XML生成・GW送信）を実施してください。", detailEn: "Approved. Generate XML and submit." });
+    // レビュー中・提出待ち → リマインダ
+    if (r.submitReminder && n.status === "review") {
+      items.push({ id: `rm-sub-${n.id}`, kind: "reminder", severity: "med", notificationId: n.id, titleJa: `提出待ち：${tag}`, titleEn: `Awaiting submission: ${tag}`, detailJa: "レビュー中です。レビュー完了・提出（XML生成・GW送信）を実施してください。", detailEn: "In review. Complete review and submit." });
     }
 
     // PMDA照会 回答期限
@@ -88,20 +88,20 @@ export interface DashboardStats {
   total: number;
   byStatus: Record<StatusKey, number>;
   submitted: number;
-  inProgress: number; // 起票+レビュー+承認済
+  inProgress: number; // 作成中+レビュー中
   seriesCount: number;
   alerts: number;
   reminders: number;
 }
 
 export function dashboardStats(db: CtnDb, alerts: AlertItem[]): DashboardStats {
-  const byStatus: Record<StatusKey, number> = { draft: 0, review: 0, approved: 0, submitted: 0 };
+  const byStatus: Record<StatusKey, number> = { draft: 0, review: 0, submitted: 0 };
   for (const n of db.notifications) byStatus[n.status]++;
   return {
     total: db.notifications.length,
     byStatus,
     submitted: byStatus.submitted,
-    inProgress: byStatus.draft + byStatus.review + byStatus.approved,
+    inProgress: byStatus.draft + byStatus.review,
     seriesCount: db.compounds.length,
     alerts: alerts.filter((a) => a.kind === "alert").length,
     reminders: alerts.filter((a) => a.kind === "reminder").length,

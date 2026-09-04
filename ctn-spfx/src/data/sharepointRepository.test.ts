@@ -6,7 +6,7 @@
 //   - etag 付き MERGE
 //   - 412 → リトライの採番衝突シナリオ
 //   - 職務分離違反の拒否
-//   - 承認前提出の拒否
+//   - レビュー前提出の拒否
 //   - 監査追記
 // ============================================================================
 import { describe, expect, it } from "vitest";
@@ -36,7 +36,7 @@ function setup(): { sp: FakeSpClient; repo: SharePointCtnRepository; compoundId:
   });
   // このファイルは HTTP と応答解析の検証が目的。ロール制限で止まらないよう
   // 全操作が可能な薬事担当として組み立てる（ロール別の可否は permissions.test.ts）。
-  const repo = new SharePointCtnRepository(sp, DISPLAY, () => "regulatory");
+  const repo = new SharePointCtnRepository(sp, DISPLAY, () => "reviewer");
   return { sp, repo, compoundId: String(compound.Id) };
 }
 
@@ -101,7 +101,7 @@ describe("集約JSONの往復", () => {
         status: "review", changeLocations: [], protocolNo: "P-9", objectives: "",
         targetDisease: "", isGlobal: false, sponsorId: "1", studyDrugs: [], sites: [],
         attachments: [], references: [], inquiries: [], createdBy: "a@x", createdAt: "2026-01-01",
-        noteDate: "2026-02-01", approvedBy: "b@x",
+        noteDate: "2026-02-01", reviewedBy: "b@x",
       },
       "ABC-123"
     );
@@ -110,7 +110,7 @@ describe("集約JSONの往復", () => {
     expect(fields.CtnChangeCount).toBe(1);
     expect(fields.CtnStatus).toBe("review");
     expect(fields.CtnCreatedByUser).toBe("a@x");
-    expect(fields.CtnApprovedByUser).toBe("b@x");
+    expect(fields.CtnReviewedByUser).toBe("b@x");
     expect(fields.CtnPayloadVersion).toBe("1");
   });
 
@@ -237,29 +237,29 @@ describe("etag（楽観的同時実行制御）", () => {
 });
 
 describe("提出", () => {
-  /** 承認済みの届を用意する（起票者と承認者を分ける） */
-  async function approved(): Promise<{ sp: FakeSpClient; repo: SharePointCtnRepository; id: string }> {
+  /** レビュー中の届を用意する（起票者とレビュー担当を分ける） */
+  async function inReview(): Promise<{ sp: FakeSpClient; repo: SharePointCtnRepository; id: string }> {
     const { sp, repo, compoundId } = setup();
     const n = await repo.createNotification({ compoundId, notifType: "plan", createdBy: "drafter@x" });
     await repo.sendForReview(n.id, "drafter@x");
-    await repo.approveNotification(n.id, "approver@x");
     return { sp, repo, id: n.id };
   }
 
-  it("承認前の提出は提出ゲートで拒否される", async () => {
+  it("レビュー前の提出は提出ゲートで拒否される", async () => {
     const { repo, compoundId } = setup();
     const n = await repo.createNotification({ compoundId, notifType: "plan", createdBy: "a@x" });
-    await expect(repo.submitNotification(n.id, "a@x")).rejects.toThrow(/提出ゲート/);
+    await expect(repo.submitNotification(n.id, "reviewer@x")).rejects.toThrow(/提出ゲート/);
   });
 
-  it("起票者による承認は職務分離で拒否される", async () => {
+  it("起票者によるレビュー完了は職務分離で拒否される", async () => {
     const { repo, compoundId } = setup();
     const n = await repo.createNotification({ compoundId, notifType: "plan", createdBy: "same@x" });
-    await expect(repo.approveNotification(n.id, "same@x")).rejects.toThrow(/職務分離/);
+    await repo.sendForReview(n.id, "same@x");
+    await expect(repo.submitNotification(n.id, "same@x")).rejects.toThrow(/職務分離/);
   });
 
-  it("承認済みなら提出でき、順序番号が確定する", async () => {
-    const { sp, repo, id } = await approved();
+  it("レビュー中なら提出でき、順序番号が確定する", async () => {
+    const { sp, repo, id } = await inReview();
     await repo.submitNotification(id, "reg@x");
     const raw = sp.raw("CtnNotifications", Number(id))!;
     expect(raw.CtnStatus).toBe("submitted");
@@ -267,7 +267,7 @@ describe("提出", () => {
   });
 
   it("提出中に競合しても再取得→再計算→リトライで成功する", async () => {
-    const { sp, repo, id } = await approved();
+    const { sp, repo, id } = await inReview();
     sp.failNextUpdateWithConflict = 1; // 1回だけ他者が割り込む
 
     await repo.submitNotification(id, "reg@x");
@@ -280,7 +280,7 @@ describe("提出", () => {
   });
 
   it("競合が続けば黙って諦めず、操作者に分かるエラーを出す", async () => {
-    const { sp, repo, id } = await approved();
+    const { sp, repo, id } = await inReview();
     sp.failNextUpdateWithConflict = 99;
     await expect(repo.submitNotification(id, "reg@x")).rejects.toThrow(/競合により/);
   });
@@ -290,7 +290,6 @@ describe("提出", () => {
     await repo.createNotification({ compoundId, notifType: "plan", createdBy: "d@x" });
     const stop = await repo.createNotification({ compoundId, notifType: "devDiscontinuation", createdBy: "d@x" });
     await repo.sendForReview(stop.id, "d@x");
-    await repo.approveNotification(stop.id, "a@x");
 
     const before = sp.raw("CtnCompounds", Number(compoundId))!.CtnDevStatus;
     await repo.submitNotification(stop.id, "reg@x");
@@ -300,14 +299,13 @@ describe("提出", () => {
 });
 
 describe("削除", () => {
-  it("起票中のみ削除でき、承認済みは拒否される", async () => {
+  it("作成中のみ削除でき、レビュー中は拒否される", async () => {
     const { repo, compoundId } = setup();
     const draft = await repo.createNotification({ compoundId, notifType: "plan", createdBy: "a@x" });
     await repo.deleteNotification(draft.id, "a@x"); // draft は消せる
 
     const other = await repo.createNotification({ compoundId, notifType: "plan", createdBy: "a@x" });
     await repo.sendForReview(other.id, "a@x");
-    await repo.approveNotification(other.id, "b@x");
     await expect(repo.deleteNotification(other.id, "a@x")).rejects.toThrow(/削除できません/);
   });
 });
@@ -322,11 +320,11 @@ describe("監査ログ", () => {
 
     await repo.updateNotification({ ...n, protocolNo: "P" }, "a@x");
     await repo.sendForReview(n.id, "a@x");
-    await repo.approveNotification(n.id, "b@x");
+    await repo.submitNotification(n.id, "b@x"); // レビュー完了・提出
     expect(sp.count("CtnAudit")).toBe(4);
 
     const entries = await sp.getItems("CtnAudit", "$orderby=Id desc");
-    expect(entries[0].CtnAction).toBe("approve");
+    expect(entries[0].CtnAction).toBe("submit");
     expect(entries[0].CtnWho).toBe("表示:b@x"); // actor は表示名に解決される
   });
 
@@ -384,10 +382,15 @@ describe("マスタの読み書き", () => {
 
 describe("ロール解決（SharePoint グループ）", () => {
   it("グループ名からロールを引く", () => {
-    expect(resolveRole(["CTN 承認者"])).toBe("approver");
     expect(resolveRole(["CTN 起票担当"])).toBe("drafter");
     expect(resolveRole(["CTN レビュー担当"])).toBe("reviewer");
-    expect(resolveRole(["CTN 薬事担当"])).toBe("regulatory");
+  });
+
+  it("廃止したグループ（承認者・薬事担当）は無効として扱う", () => {
+    // 既存サイトにはグループが残っている。役割を持たせないことを明示する。
+    expect(resolveRole(["CTN 承認者"])).toBe("viewer");
+    expect(resolveRole(["CTN 薬事担当"])).toBe("viewer");
+    expect(resolveRole(["CTN 起票担当", "CTN 承認者"])).toBe("drafter");
   });
 
   it("どのグループにも属さなければ閲覧のみ（viewer）", () => {
@@ -398,9 +401,7 @@ describe("ロール解決（SharePoint グループ）", () => {
   });
 
   it("複数所属では強い権限が優先される", () => {
-    expect(resolveRole(["CTN 起票担当", "CTN 承認者"])).toBe("approver");
     expect(resolveRole(["CTN 起票担当", "CTN レビュー担当"])).toBe("reviewer");
-    // 提出は薬事のみの権限。兼務で失わないよう薬事を最上位に置く。
-    expect(resolveRole(["CTN 承認者", "CTN 薬事担当"])).toBe("regulatory");
+    expect(resolveRole(["CTN レビュー担当", "CTN 起票担当"])).toBe("reviewer");
   });
 });

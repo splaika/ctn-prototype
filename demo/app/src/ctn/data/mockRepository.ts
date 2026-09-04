@@ -12,7 +12,7 @@ import {
 } from "../refData";
 import {
   applyInheritance,
-  canApprove,
+  canCompleteReview,
   canSubmit,
   computeFilingNumbers,
   finalizeSerials,
@@ -281,26 +281,18 @@ export class MockCtnRepository implements CtnRepository {
     this.pushAudit({ who: this.actorName(actor), action: "update", entity: "治験届", entityRef: this.ref(n), summary: `差し戻し：${note}` });
   }
 
-  async approveNotification(id: string, approverUserId: string): Promise<void> {
-    const n = this.db.notifications.find((x) => x.id === id);
-    if (!n) throw new Error(`Not found: ${id}`);
-    assertPermission(this.actorRole(approverUserId), "approveNotification");
-    const check = canApprove(n, approverUserId); // 職務分離：起票者≠承認者
-    if (!check.ok) throw new Error(check.reason);
-    n.status = "approved";
-    n.approvedBy = approverUserId;
-    n.approvedAt = TODAY;
-    this.pushAudit({ who: this.actorName(approverUserId), action: "approve", entity: "治験届", entityRef: this.ref(n), summary: "承認（職務分離チェック通過）" });
-  }
-
   async submitNotification(id: string, actor: string): Promise<void> {
     const n = this.db.notifications.find((x) => x.id === id);
     if (!n) throw new Error(`Not found: ${id}`);
     assertPermission(this.actorRole(actor), "submitNotification");
-    const gate = canSubmit(n); // 提出ゲート：承認済のみ
+    const gate = canSubmit(n); // 提出ゲート：レビュー中のみ
     if (!gate.ok) throw new Error(gate.reason);
+    const sod = canCompleteReview(n, actor); // 職務分離：起票者≠レビュー完了者
+    if (!sod.ok) throw new Error(sod.reason);
     this.finalizeSerials(n);
     n.status = "submitted";
+    n.reviewedBy = actor;
+    n.reviewedAt = TODAY;
     n.submittedAt = TODAY;
     n.noteDate = n.noteDate || TODAY;
     // 開発中止届の提出でシリーズ開発状態を更新
@@ -308,7 +300,7 @@ export class MockCtnRepository implements CtnRepository {
       const c = this.db.compounds.find((x) => x.id === n.compoundId);
       if (c) c.devStatus = DEV_STATUS.discontinued;
     }
-    this.pushAudit({ who: this.actorName(actor), action: "submit", entity: "治験届", entityRef: this.ref(n), summary: `提出（順序番号確定${n.notifType === "devDiscontinuation" ? "・開発状態を開発中止へ" : ""}）` });
+    this.pushAudit({ who: this.actorName(actor), action: "submit", entity: "治験届", entityRef: this.ref(n), summary: `レビュー完了・提出（職務分離チェック通過・順序番号確定${n.notifType === "devDiscontinuation" ? "・開発状態を開発中止へ" : ""}）` });
   }
 
   async markXmlGenerated(id: string, actor: string): Promise<void> {
