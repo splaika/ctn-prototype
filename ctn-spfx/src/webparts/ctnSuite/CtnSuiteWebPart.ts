@@ -26,6 +26,7 @@ import { checkProvisioning } from "../../data/listProvisioner";
 import { CTN_HOST_CSS } from "./hostStyles";
 import { CTN_SCOPED_CSS } from "../../shared/styles.generated";
 import { setRepository } from "../../shared/ctn/data/repository";
+import { setDefaultFontUrl } from "../../shared/ctn/output";
 import { MockCtnRepository } from "../../shared/ctn/data/mockRepository";
 import { SharePointCtnRepository } from "../../data/sharepointRepository";
 import { SpRestClient } from "../../data/spClient";
@@ -84,7 +85,18 @@ export default class CtnSuiteWebPart extends BaseClientSideWebPart<ICtnSuiteWebP
 
   protected async onInit(): Promise<void> {
     this._injectStyles();
+    this._configurePdfFont();
     await this._initRepository();
+  }
+
+  /**
+   * 届書PDF の日本語フォント（IPA明朝）の取得先を教える。
+   * JS と同じ ClientSideAssets に置くので、バンドルの URL から導ける。
+   * ここを固定URLにすると移行のたびに書き換えが要るため、実行時に解決する。
+   */
+  private _configurePdfFont(): void {
+    const base = (this.context.pageContext.web.absoluteUrl || "").replace(/\/$/, "");
+    setDefaultFontUrl(`${base}/ClientSideAssets/ipam.ttf`);
   }
 
   /**

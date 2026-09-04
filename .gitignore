@@ -6,3 +6,6 @@ server-*.err.log
 Thumbs.db
 # Office の一時ロックファイル（xlsx/docx を開いている間だけ生成される）
 ~$*
+
+# 届書PDF用フォント（正は ctn-spfx/assets/ipam.ttf。npm run fonts でコピーされる）
+demo/app/public/fonts/ipam.ttf

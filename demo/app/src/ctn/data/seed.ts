@@ -130,23 +130,27 @@ const abcMain = (): StudyDrug => ({
   id: "sd-abc-main", drugRole: DRUG_ROLE.main, serialNo: 1, drugName: "ABC-123錠 25mg",
   plantName: "サンライズ製薬株式会社 湘南工場", plantAddress1: "神奈川県藤沢市城南4-2-1", plantAddress2: "", plantCode: "6A1234",
   ingredients: "1錠中 ABC-123 25mg", intendEffects: "関節リウマチ", efficacyClassCode: "3999", intendDosage: "1日1回1錠を経口投与",
+  manufactMethod: "化学合成した ABC-123 を含有する錠剤を製剤として製する。", dosageAdmin: "1日1回1錠を経口投与する。",
 });
 const abcPlacebo = (): StudyDrug => ({
   id: "sd-abc-plc", drugRole: DRUG_ROLE.other, serialNo: 2, drugName: "ABC-123 プラセボ錠", combCategory: COMB_PLACEHOLDER,
   idType: "識別記号", applicationStatus: "国内未承認", adrReport: "無",
   plantName: "サンライズ製薬株式会社 湘南工場", plantAddress1: "神奈川県藤沢市城南4-2-1", plantAddress2: "", plantCode: "6A1234",
   ingredients: "有効成分を含まない", intendEffects: "（対照薬）", efficacyClassCode: "3999", intendDosage: "1日1回1錠を経口投与",
+  manufactMethod: "被験薬と同一の外観を有する錠剤を製剤として製する。", dosageAdmin: "1日1回1錠を経口投与する。",
 });
 const srpMain = (): StudyDrug => ({
   id: "sd-srp-main", drugRole: DRUG_ROLE.main, serialNo: 1, drugName: "SRP-204注 50mg",
   plantName: "サンライズ製薬株式会社 富士工場", plantAddress1: "静岡県富士市大渕2-7", plantAddress2: "", plantCode: "6A5678",
   ingredients: "1バイアル中 SRP-204 50mg", intendEffects: "潰瘍性大腸炎", efficacyClassCode: "2399", intendDosage: "2週間ごとに点滴静注",
+  manufactMethod: "遺伝子組換え技術により産生した SRP-204 を含有する注射剤を製剤として製する。", dosageAdmin: "2週間ごとに1バイアルを点滴静注する。",
 });
 const srpAdjunct = (): StudyDrug => ({
   id: "sd-srp-adj", drugRole: DRUG_ROLE.other, serialNo: 2, drugName: "タクロリムスカプセル（併用薬）", combCategory: 100001102,
   idType: "一般的名称", applicationStatus: "国内承認済", adrReport: "有",
   plantName: "アステラ製薬株式会社 高岡工場", plantAddress1: "富山県高岡市長慶寺700", plantAddress2: "", plantCode: "3B0011",
   ingredients: "1カプセル中 タクロリムス 0.5mg", intendEffects: "（併用薬）", efficacyClassCode: "3999", intendDosage: "1日2回経口投与",
+  manufactMethod: "国内承認製剤を購入して用いる。", dosageAdmin: "1日2回1カプセルを経口投与する。",
 });
 const klmMain = (): StudyDrug => ({
   id: "sd-klm-main", drugRole: DRUG_ROLE.main, serialNo: 1, drugName: "KLM-330カプセル 100mg",
@@ -166,7 +170,7 @@ export const NOTIFICATIONS: Notification[] = [
     changeLocations: [], protocolNo: "ABC-123-001", phase: 100000602, trialType: 100000701,
     objectives: "関節リウマチ患者を対象としたABC-123の有効性及び安全性の検討（プラセボ対照無作為化二重盲検比較試験）",
     plannedSubjDrug: 120, plannedSubjTotal: 240, targetDisease: "関節リウマチ",
-    periodStart: "2026-05", periodEnd: "2028-03", isGlobal: false, sponsorId: "sp-1",
+    periodStart: "2026-05-01", periodEnd: "2028-03-31", isGlobal: false, sponsorId: "sp-1",
     applicBiological: 0, applicCartagena: 0, applicExpandedAccess: 0,
     otherCommentsProtocol: "実施計画書第2.0版（2026-03-10）に基づく。",
     croName: "株式会社シーアールオー・ジャパン", croAddress1: "東京都中央区日本橋1-1-1",
@@ -209,7 +213,7 @@ export const NOTIFICATIONS: Notification[] = [
     receptNo: "R6薬第1234号", receptDate: "2026-06-12", plannedStartDate: "2026-05-01", noteDate: "2026-06-12", status: "submitted",
     changeLocations: [100000804], protocolNo: "ABC-123-001", phase: 100000602, trialType: 100000701,
     objectives: "関節リウマチ患者を対象としたABC-123の有効性及び安全性の検討", plannedSubjDrug: 120, plannedSubjTotal: 240, targetDisease: "関節リウマチ",
-    periodStart: "2026-05", periodEnd: "2028-03", isGlobal: false, sponsorId: "sp-1",
+    periodStart: "2026-05-01", periodEnd: "2028-03-31", isGlobal: false, sponsorId: "sp-1",
     remarks: "分担医師1名を追加、1名を削除（異動による）。", footnote: "",
     studyDrugs: [abcMain(), abcPlacebo()], // 突合キー型：順序番号 #1/#2 を計画届から引き継ぎ
     sites: [
@@ -235,7 +239,7 @@ export const NOTIFICATIONS: Notification[] = [
     id: "nt-abc-3", compoundId: "cmp-abc", notifType: "completion", filingCount: 1, kubun: KUBUN.k3,
     receptNo: "R6薬第1234号", receptDate: "2028-04-05", noteDate: "2028-04-05", status: "approved",
     changeLocations: [], protocolNo: "ABC-123-001", objectives: "治験終了報告", plannedSubjDrug: 120, plannedSubjTotal: 240, targetDisease: "関節リウマチ",
-    periodStart: "2026-05", periodEnd: "2028-03", isGlobal: false, sponsorId: "sp-1",
+    periodStart: "2026-05-01", periodEnd: "2028-03-31", isGlobal: false, sponsorId: "sp-1",
     remarks: "全施設で予定症例登録を完了し、治験を終了した。", footnote: "",
     studyDrugs: [abcMain(), abcPlacebo()], // #1/#2 は計画届と一致（突合キー不変）
     sites: [
@@ -272,7 +276,7 @@ export const NOTIFICATIONS: Notification[] = [
     subj30dayReview: 1, plannedStartDate: "2026-02-01", noteDate: "2026-01-15", status: "submitted",
     changeLocations: [], protocolNo: "SRP-204-01", phase: 100000600, trialType: 100000700,
     objectives: "健康成人を対象としたSRP-204の薬物動態及び安全性の検討（第I相単回投与）", plannedSubjDrug: 40, plannedSubjTotal: 40, targetDisease: "潰瘍性大腸炎",
-    periodStart: "2026-02", periodEnd: "2026-12", isGlobal: false, sponsorId: "sp-1",
+    periodStart: "2026-02-01", periodEnd: "2026-12-31", isGlobal: false, sponsorId: "sp-1",
     remarks: "", footnote: "",
     studyDrugs: [srpMain()],
     sites: [
@@ -292,7 +296,7 @@ export const NOTIFICATIONS: Notification[] = [
     receptNo: "R6薬第2210号", receptDate: "2026-04-10", plannedStartDate: "2026-02-01", noteDate: "2026-04-10", status: "submitted",
     changeLocations: [100000801], protocolNo: "SRP-204-01", phase: 100000600, trialType: 100000700,
     objectives: "対象疾患の追加（潰瘍性大腸炎に加えクローン病を追加）", plannedSubjDrug: 40, plannedSubjTotal: 40, targetDisease: "潰瘍性大腸炎、クローン病",
-    periodStart: "2026-02", periodEnd: "2026-12", isGlobal: false, sponsorId: "sp-1",
+    periodStart: "2026-02-01", periodEnd: "2026-12-31", isGlobal: false, sponsorId: "sp-1",
     remarks: "対象疾患を追加。", footnote: "",
     studyDrugs: [srpMain()],
     sites: [
@@ -311,7 +315,7 @@ export const NOTIFICATIONS: Notification[] = [
     receptNo: "R6薬第2210号", receptDate: "", plannedStartDate: "2026-08-01", status: "draft",
     changeLocations: [100000803], protocolNo: "SRP-204-01", phase: 100000600, trialType: 100000700,
     objectives: "治験使用薬（併用薬）の追加", plannedSubjDrug: 40, plannedSubjTotal: 40, targetDisease: "潰瘍性大腸炎、クローン病",
-    periodStart: "2026-02", periodEnd: "2026-12", isGlobal: false, sponsorId: "sp-1",
+    periodStart: "2026-02-01", periodEnd: "2026-12-31", isGlobal: false, sponsorId: "sp-1",
     remarks: "併用薬としてタクロリムスを追加。", footnote: "",
     studyDrugs: [srpMain(), srpAdjunct()], // 新規その他治験使用薬 → 順序番号 #2 を新規採番
     sites: [
@@ -331,7 +335,7 @@ export const NOTIFICATIONS: Notification[] = [
     subj30dayReview: 1, plannedStartDate: "2025-12-01", noteDate: "2025-11-10", status: "submitted",
     changeLocations: [], protocolNo: "KLM-330-101", phase: 100000600, trialType: 100000700,
     objectives: "非小細胞肺癌患者を対象としたKLM-330の第I相用量漸増試験", plannedSubjDrug: 30, plannedSubjTotal: 30, targetDisease: "非小細胞肺癌",
-    periodStart: "2025-12", periodEnd: "2027-06", isGlobal: false, sponsorId: "sp-1",
+    periodStart: "2025-12-01", periodEnd: "2027-06-30", isGlobal: false, sponsorId: "sp-1",
     remarks: "", footnote: "",
     studyDrugs: [klmMain()],
     sites: [

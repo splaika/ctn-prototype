@@ -1,15 +1,18 @@
 // ============================================================================
-// 提出パッケージ出力（PDF＋XML）— クライアント生成（デモ）
+// 提出パッケージ出力（PDF＋XML）
 // ----------------------------------------------------------------------------
 // ① CTN XML（generateCtnXml）
-// ② 届書PDF：印刷ビューを html2canvas でラスタライズ → pdf-lib でページ化
+// ② 届書PDF：formTree.ts の届書ツリーを pdfForm.ts が A4 に直接描画する。
+//    以前は印刷ビューを html2canvas でラスタライズしていたが、公式様式と
+//    見た目が全く違ううえ画像なので文字が残らなかった。公式出力（PMDA 届書
+//    作成支援システム）を実測して座標を合わせた描画に置き換えている。
 // ③ 添付「検査キット/パッキングリスト」があれば、実PDFを②に結合して1ファイル化
-//    （デモは実ファイルが無いためサンプルPDFを生成。本番は SharePoint/Dataverse の実体）
-// ※ 本番はサーバー側生成（テキスト選択可・実ファイル結合）が堅牢。本モジュールはUXプロト。
+//    （デモは実ファイルが無いためサンプルPDFを生成。本番は SharePoint の実体）
 // ============================================================================
-import html2canvas from "html2canvas";
 import { PDFDocument, StandardFonts, rgb } from "pdf-lib";
 import { generateCtnXml, type XmlContext } from "./xml";
+import { buildFormDocument } from "./formTree";
+import { renderFormPdf } from "./pdfForm";
 import type { Notification } from "./types";
 import { DOC_TYPE } from "./refData";
 
@@ -59,23 +62,49 @@ export interface SubmissionPackage {
   packingListsIncluded: number;
 }
 
+export interface OutputOptions {
+  /**
+   * 日本語フォント（TTF/OTF）の取得先。半角0.5em・全角1.0em の固定ピッチであること。
+   * 既定は IPA明朝（MS明朝とメトリックが完全一致し、再配布できる）。
+   * SPFx では ClientSideAssets 上の絶対URLを渡す。
+   */
+  fontUrl?: string;
+}
+
+let defaultFontUrl = "/fonts/ipam.ttf";
+
+/**
+ * 届書PDF のフォント取得先を差し替える。
+ * SPFx ではサイトの ClientSideAssets から配信するため、Web パーツの初期化時に
+ * `setDefaultFontUrl(`${cdnBasePath}/ipam.ttf`)` を呼ぶ。
+ */
+export function setDefaultFontUrl(url: string): void {
+  defaultFontUrl = url;
+}
+
+/** フォントは数MBあるので一度読んだら使い回す */
+let fontCache: { url: string; bytes: Uint8Array } | undefined;
+
+async function loadFont(url: string): Promise<Uint8Array> {
+  if (fontCache?.url === url) return fontCache.bytes;
+  const res = await fetch(url);
+  if (!res.ok) throw new Error(`届書PDFのフォントを取得できませんでした（${url} → HTTP ${res.status}）`);
+  const bytes = new Uint8Array(await res.arrayBuffer());
+  fontCache = { url, bytes };
+  return bytes;
+}
+
 export async function generateSubmissionPackage(
-  printableEl: HTMLElement,
   n: Notification,
-  ctx: XmlContext
+  ctx: XmlContext,
+  opts: OutputOptions = {}
 ): Promise<SubmissionPackage> {
   const xml = generateCtnXml(n, ctx);
 
-  const canvas = await html2canvas(printableEl, { scale: 2, backgroundColor: "#ffffff", useCORS: true, logging: false });
-  const pdf = await PDFDocument.create();
-  const png = await pdf.embedPng(dataUrlToBytes(canvas.toDataURL("image/png")));
-  const scaledH = (canvas.height * A4.w) / canvas.width; // ページ幅に合わせた全体高
-  const pages = Math.max(1, Math.ceil(scaledH / A4.h));
-  for (let i = 0; i < pages; i++) {
-    const page = pdf.addPage([A4.w, A4.h]);
-    // 画像全体を各ページに描き、下方向にずらしてスライス表示（ページ境界でクリップ）
-    page.drawImage(png, { x: 0, y: A4.h - scaledH + i * A4.h, width: A4.w, height: scaledH });
-  }
+  // 届書ツリーは PDF と XML の単一ソース。ここで PDF 側を描く
+  const form = buildFormDocument(n, ctx);
+  const fontBytes = await loadFont(opts.fontUrl ?? defaultFontUrl);
+  const pdf = await renderFormPdf(form, { fontBytes });
 
   // 検査キット/パッキングリストの実ファイルを結合（デモはサンプル）
   const packingLists = n.attachments.filter((a) => a.docType === DOC_TYPE.packingList);

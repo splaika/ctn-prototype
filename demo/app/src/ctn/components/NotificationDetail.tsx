@@ -2,7 +2,6 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useLang } from "../../i18n";
 import { columnOf, requiredFor, shouldShow, isRequired } from "../schema";
 import { generateSubmissionPackage, downloadBlob, type SubmissionPackage } from "../output";
-import { PrintableNotification } from "./PrintableNotification";
 import type { XmlContext } from "../xml";
 import {
   is30DayReview,
@@ -85,13 +84,12 @@ export function NotificationDetail({
   const editable = (draft.status === "draft" || draft.status === "review") && mayEdit.ok;
 
   // ---- 提出パッケージ出力（PDF＋XML） ----
-  const printRef = useRef<HTMLDivElement>(null);
+  // 届書PDF は formTree/pdfForm が pdf-lib で直接描画する（DOM のラスタライズは廃止）
   const [exporting, setExporting] = useState(false);
   const [pkg, setPkg] = useState<SubmissionPackage | null>(null);
   const [exportErr, setExportErr] = useState<string | null>(null);
   const baseName = `${compound.compoundCode}_第${draft.filingCount}回${draft.changeCount != null ? `_変更${draft.changeCount}` : ""}`;
   const runExport = async () => {
-    if (!printRef.current) return;
     setExporting(true);
     setExportErr(null);
     try {
@@ -101,7 +99,7 @@ export function NotificationDetail({
         institutions: new Map(db.institutions.map((i) => [i.id, i])),
         irbs: new Map(db.irbs.map((i) => [i.id, i])),
       };
-      const result = await generateSubmissionPackage(printRef.current, draft, ctx);
+      const result = await generateSubmissionPackage(draft, ctx);
       setPkg(result);
     } catch (e) {
       setExportErr(e instanceof Error ? e.message : String(e));
@@ -490,8 +488,8 @@ export function NotificationDetail({
             {show("cr_trialtype") && <Field label={t("Trial type", "試験の種類")} mark={mk("cr_trialtype")}><select className="sel" value={draft.trialType ?? ""} disabled={!editable} onChange={(e) => set((n) => (n.trialType = Number(e.target.value)))}><option value="">—</option>{options(SET.trialType).map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}</select></Field>}
             {show("cr_plannedsubjdrug") && <Field label={t("Planned subjects (drug)", "予定被験者数（被験薬）")} mark={mk("cr_plannedsubjdrug")}><input type="number" className="tin" value={draft.plannedSubjDrug ?? ""} disabled={!editable} onChange={(e) => set((n) => (n.plannedSubjDrug = Number(e.target.value)))} /></Field>}
             {show("cr_plannedsubjtotal") && <Field label={t("Planned subjects (total)", "予定被験者数（合計）")} mark={mk("cr_plannedsubjtotal")}><input type="number" className="tin" value={draft.plannedSubjTotal ?? ""} disabled={!editable} onChange={(e) => set((n) => (n.plannedSubjTotal = Number(e.target.value)))} /></Field>}
-            {show("cr_periodstart") && <Field label={t("Period (start)", "実施期間（開始）")} mark={mk("cr_periodstart")}><input className="tin" value={draft.periodStart ?? ""} disabled={!editable} onChange={(e) => set((n) => (n.periodStart = e.target.value))} placeholder="YYYY-MM" /></Field>}
-            {show("cr_periodend") && <Field label={t("Period (end)", "実施期間（終了）")} mark={mk("cr_periodend")}><input className="tin" value={draft.periodEnd ?? ""} disabled={!editable} onChange={(e) => set((n) => (n.periodEnd = e.target.value))} placeholder="YYYY-MM" /></Field>}
+            {show("cr_periodstart") && <Field label={t("Period (start)", "実施期間（開始）")} mark={mk("cr_periodstart")}><input className="tin" value={draft.periodStart ?? ""} disabled={!editable} onChange={(e) => set((n) => (n.periodStart = e.target.value))} placeholder="YYYY-MM-DD" /></Field>}
+            {show("cr_periodend") && <Field label={t("Period (end)", "実施期間（終了）")} mark={mk("cr_periodend")}><input className="tin" value={draft.periodEnd ?? ""} disabled={!editable} onChange={(e) => set((n) => (n.periodEnd = e.target.value))} placeholder="YYYY-MM-DD" /></Field>}
             {show("cr_isglobal") && <Field label={t("Global trial", "国際共同治験")} mark={mk("cr_isglobal")}><select className="sel" value={draft.isGlobal ? "1" : "0"} disabled={!editable} onChange={(e) => set((n) => (n.isGlobal = e.target.value === "1"))}><option value="0">{t("No", "いいえ")}</option><option value="1">{t("Yes", "はい")}</option></select></Field>}
           </div>
           {show("cr_objectives") && <Field label={t("Objectives", "目的")} mark={mk("cr_objectives")} wide><textarea className="ta" value={draft.objectives} disabled={!editable} onChange={(e) => set((n) => (n.objectives = e.target.value))} /></Field>}
@@ -644,11 +642,6 @@ export function NotificationDetail({
           {draft.submittedAt && ` ／ ${t("submitted", "提出")}: ${fmtDate(draft.submittedAt)}`}
           {draft.xmlGeneratedAt && ` ／ XML: ${draft.xmlGeneratedAt.replace("T", " ")}`}
         </span>
-      </div>
-
-      {/* 印刷ビュー（PDF化のための隠し要素・画面外に常時レンダリング） */}
-      <div style={{ position: "fixed", left: "-10000px", top: 0, zIndex: -1 }} aria-hidden>
-        <PrintableNotification ref={printRef} n={draft} db={db} />
       </div>
 
       {exportErr && <div className="banner banner-red">⚠ {t("Export failed", "出力に失敗しました")}: {exportErr}</div>}

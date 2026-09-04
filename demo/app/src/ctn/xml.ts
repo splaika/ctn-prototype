@@ -13,6 +13,7 @@
 //   単票=UPDATE型 ／ 繰り返し行=ADD型
 // ============================================================================
 import { CHANGE_TYPE, DOCTOR_ROLE, DRUG_ROLE, NOTIF_TYPE_VALUE } from "./refData";
+import { buildFormDocument, walkForm, ymd, type FormContext } from "./formTree";
 import type {
   Compound,
   Institution,
@@ -78,6 +79,9 @@ export function generateCtnXml(n: Notification, ctx: XmlContext): string {
   x.leaf("INFOFORMVERSION", n.formVersion ?? "医薬品治験届 令和２年８月改正版");
   // ---- ルート共通（成分・回数・受付番号） ----
   x.leaf("COMPOUNDCODE", ctx.compound.compoundCode);
+  x.leaf("TRIALKIND", ctx.compound.trialKind);
+  x.leaf("INITRECEPTNO", ctx.compound.initReceptNo);
+  x.leaf("INITNOTEDATE", ymd(ctx.compound.initNoteDate));
   // 開発中止届は届出回数不要（"00"）。それ以外は対象プロトコールの届出回数。
   x.leaf("FILINGCOUNT", n.notifType === "devDiscontinuation" ? "00" : n.filingCount);
   if (n.changeCount != null) x.leaf("CHANGECOUNT", n.changeCount);
@@ -86,11 +90,21 @@ export function generateCtnXml(n: Notification, ctx: XmlContext): string {
     if (n.changeReason) x.leaf("CHANGEREASON", n.changeReason);
   }
   if (n.receptNo) x.leaf("RECEPTNO", n.receptNo);
-  x.leaf("NOTEDATE", n.noteDate ?? "");
+  x.leaf("NOTEDATE", ymd(n.noteDate));
+  x.leaf("RECEPTDATE", ymd(n.receptDate ?? n.noteDate));
   x.leaf("KUBUN", n.kubun ?? "");
+  if (n.subj30dayReview != null) x.leaf("CATEGTESTPRODUCTSUBJ30DAYREVIEW", n.subj30dayReview);
   x.leaf("PROTOCOLNO", n.protocolNo);
+  if (n.phase != null) x.leaf("PHASE", n.phase);
+  if (n.trialType != null) x.leaf("TRIALTYPE", n.trialType);
   x.leaf("OBJECTIVES", n.objectives);
+  if (n.plannedSubjDrug != null) x.leaf("PLANNEDSUBJDRUG", n.plannedSubjDrug);
+  if (n.plannedSubjTotal != null) x.leaf("PLANNEDSUBJTOTAL", n.plannedSubjTotal);
   x.leaf("TARGETDISEASE", n.targetDisease);
+  if (n.periodStart) x.leaf("PERIODSTART", ymd(n.periodStart));
+  if (n.periodEnd) x.leaf("PERIODEND", ymd(n.periodEnd));
+  if (n.reasonOnerous) x.leaf("REASONONEROUS", n.reasonOnerous);
+  if (n.footnote) x.leaf("FOOTNOTE", n.footnote);
 
   // ---- 手引き4.3 条件付き項目（該当時のみ出力） ----
   // 該当区分は ATTR_UPDATE_TYPE のリーフ値（コンテナではない）。DETAIL/APPLICABLEORNOT の
@@ -142,11 +156,16 @@ export function generateCtnXml(n: Notification, ctx: XmlContext): string {
 
   // ---- 治験届出者（INFOPERSONFILLNOTE / SERIALNO1・ADD型） ----
   x.open("INFOPERSONFILLNOTE", { SERIALNO1: 1, STATUS: "ADD" });
+  x.leaf("SPONSORTYPE", ctx.sponsor.sponsorType);
   x.leaf("SPONSORNAME", ctx.sponsor.name);
   x.leaf("REPNAME", ctx.sponsor.repName);
+  x.leaf("ADDRESS1", ctx.sponsor.address1);
+  x.leaf("ADDRESS2", ctx.sponsor.address2);
   x.leaf("MANUFACTURERCODE", ctx.sponsor.manufacturerCode);
   x.leaf("CONTACTNAME", ctx.sponsor.contactName);
+  x.leaf("CONTACTAFFILIATION", ctx.sponsor.contactTitle);
   x.leaf("TELNO", ctx.sponsor.telNo);
+  x.leaf("FAXORMAIL", ctx.sponsor.faxOrMail);
   x.close("INFOPERSONFILLNOTE");
 
   // ---- 海外依頼者・外国製造業者（INFOFOREIGNMANUFACTURER・該当時のみ・単数） ----
@@ -169,10 +188,17 @@ export function generateCtnXml(n: Notification, ctx: XmlContext): string {
     x.open("MAININVESTPRODUCT", { SERIALNO1: main.serialNo });
     x.leaf("DRUGNAME", main.drugName);
     x.leaf("PLANTNAME", main.plantName);
+    x.leaf("PLANTADDRESS1", main.plantAddress1);
+    x.leaf("PLANTADDRESS2", main.plantAddress2);
     x.leaf("PLANTCODE", main.plantCode);
     x.leaf("INGREDIENTS", main.ingredients);
-    x.leaf("INTENDDOSAGE", main.intendDosage);
+    if (main.dosageFormCode) x.leaf("DOSAGEFORMCODE", main.dosageFormCode);
+    if (main.manufactMethod) x.leaf("MANUFACTMETHOD", main.manufactMethod);
+    x.leaf("INTENDEFFECTS", main.intendEffects);
     x.leaf("EFFICACYCLASSCODE", main.efficacyClassCode);
+    x.leaf("INTENDDOSAGE", main.intendDosage);
+    if (main.dosageAdmin) x.leaf("DOSAGEADMIN", main.dosageAdmin);
+    if (main.adminRouteCode) x.leaf("ADMINROUTECODE", main.adminRouteCode);
     x.close("MAININVESTPRODUCT");
   }
   for (const d of n.studyDrugs.filter((d) => d.drugRole === DRUG_ROLE.other)) {
@@ -186,7 +212,17 @@ export function generateCtnXml(n: Notification, ctx: XmlContext): string {
     if (d.applicationStatus) x.leaf("COMB_APPLICATIONSTATUS", d.applicationStatus);
     if (d.drugSubj30dayReview != null) x.leaf("COMB_CATEGTESTPRODUCTSUBJ30DAYREVIEW", d.drugSubj30dayReview);
     x.leaf("PLANTNAME", d.plantName);
+    x.leaf("PLANTADDRESS1", d.plantAddress1);
+    x.leaf("PLANTADDRESS2", d.plantAddress2);
     x.leaf("PLANTCODE", d.plantCode);
+    if (d.ingredients) x.leaf("INGREDIENTS", d.ingredients);
+    if (d.dosageFormCode) x.leaf("DOSAGEFORMCODE", d.dosageFormCode);
+    if (d.manufactMethod) x.leaf("MANUFACTMETHOD", d.manufactMethod);
+    if (d.intendEffects) x.leaf("INTENDEFFECTS", d.intendEffects);
+    if (d.efficacyClassCode) x.leaf("EFFICACYCLASSCODE", d.efficacyClassCode);
+    if (d.intendDosage) x.leaf("INTENDDOSAGE", d.intendDosage);
+    if (d.dosageAdmin) x.leaf("DOSAGEADMIN", d.dosageAdmin);
+    if (d.adminRouteCode) x.leaf("ADMINROUTECODE", d.adminRouteCode);
     if (d.drugTargetDisease) x.leaf("COMB_TARGETDISEASE", d.drugTargetDisease);
     if (d.drugApplicCartagena != null) x.leaf("COMB_TYPECLINTRIALWITHDRUGCARTAGENA", d.drugApplicCartagena);
     if (d.drugApplicBiological != null) x.leaf("COMB_TYPEBIOLOGICALPROD", d.drugApplicBiological);
@@ -216,13 +252,26 @@ export function generateCtnXml(n: Notification, ctx: XmlContext): string {
     x.open("INFOEACHMEDICALINSTITUT", { SERIALNO1: s.serialNo, STATUS: "ADD" });
     x.leaf("INSTITUTENAME", inst?.name ?? s.institutionId);
     x.leaf("DEPARTMENT", s.department);
+    if (inst?.address1) x.leaf("ADDRESS1", inst.address1);
+    if (inst?.address2) x.leaf("ADDRESS2", inst.address2);
+    if (inst?.telNo) x.leaf("TELNO", inst.telNo);
     x.leaf("PLANNEDSUBJECTS", s.plannedSubjects);
     if (s.enrolledSubjects != null) x.leaf("ENROLLEDSUBJECTS", s.enrolledSubjects);
+    if (s.smoName) {
+      x.open("INFOSMO", { SERIALNO2: 1, STATUS: "ADD" });
+      x.leaf("SMO_NAME", s.smoName);
+      if (s.smoAddress1) x.leaf("SMO_ADDRESS1", s.smoAddress1);
+      if (s.smoAddress2) x.leaf("SMO_ADDRESS2", s.smoAddress2);
+      if (s.smoService) x.leaf("SMO_SERVICE", s.smoService);
+      x.close("INFOSMO");
+    }
     if (irb) {
       // INFOIRB（孫・SERIALNO2・ADD型）。各施設は単一IRBを参照するため SERIALNO2=1。
       x.open("INFOIRB", { SERIALNO2: 1, STATUS: "ADD" });
       x.leaf("IRBTYPE", irb.irbType);
       x.leaf("OWNERNAME", irb.ownerName);
+      if (irb.address1) x.leaf("ADDRESS1", irb.address1);
+      if (irb.address2) x.leaf("ADDRESS2", irb.address2);
       x.close("INFOIRB");
     }
 
@@ -258,10 +307,20 @@ export function generateCtnXml(n: Notification, ctx: XmlContext): string {
   // ---- 中止情報 ----
   if (n.terminationDate) {
     x.open("INFOTERMINATION", {});
-    x.leaf("TERMINATIONDATE", n.terminationDate);
+    x.leaf("TERMINATIONDATE", ymd(n.terminationDate));
     x.leaf("TERMINATIONREASON", n.terminationReason);
     if (n.postTermination) x.leaf("POSTTERMINATION", n.postTermination);
     x.close("INFOTERMINATION");
+  }
+
+  for (const r of n.references) {
+    x.open("INFOREFERENCENOTE", { SERIALNO1: r.serialNo, STATUS: "ADD" });
+    x.leaf("REF_CATEGORY", r.refCategory);
+    x.leaf("REF_CODE", r.refCode);
+    x.leaf("REF_COUNT", r.refCount);
+    x.leaf("REF_TYPE", r.refType);
+    x.leaf("REF_CONTENTS", r.refContents);
+    x.close("INFOREFERENCENOTE");
   }
 
   if (n.remarks) x.leaf("REMARKS", n.remarks);
@@ -315,4 +374,42 @@ export function validateAgainstSubset(n: Notification, xml: string): XsdCheck {
 
   const elementCount = (xml.match(/<[A-Z]/g) ?? []).length;
   return { ok: errors.length === 0, errors, warnings, elementCount };
+}
+
+// ---------------------------------------------------------------------------
+// 届書PDF と XML の突合（「XML から届書PDF を再現できるか」の機械検証）
+// ---------------------------------------------------------------------------
+// 公式の届書出力は XML の要素ツリーを日本語項目名で表示したものなので、
+// PDF に印字されている値はすべて XML にも入っていなければならない。
+// formTree.ts の届書ツリーを走査し、値を持つ項目が XML 中に存在するかを見る。
+// 要素名の対応ではなく「値が XML に含まれているか」を見る点に注意（公式XSDの
+// 要素名が未確定な項目があるため。要素名が確定したら名前突合へ強化する）。
+export interface FormXmlCoverage {
+  ok: boolean;
+  /** 値を持つ項目の総数 */
+  total: number;
+  /** XML に見つかった数 */
+  covered: number;
+  /** XML に無い項目（「項目名 = 値」の形） */
+  missing: string[];
+}
+
+export function checkXmlCoversForm(n: Notification, ctx: XmlContext): FormXmlCoverage {
+  const form = buildFormDocument(n, ctx as FormContext);
+  const xml = generateCtnXml(n, ctx);
+  const missing: string[] = [];
+  let total = 0;
+  let covered = 0;
+
+  walkForm(form.body, (node) => {
+    // XML はコード値を持つ項目があるので、あれば xmlValue を照合する
+    const v = node.xmlValue ?? node.value;
+    // 順序番号は XML では属性（SERIALNO）なので本文検索の対象外
+    if (!v || node.label === "順序番号") return;
+    total++;
+    if (xml.includes(esc(v))) covered++;
+    else missing.push(`${node.label} = ${v}`);
+  });
+
+  return { ok: missing.length === 0, total, covered, missing };
 }
