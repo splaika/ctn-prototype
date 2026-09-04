@@ -146,15 +146,24 @@ export function NotificationDetail({
   const du = daysUntil(deadline);
   const kubunSug = useMemo(() => recommendKubun(draft), [draft]);
 
-  // 届出区分は変更箇所から機械的に決まる。以前は「推奨を適用」ボタンを押させて
-  // いたが、いつ押すのか分からないという指摘（R-03）を受けて自動で入れる。
-  // 手で変えたい場合はそのまま上書きでき、推奨と違えば画面にそう出る。
+  // ---- 届出区分は変更箇所から自動で決まる ----
+  // 変更箇所を選び直したら届出区分もその場で追従する。以前は「推奨に戻す」
+  // ボタンを押させていたが（R-03「いつ押すのか分からない」）、押す判断そのものを
+  // 無くした。届出区分は既定で参照表示にし、入力欄としては出さない。
+  //
+  // 手引きの届出区分は変更箇所の選択だけでは決めきれない場合がある
+  // （基本通知の記の1.(6)①エ・②ウ 等）。そのため明示的な上書きだけ残し、
+  // 上書き中はその旨をバッジで出す。既存データが推奨と違う値を持っていた場合は
+  // 勝手に書き換えないよう、最初から上書き中として扱う。
   const sugValue = kubunSug?.value;
+  const [kubunManual, setKubunManual] = useState(
+    () => notification.kubun != null && recommendKubun(notification).value !== notification.kubun
+  );
   useEffect(() => {
-    if (!editable || sugValue == null) return;
-    if (draft.kubun == null) set((n) => (n.kubun = sugValue));
+    if (!editable || kubunManual || sugValue == null) return;
+    if (draft.kubun !== sugValue) set((n) => (n.kubun = sugValue));
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [sugValue, editable, draft.kubun]);
+  }, [sugValue, editable, kubunManual, draft.kubun]);
 
   const activeDoctors = db.doctors.filter((d) => d.active);
   const activeInstitutions = db.institutions.filter((i) => i.active);
@@ -430,28 +439,67 @@ export function NotificationDetail({
       </Section>
 
       <Section title={xsdTitle("INFONOTE")} sub={t("Items of this filing itself. The drug details of the main investigational drug are on the Study drugs tab.", "この届そのものの事項。主たる被験薬の薬の明細は「治験使用薬」タブにあります。")}>
-        {/* 届出事項の頭（届出年月日〜30日調査対応被験薬区分）。XSD の並びどおり */}
+        {/* 届出事項の頭。XSD の並びのうち、届出区分の前に「何を変えたのか」を
+            置いている（区分と提出期限がそこから決まるため） */}
         <div className="fblock-b">
           <Field label={ofl("届出年月日")} mark="auto"><input className="tin" value={draft.noteDate ?? ""} disabled /></Field>
           <Field label={ofl("届出分類")} mark="always"><input className="tin" value={notifTypeName(draft.notifType, lang)} disabled /></Field>
           {draft.notifType === "change" && <Field label={ofl("変更回数")} mark="auto"><input className="tin" value={`${draft.changeCount ?? "—"}`} disabled /></Field>}
-          <Field label={ofl("届出区分")} mark="always">
-            <div className="inline">
-              <select className="sel" value={draft.kubun ?? ""} disabled={!editable} onChange={(e) => set((n) => (n.kubun = e.target.value === "" ? undefined : Number(e.target.value)))}>
-                <option value="">—</option>
-                {options(SET.kubun).map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
-              </select>
-              {/* 推奨と違う値が入っているときだけ戻す手段を出す。以前は常時「推奨を適用」
-                  ボタンがあり、いつ押すのか分からないという指摘を受けた（R-03） */}
-              {editable && kubunSug && draft.kubun !== kubunSug.value && (
-                <Btn small onClick={() => set((n) => (n.kubun = kubunSug.value))}>{t("Reset to recommended", "推奨に戻す")}</Btn>
-              )}
+        </div>
+
+        {/* 変更内容。届書には出ないが、届出区分と提出期限をここから決めるので
+            届出区分の直前に置く（以前は下の運用項目にまとめていて因果が見えなかった） */}
+        {draft.notifType === "change" && (
+          <div className="fblock">
+            <div className="fblock-h"><span className="fblock-name">{t("What is being changed (drives the category and the deadline)", "変更内容（届出区分・提出期限を決めます）")}</span></div>
+            <div className="fblock-path">{t("Not printed on the form.", "届書には出力されません。")}</div>
+            <div className="fblock-b one">
+              <Field label={ofl("変更箇所")} mark="always" wide
+                hint={t("Pick every place that changes. The submission category below follows the heaviest one.", "変更する箇所をすべて選んでください。下の届出区分は、選んだうちで最も重い区分に自動で追従します。")}>
+                <div className="chips">
+                  {options(SET.changeLocations).map((o) => {
+                    const on = draft.changeLocations.includes(o.value);
+                    return (
+                      <button key={o.value} type="button" className={`chip${on ? " on" : ""}`} disabled={!editable} onClick={() => set((n) => (n.changeLocations = on ? n.changeLocations.filter((x) => x !== o.value) : [...n.changeLocations, o.value]))}>
+                        {o.label}
+                      </button>
+                    );
+                  })}
+                </div>
+              </Field>
+              <Field label={ofl("変更年月日")} hint={ofHint("変更年月日")} mark="always"><input type="date" className="tin" value={draft.changeDate ?? ""} disabled={!editable} onChange={(e) => set((n) => (n.changeDate = e.target.value))} /></Field>
+              <Field label={ofl("変更理由")} hint={ofHint("変更理由")} mark="always" wide><textarea className="ta" value={draft.changeReason ?? ""} disabled={!editable} onChange={(e) => set((n) => (n.changeReason = e.target.value))} /></Field>
             </div>
-            {kubunSug && (
+          </div>
+        )}
+
+        <div className="fblock-b">
+          {/* 届出区分は自動。上書きは手引きで判断が必要な例外のときだけ */}
+          <Field label={ofl("届出区分")} mark="always"
+            unconfirmed={kubunManual}
+            unconfirmedNote={kubunManual ? "自動判定を手動で上書きしています。手引きの届出区分は変更箇所の選択だけでは決めきれない場合があるため（基本通知の記の1.(6)①エ・②ウ 等）、上書きできるようにしています。" : undefined}>
+            {kubunManual ? (
+              <div className="inline">
+                <select className="sel" value={draft.kubun ?? ""} disabled={!editable} onChange={(e) => set((n) => (n.kubun = e.target.value === "" ? undefined : Number(e.target.value)))}>
+                  <option value="">—</option>
+                  {options(SET.kubun).map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
+                </select>
+                {editable && <Btn small onClick={() => { setKubunManual(false); if (sugValue != null) set((n) => (n.kubun = sugValue)); }}>{t("Back to automatic", "自動に戻す")}</Btn>}
+              </div>
+            ) : (
+              <div className="inline">
+                <input className="tin" value={draft.kubun == null ? "—" : label(SET.kubun, draft.kubun)} disabled />
+                {editable && <Btn small onClick={() => setKubunManual(true)}>{t("Override", "手動で上書き")}</Btn>}
+              </div>
+            )}
+            {kubunSug && !kubunManual && (
               <div className="field-hint">
-                {draft.kubun === kubunSug.value
-                  ? t(`Set automatically from the change locations: ${kubunSug.reasonEn}`, `変更箇所から自動で判定：${kubunSug.reasonJa}`)
-                  : t(`Changed manually. Recommended is ${label(SET.kubun, kubunSug.value)}: ${kubunSug.reasonEn}`, `手動で変更されています。推奨は「${label(SET.kubun, kubunSug.value)}」：${kubunSug.reasonJa}`)}
+                {t(`Automatic: ${kubunSug.reasonEn}`, `自動判定：${kubunSug.reasonJa}`)}
+              </div>
+            )}
+            {kubunSug && kubunManual && draft.kubun !== kubunSug.value && (
+              <div className="field-hint">
+                {t(`Automatic would be ${label(SET.kubun, kubunSug.value)}: ${kubunSug.reasonEn}`, `自動判定なら「${label(SET.kubun, kubunSug.value)}」：${kubunSug.reasonJa}`)}
               </div>
             )}
           </Field>
@@ -466,7 +514,9 @@ export function NotificationDetail({
           )}
         </div>
 
-        {/* 届書に出ない運用項目。届書項目と混ざらないよう別のかたまりにする */}
+        {/* 届書に出ない運用項目。届書項目と混ざらないよう別のかたまりにする。
+            中身が無いときは枠も出さない（中止届・終了届では両方とも出ない） */}
+        {(show("cr_plannedstartdate") || draft.status === "submitted") && (
         <div className="fblock">
           <div className="fblock-h"><span className="fblock-name">{t("Operational items (not printed on the form)", "運用項目（届書には出力されません）")}</span></div>
           <div className="fblock-path">{t("Used to compute the deadline and the submission category.", "提出期限・届出区分の判定に使う入力です。")}</div>
@@ -476,29 +526,14 @@ export function NotificationDetail({
                 <input type="date" className="tin" value={draft.plannedStartDate ?? ""} disabled={!editable} onChange={(e) => set((n) => (n.plannedStartDate = e.target.value))} />
               </Field>
             )}
-            {draft.notifType === "change" && (
-              <Field label={ofl("変更年月日")} hint={ofHint("変更年月日")} mark="always"><input type="date" className="tin" value={draft.changeDate ?? ""} disabled={!editable} onChange={(e) => set((n) => (n.changeDate = e.target.value))} /></Field>
+            {/* GW受付番号は提出後に PMDA の受付完了メールから記録する項目。
+                作成中はまだ存在しないので、提出済みになってから出す */}
+            {draft.status === "submitted" && (
+              <Field label={ofl("GW受付番号")} hint={ofHint("GW受付番号")} mark={mk("cr_gwreceptno")}><input className="tin" value={draft.gwReceptNo ?? ""} disabled={!mayEdit.ok} onChange={(e) => set((n) => (n.gwReceptNo = e.target.value))} /></Field>
             )}
-            {draft.notifType === "change" && (
-              <Field label={ofl("変更箇所")} hint={ofHint("変更箇所")} mark="always" wide>
-                <div className="chips">
-                  {options(SET.changeLocations).map((o) => {
-                    const on = draft.changeLocations.includes(o.value);
-                    return (
-                      <button key={o.value} type="button" className={`chip${on ? " on" : ""}`} disabled={!editable} onClick={() => set((n) => (n.changeLocations = on ? n.changeLocations.filter((x) => x !== o.value) : [...n.changeLocations, o.value]))}>
-                        {o.label}
-                      </button>
-                    );
-                  })}
-                </div>
-              </Field>
-            )}
-            {draft.notifType === "change" && (
-              <Field label={ofl("変更理由")} hint={ofHint("変更理由")} mark="always" wide><textarea className="ta" value={draft.changeReason ?? ""} disabled={!editable} onChange={(e) => set((n) => (n.changeReason = e.target.value))} /></Field>
-            )}
-            <Field label={ofl("GW受付番号")} hint={ofHint("GW受付番号")} mark={mk("cr_gwreceptno")}><input className="tin" value={draft.gwReceptNo ?? ""} disabled={!editable} onChange={(e) => set((n) => (n.gwReceptNo = e.target.value))} /></Field>
           </div>
         </div>
+        )}
 
         {(draft.notifType === "termination" || draft.notifType === "devDiscontinuation") && (
           <FormBlock el="INFOPREMATURETERMINATION">
