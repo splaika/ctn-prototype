@@ -14,6 +14,7 @@
 // 参照出力（AMG 410 の13ページ）もそうなっている。行が0件でも1行は出す。
 // ============================================================================
 import { XSD_FORM, type XsdNode } from "./xsdForm.generated";
+import { labelOf } from "./xsdLabels";
 import { rowsFor, valueOfWithin, ymd, type FormContext, type RowScope } from "./formValues";
 import type { Notification } from "./types";
 
@@ -56,28 +57,6 @@ export interface FormDocument {
 // ---------------------------------------------------------------------------
 // 組み立て
 // ---------------------------------------------------------------------------
-
-/**
- * XSD がコメントを持たない入れ物要素の表示名。
- * インライン complexType の9要素だけXSDに項目名の記載が無いため、
- * 実際の届書出力（AMG 410 第1回・13ページ）に印字されている名称を使う。
- * XSD側に記載が無いというだけで、公式出力に出ている名称が正である。
- */
-const GROUP_LABEL_FROM_OUTPUT: Record<string, string> = {
-  SUMMARYPROTOCOL: "治験計画の概要",
-  INFOOTHERS_PRIMARY: "主たる被験薬のその他の情報",
-  INFOOTHERS_PROTOCOL: "当該届出に関するその他の情報",
-  INFOPERSONASSIGNNOTE: "届出担当者の情報",
-  INFOCOMBINATIONID: "治験使用薬、治験使用機器相当、治験使用製品相当の記号・名称等",
-  INFOCOMBINATIONCATEGORY: "治験使用薬、治験使用機器相当、治験使用製品相当区分情報",
-  COMB_INFONOTE: "治験使用薬、治験使用機器相当、治験使用製品相当（主たる被験薬を除く。）の届出事項",
-  COMB_SUMMARYPROTOCOL: "治験計画の概要",
-  COMB_OTHERCOMMENTS: "その他の情報",
-};
-
-/** 項目名。XSDにコメントが無い入れ物だけ公式出力の名称で補う */
-export const labelOf = (node: XsdNode): string =>
-  node.label || GROUP_LABEL_FROM_OUTPUT[node.el] || node.el;
 
 function buildNodes(nodes: XsdNode[], scope: RowScope, parentEl: string): FormNode[] {
   const out: FormNode[] = [];

@@ -10,7 +10,8 @@
 // ============================================================================
 import { describe, expect, it } from "vitest";
 import { buildFormDocument, type FormContext, type FormNode } from "./formTree";
-import { LABELS, isInternal, ofHint, ofLabel } from "./officialLabels";
+import { FIELD_SPECS, LABELS, isInternal, needsParent, ofHint, ofLabel } from "./officialLabels";
+import { xsdEntry } from "./xsdLabels";
 import { makeSeedDb } from "./data/seed";
 
 const db = makeSeedDb();
@@ -77,5 +78,25 @@ describe("ヘルパー", () => {
 
   it("英語ラベルも引ける", () => {
     expect(ofLabel("実施計画書識別記号", "en")).toBe("Protocol ID");
+  });
+});
+
+describe("宣言した要素名が公式XSDに実在する", () => {
+  // officialLabels.ts は要素名しか持たず、項目名と階層はXSDから引く。
+  // したがって「実在しない要素名を書いた」だけが唯一の間違え方になる。
+  for (const [key, spec] of Object.entries(FIELD_SPECS)) {
+    if (!spec) continue;
+    it(`「${key}」→ ${spec.el}${spec.under ? `（${spec.under} の下）` : ""}`, () => {
+      expect(xsdEntry(spec.el, spec.under), `XSDに無い要素名: ${spec.el}`).toBeTruthy();
+    });
+  }
+
+  it("同名要素が複数箇所にあるものは親要素名を宣言している", () => {
+    // 親を省くと最初の出現に解決してしまい、別の項目名が画面に出る。
+    // 実際に「該当の有無」と「該当の有無等」を取り違えたことがある。
+    const missing = Object.entries(FIELD_SPECS)
+      .filter(([, spec]) => spec && needsParent(spec.el) && !spec.under)
+      .map(([key, spec]) => `${key}（${spec!.el}）`);
+    expect(missing, `under（親要素名）の宣言が必要: ${missing.join(", ")}`).toEqual([]);
   });
 });

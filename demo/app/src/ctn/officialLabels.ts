@@ -1,31 +1,35 @@
 // ============================================================================
-// officialLabels.ts — 入力画面のラベルを公式様式の項目名に一致させる対応表
+// officialLabels.ts — 入力欄を公式様式の項目名に結び付ける
 // ----------------------------------------------------------------------------
 // クライアントからの指摘（R-02 / R-07・2026-09 のレビュー）:
 //   「入力画面が実際の届出のどの項目を指しているのかがわかりにくい」
 //   「入力画面の項目名は実際の届出項目名に合わせた方がよい」
 //
-// そこで各入力欄に
-//   ・公式様式そのままの項目名（label）
-//   ・その値が届書のどこに出るか（path）
-// を持たせる。path は届書の階層をそのまま並べたもので、画面に補助表示する。
-// 「ここを打ったらどこに出るのか」という疑問に画面上で答えるのが目的。
+// 【この表が持つのは「要素名」だけ】
+// 以前はここに項目名（ja）と届書の階層（path）を手で書いていた。宣言なので
+// 公式XSDとずれても実行時に気づけず、16欄が公式名になっていなかった。
+// いまは各入力欄に対して**XSDの要素名だけ**を宣言し、項目名と階層は
+// xsdLabels.ts が xsdForm.generated.ts（＝厚生労働省のXSD）から引く。
+// これで画面ラベルは定義上つねに公式と一致する。
 //
-// 【正しさの担保】
-// path と label が実在することは officialLabels.test.ts が formTree.ts の
-// 届書ツリーと突合して検証する。届書側の項目名を変えるとテストが落ちるので、
-// 表とツリーがずれたまま放置されない。
+// 【同じ要素名が複数箇所にあるもの】
+// APPLICABLEORNOT / CONTENTS / DETAIL などはXSD上の別位置で別の項目名を持つ
+// （「該当の有無」と「該当の有無等」など）。その場合は under に親要素名を書く。
 //
-// キーは「移行前の日本語ラベル」。UI 側の呼び出しを機械的に置き換えるための
-// 一時的なキーではなく、そのまま画面の識別子として使い続ける。
+// 【届書に出ない運用項目】
+// internal を持つ項目は届書に出力されない。届書項目と混同されていたものが
+// あったため、理由を画面のヒントに必ず出す。
 // ============================================================================
+import { isAmbiguous, xsdEntry } from "./xsdLabels";
 
 export interface OfficialLabel {
-  /** 公式様式の項目名（そのまま画面に出す） */
+  /** 公式様式の項目名（XSDから引いたもの。そのまま画面に出す） */
   ja: string;
   en: string;
   /** 届書の階層。末尾は ja と同じ項目名になる */
   path: string[];
+  /** XSD の要素名 */
+  el: string;
 }
 
 /** 届書に出ない運用項目であることを示す（path を持たない） */
@@ -40,117 +44,201 @@ export type LabelEntry = OfficialLabel | InternalLabel;
 
 export const isInternal = (e: LabelEntry): e is InternalLabel => "internal" in e;
 
-const MAIN = "主たる被験薬に関する届出事項";
-const PLAN = [MAIN, "治験計画の概要"];
-const MAIN_OTHER = [MAIN, "主たる被験薬のその他の情報"];
-const NOTE_OTHER = [MAIN, "当該届出に関するその他の情報"];
-const COMMON = "治験届出共通事項";
-const OD = "治験使用薬、治験使用機器相当、治験使用製品相当（主たる被験薬を除く。）の情報";
-const ODF = "治験使用薬、治験使用機器相当、治験使用製品相当（主たる被験薬を除く。）の届出事項";
+/** 入力欄の宣言。ja / path はXSDから引くのでここには書かない */
+interface FieldSpec {
+  el: string;
+  /** 同名要素がXSD上の複数箇所にある場合の親要素名 */
+  under?: string;
+  en: string;
+}
 
-export const LABELS: Record<string, LabelEntry> = {
-  // ---- 治験届出共通事項 ----
-  当該届出受付番号: { ja: "当該治験計画届出受付番号", en: "Receipt no. (this filing)", path: [COMMON, "当該治験計画届出受付番号"] },
-  当該届出年月日: { ja: "当該治験計画届出年月日", en: "Filing date (this filing)", path: [COMMON, "当該治験計画届出年月日"] },
-  "30日調査対応被験薬区分": { ja: "主たる被験薬の30日調査対応被験薬区分", en: "30-day review category", path: [MAIN, "主たる被験薬の30日調査対応被験薬区分"] },
+type Spec = FieldSpec | InternalLabel;
+const isSpecInternal = (s: Spec): s is InternalLabel => "internal" in s;
 
-  // ---- 届出事項 ----
-  届出区分: { ja: "届出区分", en: "Submission category", path: [MAIN, "届出区分"] },
-  中止年月日: { ja: "中止日年月日", en: "Termination date", path: [MAIN, "中止情報", "中止日年月日"] },
-  中止理由: { ja: "中止理由", en: "Termination reason", path: [MAIN, "中止情報", "中止理由"] },
-  その後の対応状況: { ja: "その後の対応状況", en: "Follow-up status", path: [MAIN, "中止情報", "その後の対応状況"] },
-  "備考（通信欄）": { ja: "内容", en: "Remarks", path: [MAIN, "備考", "内容"] },
-  様式等のバージョン情報: { ja: "様式等のバージョン情報", en: "Form version", path: ["様式等のバージョン情報"] },
+// ---------------------------------------------------------------------------
+// 入力欄 → XSD の要素名
+// ---------------------------------------------------------------------------
+// キーは画面側の識別子。値は要素名（＋必要なら親要素名）と英語ラベルだけ。
+// 「（薬別）」が付くキーはその他治験使用薬（主たる被験薬を除く。）側の欄で、
+// 主たる被験薬とは届書の出力先が違うため別キーにしている（薬明細の画面は
+// 主従で同じ部品を使い回すため）。
+const FIELDS: Record<string, Spec> = {
+  // ---- 様式・治験届出共通事項 ----
+  様式等のバージョン情報: { el: "INFOFORMVERSION", en: "Form version" },
+  治験成分記号: { el: "TESTSUBSTANCEIDCODE", en: "Compound code" },
+  治験の種類: { el: "TYPECLINTRIALS", en: "Trial kind" },
+  初回届出受付番号: { el: "RECEPTNUMINITNOTE", en: "Receipt no. (first filing)" },
+  初回届出年月日: { el: "INITNOTEDATE", en: "Filing date (first)" },
+  届出回数: { el: "SERIALNOTENUM", en: "Filing count" },
+  当該届出受付番号: { el: "RECEPTNUMCLINTRIALPLANNOTE", en: "Receipt no. (this filing)" },
+  当該届出年月日: { el: "CLINTRIALPLANNOTEDATE", en: "Filing date (this filing)" },
+
+  // ---- 主たる被験薬に関する届出事項 ----
+  届出年月日: { el: "NOTEDATE", en: "Note date" },
+  届出分類: { el: "CLASSNOTE", en: "Notification class" },
+  変更回数: { el: "TIMESCHANGE", en: "Change count" },
+  届出区分: { el: "CATEGORYNOTE", en: "Submission category" },
+  "30日調査対応被験薬区分": { el: "CATEGTESTPRODUCTSUBJ30DAYREVIEW", en: "30-day review category" },
+  中止年月日: { el: "TERMINATIONDATE", en: "Termination date" },
+  中止理由: { el: "REASONTERMINATION", en: "Termination reason" },
+  その後の対応状況: { el: "POSTTERMINATIONMEASURE", en: "Follow-up status" },
+  "備考（通信欄）": { el: "DETAIL", under: "REMARKS", en: "Remarks" },
 
   // ---- 治験計画の概要 ----
-  実施計画書識別記号: { ja: "実施計画書識別記号", en: "Protocol ID", path: [...PLAN, "実施計画書識別記号"] },
-  開発の相: { ja: "開発の相", en: "Development phase", path: [...PLAN, "開発の相"] },
-  試験の種類: { ja: "試験の種類", en: "Study type", path: [...PLAN, "試験の種類"] },
-  目的: { ja: "目的", en: "Objectives", path: [...PLAN, "目的"] },
-  "予定被験者数（被験薬）": { ja: "予定被験者数（被験薬）", en: "Planned subjects (drug)", path: [...PLAN, "予定被験者数情報", "予定被験者数（被験薬）"] },
-  "予定被験者数（合計）": { ja: "予定被験者数（合計）", en: "Planned subjects (total)", path: [...PLAN, "予定被験者数情報", "予定被験者数（合計）"] },
-  主たる被験薬の対象疾患: { ja: "主たる被験薬の対象疾患", en: "Target disease", path: [...PLAN, "主たる被験薬の対象疾患"] },
-  "実施期間（開始）": { ja: "開始日年月日", en: "Period (start)", path: [...PLAN, "実施期間", "開始日年月日"] },
-  "実施期間（終了）": { ja: "終了日年月日", en: "Period (end)", path: [...PLAN, "実施期間", "終了日年月日"] },
-  有償の理由等: { ja: "有償の理由等", en: "Reason for charging", path: [...PLAN, "有償の理由等"] },
-  費用負担者氏名: { ja: "費用負担者氏名", en: "Cost bearer", path: [...PLAN, "治験の費用負担者に関する情報", "費用負担者氏名"] },
-  費用負担の妥当性の理由: { ja: "妥当性", en: "Validity", path: [...PLAN, "治験の費用負担者に関する情報", "妥当性"] },
-  "治験調整医師 氏名": { ja: "治験調整医師の氏名", en: "Coordinating investigator", path: [...PLAN, "治験調整医師又は治験調整委員会構成医師に関する情報", "治験調整医師の氏名"] },
-  医療機関名: { ja: "治験調整医師の所属機関", en: "Institution", path: [...PLAN, "治験調整医師又は治験調整委員会構成医師に関する情報", "治験調整医師の所属機関"] },
-  所属: { ja: "治験調整医師の所属", en: "Affiliation", path: [...PLAN, "治験調整医師又は治験調整委員会構成医師に関する情報", "治験調整医師の所属"] },
-
-  // ---- CRO（公式の見出しは非常に長いので path で示す） ----
-  "CRO 名称": { ja: "氏名", en: "CRO name", path: [...PLAN, "治験の依頼（準備）及び管理に関する業務の全部又は一部を受託する者（開発業務受託機関（ＣＲＯ））の氏名、住所及び委託する業務の範囲", "氏名"] },
-  "CRO 所在地1": { ja: "住所１", en: "CRO address 1", path: [...PLAN, "治験の依頼（準備）及び管理に関する業務の全部又は一部を受託する者（開発業務受託機関（ＣＲＯ））の氏名、住所及び委託する業務の範囲", "住所１"] },
-  "CRO 所在地2": { ja: "住所２", en: "CRO address 2", path: [...PLAN, "治験の依頼（準備）及び管理に関する業務の全部又は一部を受託する者（開発業務受託機関（ＣＲＯ））の氏名、住所及び委託する業務の範囲", "住所２"] },
-  "CRO 受託業務の範囲": { ja: "委託する業務の範囲", en: "CRO scope", path: [...PLAN, "治験の依頼（準備）及び管理に関する業務の全部又は一部を受託する者（開発業務受託機関（ＣＲＯ））の氏名、住所及び委託する業務の範囲", "委託する業務の範囲"] },
+  実施計画書識別記号: { el: "PROTOCOLNUM", en: "Protocol ID" },
+  開発の相: { el: "PHASECLINTRIAL", en: "Development phase" },
+  試験の種類: { el: "TYPECLINTRIAL", en: "Study type" },
+  目的: { el: "TRIALOBJECTIVES", en: "Objectives" },
+  "予定被験者数（被験薬）": { el: "PLANNUMSUBJTESTPRODUCT", en: "Planned subjects (drug)" },
+  "予定被験者数（合計）": { el: "PLANNUMSUBJECTSTOTAL", en: "Planned subjects (total)" },
+  主たる被験薬の対象疾患: { el: "TARGETDISEASE", en: "Target disease" },
+  "実施期間（開始）": { el: "STARTDATECLINTRIAL", en: "Period (start)" },
+  "実施期間（終了）": { el: "ENDDATECLINTRIAL", en: "Period (end)" },
+  有償の理由等: { el: "REASONONEROUS", en: "Reason for charging" },
+  費用負担者氏名: { el: "CHARGEOUTPERSONNAME", en: "Cost bearer" },
+  費用負担の妥当性の理由: { el: "VALIDITYREASONS", en: "Validity" },
+  "治験調整医師 氏名": { el: "KEYINVEST_NAME", en: "Coordinating investigator" },
+  医療機関名: { el: "NAMEMEDICALINSTITUT", en: "Institution" },
+  所属: { el: "KEYINVEST_AFFILIATION", en: "Affiliation" },
+  "CRO 名称": { el: "CRO_NAME", en: "CRO name" },
+  "CRO 所在地1": { el: "CRO_ADDRESS1", en: "CRO address 1" },
+  "CRO 所在地2": { el: "CRO_ADDRESS2", en: "CRO address 2" },
+  "CRO 受託業務の範囲": { el: "CRO_SERVICE", en: "CRO scope" },
 
   // ---- 主たる被験薬のその他の情報 ----
-  "カルタヘナ法 該当有無": { ja: "該当の有無等", en: "Cartagena applicability", path: [...MAIN_OTHER, "カルタヘナ法の対象となる薬物を用いる治験", "該当の有無等"] },
-  "カルタヘナ法 詳細": { ja: "該当する場合の詳述", en: "Cartagena detail", path: [...MAIN_OTHER, "カルタヘナ法の対象となる薬物を用いる治験", "該当する場合の詳述"] },
-  "生物由来製品 該当有無": { ja: "該当の有無等", en: "Biological product applicability", path: [...MAIN_OTHER, "生物由来製品に指定が見込まれる薬物を用いる治験", "該当の有無等"] },
-  コンパニオン診断薬等の開発: { ja: "該当の有無", en: "Companion diagnostics", path: [...MAIN_OTHER, "対応するコンパニオン診断薬等の開発", "該当の有無"] },
-  コンビネーション製品に関する治験: { ja: "該当の有無", en: "Combination product", path: [...MAIN_OTHER, "コンビネーション製品に関する治験", "該当の有無"] },
-  "その他コメント（主たる被験薬）": { ja: "その他", en: "Other (main drug)", path: [...MAIN_OTHER, "その他"] },
+  "カルタヘナ法 該当有無": { el: "TYPECLINTRIALWITHDRUGCARTAGENA", under: "INFOCLINTRIALWITHDRUGCARTAGENA", en: "Cartagena applicability" },
+  "カルタヘナ法 詳細": { el: "DETAIL", under: "INFOCLINTRIALWITHDRUGCARTAGENA", en: "Cartagena detail" },
+  "生物由来製品 該当有無": { el: "TYPEBIOLOGICALPROD", under: "INFOCLINTRIALWITHBIOLOGICALPROD", en: "Biological product applicability" },
+  コンパニオン診断薬等の開発: { el: "APPLICABLEORNOT", under: "INFORESEARCHFORCODX", en: "Companion diagnostics" },
+  コンビネーション製品に関する治験: { el: "APPLICABLEORNOT", under: "INFOCLINTRIALFORCOMBINATIONPROD", en: "Combination product" },
+  "その他コメント（主たる被験薬）": { el: "OTHERCOMMENTS_PRIMARY", en: "Other (main drug)" },
 
   // ---- 当該届出に関するその他の情報 ----
-  "臨床試験の位置付け（拡大治験）": { ja: "該当の有無等", en: "Trial positioning", path: [...NOTE_OTHER, "臨床試験の位置付け", "該当の有無等"] },
-  国際共同治験: { ja: "該当の有無等", en: "Global trial", path: [...NOTE_OTHER, "国際共同治験", "該当の有無等"] },
-  国際共同治験の内容: { ja: "内容", en: "Global trial detail", path: [...NOTE_OTHER, "国際共同治験", "内容"] },
-  ゲノム検査等を含む治験: { ja: "該当の有無等", en: "Genomic testing", path: [...NOTE_OTHER, "ゲノム検査等を含む治験", "該当の有無等"] },
-  マイクロドーズ臨床試験: { ja: "該当の有無等", en: "Microdose study", path: [...NOTE_OTHER, "マイクロドーズ臨床試験を利用した開発品目", "該当の有無等"] },
-  併用する機械器具等の記載: { ja: "該当の有無", en: "Combined equipment", path: [...NOTE_OTHER, "当該届出に関する治験に併用する機械器具等の記載", "該当の有無"] },
-  "併用する機械器具等 内容": { ja: "内容", en: "Combined equipment detail", path: [...NOTE_OTHER, "当該届出に関する治験に併用する機械器具等の記載", "内容"] },
-  "その他コメント（治験計画書）": { ja: "その他", en: "Other (this filing)", path: [...NOTE_OTHER, "その他"] },
+  "臨床試験の位置付け（拡大治験）": { el: "TYPEEXPANDEDACCESSPROG", under: "INFOEXPANDEDACCESSPROG", en: "Trial positioning" },
+  国際共同治験: { el: "APPLICABLEORNOT", under: "INFOGLOBALCLINTRIAL", en: "Global trial" },
+  国際共同治験の内容: { el: "CONTENTS", under: "INFOGLOBALCLINTRIAL", en: "Global trial detail" },
+  ゲノム検査等を含む治験: { el: "APPLICABLEORNOT", under: "INFOCLINTRIALINCLUDINGGENETEST", en: "Genomic testing" },
+  マイクロドーズ臨床試験: { el: "APPLICABLEORNOT", under: "INFOPRODUSINGMDCLINTRIAL", en: "Microdose study" },
+  併用する機械器具等の記載: { el: "APPLICABLEORNOT", under: "INFOCOMBEQUIPMENT", en: "Combined equipment" },
+  "併用する機械器具等 内容": { el: "CONTENTS", under: "INFOCOMBEQUIPMENT", en: "Combined equipment detail" },
+  "その他コメント（治験計画書）": { el: "OTHERCOMMENTS_PROTOCOL", en: "Other (this filing)" },
 
   // ---- 主たる被験薬（薬の明細） ----
-  製造所名称: { ja: "名称", en: "Plant name", path: [MAIN, "主たる被験薬の製造所又は営業所（治験薬提供者）の名称及び所在地", "名称"] },
-  製造所所在地1: { ja: "所在地１", en: "Plant address 1", path: [MAIN, "主たる被験薬の製造所又は営業所（治験薬提供者）の名称及び所在地", "所在地１"] },
-  製造所所在地2: { ja: "所在地２", en: "Plant address 2", path: [MAIN, "主たる被験薬の製造所又は営業所（治験薬提供者）の名称及び所在地", "所在地２"] },
-  製造所業者コード: { ja: "業者コード", en: "Plant code", path: [MAIN, "主たる被験薬の製造所又は営業所（治験薬提供者）の名称及び所在地", "業者コード"] },
-  成分及び分量: { ja: "成分及び分量", en: "Ingredients", path: [MAIN, "主たる被験薬の成分及び分量情報", "成分及び分量"] },
-  剤形コード: { ja: "剤形コード", en: "Dosage form code", path: [MAIN, "主たる被験薬の成分及び分量情報", "剤形コード情報", "剤形コード"] },
-  製造方法: { ja: "主たる被験薬の製造方法", en: "Manufacturing method", path: [MAIN, "主たる被験薬の製造方法"] },
-  予定される効能効果: { ja: "予定される効能又は効果", en: "Intended indication", path: [MAIN, "主たる被験薬の予定される効能又は効果情報", "予定される効能又は効果"] },
-  薬効分類番号: { ja: "薬効分類番号", en: "Therapeutic class code", path: [MAIN, "主たる被験薬の予定される効能又は効果情報", "薬効分類番号"] },
-  予定される用法用量: { ja: "予定される用法及び用量", en: "Intended dosage", path: [MAIN, "主たる被験薬の予定される用法及び用量情報", "予定される用法及び用量"] },
-  投与経路コード: { ja: "投与経路コード", en: "Route code", path: [MAIN, "主たる被験薬の予定される用法及び用量情報", "投与経路コード情報", "投与経路コード"] },
-  用法及び用量: { ja: "用法及び用量", en: "Dosage and administration", path: [...PLAN, "主たる被験薬の用法及び用量情報", "用法及び用量"] },
+  製造所名称: { el: "SPONSOR_NAME", en: "Plant name" },
+  製造所所在地1: { el: "SPONSOR_ADDRESS1", en: "Plant address 1" },
+  製造所所在地2: { el: "SPONSOR_ADDRESS2", en: "Plant address 2" },
+  製造所業者コード: { el: "MANUFACTURERIMPORTERCODE", under: "INFONAMEADDRESSMANUFACTPLANT", en: "Plant code" },
+  成分及び分量: { el: "INGREDIENTSQUANTITIES", en: "Ingredients" },
+  剤形コード: { el: "DOSAGEFORMCODE", en: "Dosage form code" },
+  製造方法: { el: "MANUFACTMETHOD", en: "Manufacturing method" },
+  予定される効能効果: { el: "INTENDINDICATIONSEFFECTS", en: "Intended indication" },
+  薬効分類番号: { el: "EFFICACYCLASSCODENUMBER", en: "Therapeutic class code" },
+  予定される用法用量: { el: "INTENDDOSAGEADMIN", en: "Intended dosage" },
+  // 投与経路コードはXSD上2か所（予定される用法及び用量情報／治験計画の概要の
+  // 用法及び用量情報）にあり、項目名は同一で同じ値が両方に出力される。
+  // ヒントには先に出てくる「予定される用法及び用量情報」側の階層を出す。
+  投与経路コード: { el: "ADMINROUTECODE", under: "INFOADMINROUTECODE", en: "Route code" },
+  用法及び用量: { el: "DOSAGEADMIN", en: "Dosage and administration" },
 
-  // ---- その他治験使用薬（主たる被験薬を除く）。薬の明細画面は主従で同じ部品を
-  //      使い回すため、主たる被験薬と別のパスを持つ項目は「（薬別）」で分ける ----
-  "30日調査対応被験薬区分（薬別）": { ja: "30日調査対応被験薬区分", en: "30-day review category (drug)", path: [OD, ODF, "30日調査対応被験薬区分"] },
-  "国内における承認状況": { ja: "国内における承認状況", en: "Domestic approval status", path: [OD, "国内における承認状況"] },
-  "副作用報告の有無": { ja: "副作用報告の有無", en: "ADR report", path: [OD, ODF, "副作用報告の有無"] },
-  "対象疾患（薬別）": { ja: "対象疾患", en: "Target disease (drug)", path: [OD, ODF, "治験計画の概要", "対象疾患"] },
-  "その他備考（薬別）": { ja: "その他備考", en: "Other remarks (drug)", path: [OD, ODF, "その他備考"] },
-  "製造所名称（薬別）": { ja: "製造所又は営業所（治験薬提供者）の名称及び所在地", en: "Plant (drug)", path: [OD, ODF, "製造所又は営業所（治験薬提供者）の名称及び所在地"] },
-  "成分及び分量（薬別）": { ja: "成分及び分量", en: "Ingredients (drug)", path: [OD, ODF, "成分及び分量情報", "成分及び分量"] },
-  "剤形コード（薬別）": { ja: "剤形コード", en: "Dosage form code (drug)", path: [OD, ODF, "成分及び分量情報", "剤形コード情報", "剤形コード"] },
-  "製造方法（薬別）": { ja: "製造方法", en: "Manufacturing method (drug)", path: [OD, ODF, "製造方法"] },
-  "予定される効能効果（薬別）": { ja: "予定される効能又は効果", en: "Intended indication (drug)", path: [OD, ODF, "予定される効能又は効果情報", "予定される効能又は効果"] },
-  "薬効分類番号（薬別）": { ja: "薬効分類番号", en: "Therapeutic class code (drug)", path: [OD, ODF, "予定される効能又は効果情報", "薬効分類番号"] },
-  "予定される用法用量（薬別）": { ja: "予定される用法及び用量", en: "Intended dosage (drug)", path: [OD, ODF, "予定される用法及び用量情報", "予定される用法及び用量"] },
-  "投与経路コード（薬別）": { ja: "投与経路コード", en: "Route code (drug)", path: [OD, ODF, "予定される用法及び用量情報", "投与経路コード情報", "投与経路コード"] },
-  "用法及び用量（薬別）": { ja: "用法及び用量", en: "Dosage and administration (drug)", path: [OD, ODF, "治験計画の概要", "用法及び用量情報", "用法及び用量"] },
-  "カルタヘナ法 該当有無（薬別）": { ja: "該当の有無等", en: "Cartagena applicability (drug)", path: [OD, ODF, "その他の情報", "カルタヘナ法の対象となる薬物を用いる治験", "該当の有無等"] },
-  "生物由来製品 該当有無（薬別）": { ja: "該当の有無等", en: "Biological applicability (drug)", path: [OD, ODF, "その他の情報", "生物由来製品に指定が見込まれる薬物を用いる治験", "該当の有無等"] },
-  "コンパニオン診断薬等の開発（薬別）": { ja: "該当の有無", en: "Companion diagnostics (drug)", path: [OD, ODF, "その他の情報", "対応するコンパニオン診断薬等の開発", "該当の有無"] },
-  "コンビネーション製品に関する治験（薬別）": { ja: "該当の有無", en: "Combination product (drug)", path: [OD, ODF, "その他の情報", "コンビネーション製品に関する治験", "該当の有無"] },
+  // ---- その他治験使用薬（主たる被験薬を除く。）----
+  "医薬品等の別（薬別）": { el: "COMB_PRODUCTCATEGORY", en: "Product category (drug)" },
+  "治験薬名称（薬別）": { el: "COMBINATION_ID", en: "Drug name (drug)" },
+  "記号・名称等の種類": { el: "TYPECOMBINATION_ID", en: "ID type" },
+  "記号・名称等の種類 詳述": { el: "DETAIL", under: "INFOCOMBINATIONID", en: "ID type — other detail" },
+  区別: { el: "COMBINATIONCATEGORY", en: "Category" },
+  区別の詳述: { el: "OTHERCOMBINATIONCATEGORY", en: "Category — other detail" },
+  国内における承認状況: { el: "COMB_APPLICATIONSTATUS", en: "Domestic approval status" },
+  "30日調査対応被験薬区分（薬別）": { el: "COMB_CATEGTESTPRODUCTSUBJ30DAYREVIEW", en: "30-day review category (drug)" },
+  副作用報告の有無: { el: "COMB_PRESENCEADRREPORT", en: "ADR report" },
+  "対象疾患（薬別）": { el: "COMB_TARGETDISEASE", en: "Target disease (drug)" },
+  "その他備考（薬別）": { el: "COMB_REMARKS", en: "Other remarks (drug)" },
+  "その他コメント（薬別）": { el: "OTHERCOMMENTS", under: "COMB_OTHERCOMMENTS", en: "Other (drug)" },
+  "製造所名称（薬別）": { el: "COMB_SPONSOR_NAME", en: "Plant name (drug)" },
+  "製造所所在地1（薬別）": { el: "COMB_SPONSOR_ADDRESS1", en: "Plant address 1 (drug)" },
+  "製造所所在地2（薬別）": { el: "COMB_SPONSOR_ADDRESS2", en: "Plant address 2 (drug)" },
+  "製造所業者コード（薬別）": { el: "COMB_MANUFACTURERIMPORTERCODE", en: "Plant code (drug)" },
+  "成分及び分量（薬別）": { el: "COMB_INGREDIENTSQUANTITIES", en: "Ingredients (drug)" },
+  "剤形コード（薬別）": { el: "COMB_DOSAGEFORMCODE", en: "Dosage form code (drug)" },
+  "製造方法（薬別）": { el: "COMB_MANUFACTMETHOD", en: "Manufacturing method (drug)" },
+  "予定される効能効果（薬別）": { el: "COMB_INTENDINDICATIONSEFFECTS", en: "Intended indication (drug)" },
+  "薬効分類番号（薬別）": { el: "COMB_EFFICACYCLASSCODENUMBER", en: "Therapeutic class code (drug)" },
+  "予定される用法用量（薬別）": { el: "COMB_INTENDDOSAGEADMIN", en: "Intended dosage (drug)" },
+  "投与経路コード（薬別）": { el: "COMB_ADMINROUTECODE", under: "COMB_INFOADMINROUTECODE", en: "Route code (drug)" },
+  "用法及び用量（薬別）": { el: "COMB_DOSAGEADMIN", en: "Dosage and administration (drug)" },
+  "カルタヘナ法 該当有無（薬別）": { el: "TYPECLINTRIALWITHDRUGCARTAGENA", under: "COMB_INFOCLINTRIALWITHDRUGCARTAGENA", en: "Cartagena applicability (drug)" },
+  "カルタヘナ法 詳細（薬別）": { el: "DETAIL", under: "COMB_INFOCLINTRIALWITHDRUGCARTAGENA", en: "Cartagena detail (drug)" },
+  "生物由来製品 該当有無（薬別）": { el: "TYPEBIOLOGICALPROD", under: "COMB_INFOCLINTRIALWITHBIOLOGICALPROD", en: "Biological applicability (drug)" },
+  "コンパニオン診断薬等の開発（薬別）": { el: "APPLICABLEORNOT", under: "COMB_INFORESEARCHFORCODX", en: "Companion diagnostics (drug)" },
+  "コンビネーション製品に関する治験（薬別）": { el: "APPLICABLEORNOT", under: "COMB_INFOCLINTRIALFORCOMBINATIONPROD", en: "Combination product (drug)" },
+
+  // ---- 治験届出者に関する情報 ----
+  治験届出者の種別: { el: "CLASSPERSONFILLNOTE", en: "Notifier type" },
+  届出者の名称: { el: "APPLICAT_NAME", en: "Notifier name" },
+  届出者の代表者氏名: { el: "APPLICAT_REP_NAME", en: "Notifier representative" },
+  届出者所在地1: { el: "APPLICAT_ADDRESS1", en: "Notifier address 1" },
+  届出者所在地2: { el: "APPLICAT_ADDRESS2", en: "Notifier address 2" },
+  届出者業者コード: { el: "MANUFACTURERIMPORTERCODE", under: "INFOPERSONFILLNOTE", en: "Notifier code" },
+  担当者の氏名: { el: "APPLICAT_PERSON_NAME", en: "Contact name" },
+  担当者の所属: { el: "APPLICAT_PERSON_TITLE", en: "Contact title" },
+  担当者電話番号: { el: "APPLICAT_TELNUM", en: "Contact tel" },
+  "担当者FAX番号又はメールアドレス": { el: "FAXNUMBER", en: "Contact fax / mail" },
+
+  // ---- 海外依頼者、外国製造業者（届出者側／薬別）----
+  "海外依頼者 名称（邦文）": { el: "FOREIGN_SPONSOR_NAME", en: "Foreign sponsor name (JP)" },
+  "海外依頼者 氏名（邦文）": { el: "FOREIGN_SPONSOR_REP_NAME", en: "Foreign sponsor rep. (JP)" },
+  "海外依頼者 所在地1（邦文）": { el: "FOREIGN_SPONSOR_ADDRESS1", en: "Foreign address 1 (JP)" },
+  "海外依頼者 所在地2（邦文）": { el: "FOREIGN_SPONSOR_ADDRESS2", en: "Foreign address 2 (JP)" },
+  "海外依頼者 名称（外国文）": { el: "FOREIGN_NAME_FRGNLNG", en: "Foreign sponsor name" },
+  "海外依頼者 氏名（外国文）": { el: "FOREIGN_SPOMSPR_REP_NAME_FRGNLNG", en: "Foreign sponsor rep." },
+  "海外依頼者 所在地1（外国文）": { el: "FOREIGN_ADDRESS1_FRGNLNG", en: "Foreign address 1" },
+  "海外依頼者 所在地2（外国文）": { el: "FOREIGN_ADDRESS2_FRGNLNG", en: "Foreign address 2" },
+  "海外依頼者 名称（邦文・薬別）": { el: "COMB_FOREIGN_SPONSOR_NAME", en: "Foreign sponsor name (JP, drug)" },
+  "海外依頼者 氏名（邦文・薬別）": { el: "COMB_FOREIGN_SPONSOR_REP_NAME", en: "Foreign sponsor rep. (JP, drug)" },
+  "海外依頼者 所在地1（邦文・薬別）": { el: "COMB_FOREIGN_SPONSOR_ADDRESS1", en: "Foreign address 1 (JP, drug)" },
+  "海外依頼者 所在地2（邦文・薬別）": { el: "COMB_FOREIGN_SPONSOR_ADDRESS2", en: "Foreign address 2 (JP, drug)" },
+  "海外依頼者 名称（外国文・薬別）": { el: "COMB_FOREIGN_NAME_FRGNLNG", en: "Foreign sponsor name (drug)" },
+  "海外依頼者 氏名（外国文・薬別）": { el: "COMB_FOREIGN_SPOMSPR_REP_NAME_FRGNLNG", en: "Foreign sponsor rep. (drug)" },
+  "海外依頼者 所在地1（外国文・薬別）": { el: "COMB_FOREIGN_ADDRESS1_FRGNLNG", en: "Foreign address 1 (drug)" },
+  "海外依頼者 所在地2（外国文・薬別）": { el: "COMB_FOREIGN_ADDRESS2_FRGNLNG", en: "Foreign address 2 (drug)" },
 
   // ---- 実施医療機関情報 ----
-  実施診療科: { ja: "実施診療科", en: "Department", path: ["実施医療機関情報", "実施医療機関ごとの事項", "実施診療科"] },
-  予定被験者数: { ja: "実施医療機関予定被験者数", en: "Planned subjects (site)", path: ["実施医療機関情報", "実施医療機関ごとの事項", "実施医療機関予定被験者数"] },
-  実施医療機関被験者数: { ja: "実施医療機関被験者数", en: "Enrolled subjects (site)", path: ["実施医療機関情報", "実施医療機関ごとの事項", "実施医療機関被験者数"] },
-  SMO名称: { ja: "氏名", en: "SMO name", path: ["実施医療機関情報", "実施医療機関ごとの事項", "治験の実施に関する業務の一部を実施医療機関から受託する者（治験施設支援機関（ＳＭＯ）等）の氏名、住所及び委託する業務の範囲", "氏名"] },
-  SMO住所1: { ja: "住所１", en: "SMO address 1", path: ["実施医療機関情報", "実施医療機関ごとの事項", "治験の実施に関する業務の一部を実施医療機関から受託する者（治験施設支援機関（ＳＭＯ）等）の氏名、住所及び委託する業務の範囲", "住所１"] },
-  SMO住所2: { ja: "住所２", en: "SMO address 2", path: ["実施医療機関情報", "実施医療機関ごとの事項", "治験の実施に関する業務の一部を実施医療機関から受託する者（治験施設支援機関（ＳＭＯ）等）の氏名、住所及び委託する業務の範囲", "住所２"] },
-  SMO委託業務範囲: { ja: "委託する業務の範囲", en: "SMO scope", path: ["実施医療機関情報", "実施医療機関ごとの事項", "治験の実施に関する業務の一部を実施医療機関から受託する者（治験施設支援機関（ＳＭＯ）等）の氏名、住所及び委託する業務の範囲", "委託する業務の範囲"] },
-  IRB: { ja: "治験審査委員会の設置者の名称", en: "IRB owner", path: ["実施医療機関情報", "実施医療機関ごとの事項", "治験審査委員会に関する情報", "治験審査委員会の設置者の名称"] },
-  その他: { ja: "その他", en: "Other", path: ["実施医療機関情報", "実施医療機関ごとの事項", "その他"] },
-  脚注: { ja: "脚注", en: "Footnote", path: ["実施医療機関情報", "脚注"] },
+  実施医療機関の名称: { el: "INSTITUTE_NAME", en: "Institution name" },
+  実施診療科: { el: "DEPARTMENT", en: "Department" },
+  予定被験者数: { el: "PLANNUMSUBJMEDICALINSTUTUT", en: "Planned subjects (site)" },
+  実施医療機関被験者数: { el: "NUMSUBJENROLLINSTITUTION", en: "Enrolled subjects (site)" },
+  SMO名称: { el: "SMO_NAME", en: "SMO name" },
+  SMO住所1: { el: "SMO_ADDRESS1", en: "SMO address 1" },
+  SMO住所2: { el: "SMO_ADDRESS2", en: "SMO address 2" },
+  SMO委託業務範囲: { el: "SMO_SERVICE", en: "SMO scope" },
+  IRB: { el: "IRB_OWNER_NAME", en: "IRB owner" },
+  その他: { el: "OTHERS", en: "Other" },
+  脚注: { el: "FOOTNOTE", en: "Footnote" },
+  治験責任医師の氏名: { el: "CHIEFINVEST_NAME", en: "Principal investigator" },
+  治験分担医師の氏名: { el: "INVESTIGATER_NAME", en: "Sub-investigator" },
+  大学番号: { el: "NUMMEDICALSCHOOL", en: "Medical school no." },
+  卒業年: { el: "GRADUATYEARMEDICALSCHOOL", en: "Graduation year" },
+  氏名よみかな: { el: "CHIEFINVEST_PRONOUNCE", under: "INFOINVESTIGATOR", en: "Name (kana)" },
 
-  // ---- 届書に出ない運用項目（届書項目と混同されていたもの） ----
+  // ---- 治験使用薬数量情報 ----
+  治験使用薬の名称: { el: "NAMEINVESTPRODUCT", en: "Investigational product" },
+  "予定交付（入手）数量": { el: "QUANTITIESPLANNED", en: "Planned quantity" },
+  交付数量: { el: "QUANTITIESSUPPLIED", en: "Supplied" },
+  使用数量: { el: "QUANTITIESUSED", en: "Used" },
+  回収数量: { el: "QUANTITIESWITHDRAWN", en: "Withdrawn" },
+  廃棄数量: { el: "QUANTITIESABROGATED", en: "Abrogated" },
+
+  // ---- 届書添付資料 ----
+  資料名: { el: "NAMEDOC", en: "Document name" },
+
+  // ---- 参照する治験届出情報 ----
+  "医薬品等の別（参照）": { el: "REF_PRODUCTCATEGORY", en: "Product category (ref.)" },
+  参照成分記号: { el: "REF_INFOTESTSUBSTANCEIDCODE", en: "Compound / ID code (ref.)" },
+  "届出回数（参照）": { el: "REF_SERIALNOTENUM", en: "Filing count (ref.)" },
+  参照の区分: { el: "TYPEREFFERENCE", en: "Reference type" },
+  参照の詳細: { el: "CONTENTS", under: "INFOREFCLINTRIALPLANNOTER", en: "Reference detail" },
+
+  // ---- 届書に出ない運用項目 ----
+  // 届書項目と混同されていたもの。理由を必ず画面のヒントに出す。
   治験開始予定日: {
     ja: "治験開始予定日",
     en: "Planned start date",
@@ -163,7 +251,79 @@ export const LABELS: Record<string, LabelEntry> = {
     en: "Gateway receipt no.",
     internal: "提出後に PMDA 受付完了メールから記録する運用項目。届書には出力されません。",
   },
+  主従区分: {
+    ja: "主従区分",
+    en: "Role",
+    internal:
+      "主たる被験薬か、その他治験使用薬かの区別です。届書には出力されませんが、" +
+      "どちらを選ぶかで出力先のブロックが変わります（主＝主たる被験薬に関する届出事項）。",
+  },
+  変更箇所: {
+    ja: "変更箇所",
+    en: "Change locations",
+    internal: "届出区分と提出時期を機械的に決めるための入力です。届書には出力されません。",
+  },
+  変更年月日: {
+    ja: "変更年月日",
+    en: "Change date",
+    internal:
+      "提出時期の起点（変更予定日）です。この欄自体は届書には出力されません" +
+      "（XSDの変更年月日・変更理由は項目ごとに付くため。本デモは届単位で1組を持ちます）。",
+  },
+  変更理由: {
+    ja: "変更理由",
+    en: "Reason for change",
+    internal:
+      "この欄自体は届書には出力されません（XSDの変更年月日・変更理由は項目ごとに付くため。" +
+      "本デモは届単位で1組を持ちます）。",
+  },
+  資料種別: {
+    ja: "資料種別",
+    en: "Document type",
+    internal: "資料名の付け方をそろえるための運用区分です。届書には出力されません（資料名だけが出力されます）。",
+  },
+  添付状態: {
+    ja: "添付状態",
+    en: "Attachment status",
+    internal: "PDF の栞・テキスト有無などの確認状況を持つ運用項目。届書には出力されません。",
+  },
+  CRC: {
+    ja: "CRC",
+    en: "CRC",
+    internal: "施設側の連絡先を持つ運用項目。届書には出力されません。",
+  },
 };
+
+/** 入力欄 → 公式様式の項目名・届書の階層（XSDから解決したもの） */
+export const LABELS: Record<string, LabelEntry> = Object.fromEntries(
+  Object.entries(FIELDS).map(([key, spec]) => {
+    if (isSpecInternal(spec)) return [key, spec];
+    const entry = xsdEntry(spec.el, spec.under);
+    // XSD に無い要素名を宣言していたら、その場で分かるようにキーではなく
+    // 要素名を出す（テスト officialLabels.test.ts が全件を検査して落とす）
+    return [
+      key,
+      {
+        ja: entry?.label ?? spec.el,
+        en: spec.en,
+        path: entry?.path ?? [spec.el],
+        el: spec.el,
+      } satisfies OfficialLabel,
+    ];
+  })
+);
+
+/** 宣言（要素名・親要素名）。テストがXSDとの整合を検査するために使う */
+export const FIELD_SPECS: Record<string, { el: string; under?: string } | null> =
+  Object.fromEntries(
+    Object.entries(FIELDS).map(([key, spec]) => [
+      key,
+      isSpecInternal(spec) ? null : { el: spec.el, ...(spec.under ? { under: spec.under } : {}) },
+    ])
+  );
+
+/** 親要素名の指定が必要な要素（複数箇所に現れる）かどうか */
+export const needsParent = (el: string): boolean => isAmbiguous(el);
 
 /** 公式項目名（見つからなければ渡された名前をそのまま返す） */
 export function ofLabel(key: string, lang: "ja" | "en" = "ja"): string {

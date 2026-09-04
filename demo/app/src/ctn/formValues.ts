@@ -95,6 +95,20 @@ const applic = (v?: number): Resolved =>
     ? plain("")
     : coded(APPLICABILITY_OPTIONS.find((o) => o.value === v)?.label ?? String(v), v);
 
+/**
+ * 「該当の有無等」欄。生物由来製品・臨床試験の位置付けは公式様式にこの欄しか
+ * 無く、詳述の欄が別に存在しない（カルタヘナには「該当する場合の詳述」がある）。
+ * 項目名の「等」がそれを含む趣旨なので、詳述があれば同じ欄に続けて出す。
+ * 書式は判断が要るため画面に要確認を出している。
+ */
+const applicWithDetail = (v?: number, detail?: string | null): Resolved => {
+  const base = applic(v);
+  const d = txt(detail).trim();
+  if (!d) return base;
+  const merged = base.display ? `${base.display}　${d}` : d;
+  return { display: merged, xmlValue: merged };
+};
+
 const subj30 = (v?: number): Resolved =>
   v == null ? plain("") : coded(SUBJ30_OPTIONS.find((o) => o.value === v)?.label ?? String(v), v);
 
@@ -338,17 +352,20 @@ export function valueOf(el: string, s: RowScope): Resolved | undefined {
     case "TYPECLINTRIALWITHDRUGCARTAGENA":
       return applic(d ? d.drugApplicCartagena : n.applicCartagena);
     case "TYPEBIOLOGICALPROD":
-      return applic(d ? d.drugApplicBiological : n.applicBiological);
+      return d
+        ? applic(d.drugApplicBiological)
+        : applicWithDetail(n.applicBiological, n.applicBiologicalDetail);
     case "OTHERCOMMENTS_PRIMARY":
       return plain(txt(n.otherCommentsPrimary));
 
     // 当該届出に関するその他の情報
     case "TYPEEXPANDEDACCESSPROG":
-      return applic(n.applicExpandedAccess);
+      return applicWithDetail(n.applicExpandedAccess, n.applicExpandedAccessDetail);
     case "OTHERCOMMENTS_PROTOCOL":
       return plain(txt(n.otherCommentsProtocol));
+    // 「その他の情報 › その他」。その他備考（COMB_REMARKS）とは別項目
     case "OTHERCOMMENTS":
-      return plain(txt(d?.drugRemarks));
+      return plain(txt(d?.drugOtherComments));
 
     // 治験届出者
     case "CLASSPERSONFILLNOTE":
@@ -587,7 +604,7 @@ export function valueOfWithin(parentEl: string, el: string, s: RowScope): Resolv
       case "INFOCLINTRIALWITHDRUGCARTAGENA":
         return plain(txt(n.applicCartagenaDetail));
       case "COMB_INFOCLINTRIALWITHDRUGCARTAGENA":
-        return plain("");
+        return plain(txt(d?.drugApplicCartagenaDetail));
       case "INFOCOMBINATIONID":
         return plain(txt(d?.idTypeDetail));
       case "REMARKS":

@@ -169,7 +169,9 @@ export interface StudyDrug {
   drugApplicBiological?: number; // 生物由来製品 該当有無（薬別・COMB_INFOCLINTRIALWITHBIOLOGICALPROD）
   drugApplicCodx?: number; // コンパニオン診断薬等の開発 該当有無（薬別・COMB_INFORESEARCHFORCODX）
   drugApplicCombinationProd?: number; // コンビネーション製品に関する治験 該当有無（薬別・COMB_INFOCLINTRIALFORCOMBINATIONPROD）
+  drugApplicCartagenaDetail?: string; // 該当する場合の詳述（薬別・COMB_INFOCLINTRIALWITHDRUGCARTAGENA › DETAIL）
   drugRemarks?: string; // その他備考（薬別・COMB_REMARKS）
+  drugOtherComments?: string; // その他の情報 › その他（薬別・COMB_OTHERCOMMENTS › OTHERCOMMENTS。COMB_REMARKS とは別項目）
   // ---- 海外依頼者・外国製造業者（薬別・COMB_INFOFOREIGNMANUFACTURER・本デモは単数） ----
   foreignName?: string; // 名称（邦文・COMB_FOREIGN_SPONSOR_NAME）
   foreignRepName?: string; // 代表者氏名（邦文・COMB_FOREIGN_SPONSOR_REP_NAME）

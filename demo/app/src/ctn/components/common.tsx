@@ -1,5 +1,6 @@
-import type { ReactNode } from "react";
+import { Children, type ReactNode } from "react";
 import { useLang } from "../../i18n";
+import { xsdEntry } from "../xsdLabels";
 import { isUnconfirmed } from "../schema";
 import { statusName, STATUS_CLASS, notifTypeName, NOTIF_TYPE_SHORT } from "../refData";
 import type { NotifTypeKey, StatusKey } from "../types";
@@ -63,6 +64,55 @@ export function Section({ title, sub, right, children, tableSchema, colSchema }:
         {right}
       </div>
       <div className="sect-b">{children}</div>
+    </div>
+  );
+}
+
+// ---- 届書のブロック ----
+/**
+ * 入力画面のかたまりを届書の見出しに一致させる。
+ *
+ * クライアントからの要望（2026-09）:
+ *   「できる限り PDF 出力のイメージがつきやすいブロック構造にしてほしい」
+ *
+ * 届書PDF は項目を上から順に並べた形（＝XSDのツリーをそのまま印字したもの）
+ * なので、入力画面も同じ区切り・同じ順序・同じ名前で区切れば、どの欄が届書の
+ * どこに出るかが目で追える。ブロック名・階層・見出し番号は XSD から引くので
+ * 手で書かない（xsdLabels.ts）。
+ *
+ * el に入れ物要素名を渡すと見出し番号が付く。cols="1" は1列にする（長文欄用）。
+ */
+export function FormBlock({
+  el, under, note, right, cols = "2", children,
+}: {
+  el: string;
+  /** 同名要素がXSD上の複数箇所にある場合の親要素名 */
+  under?: string;
+  note?: string;
+  right?: ReactNode;
+  cols?: "1" | "2";
+  /** 省略可。届書にはあるが入力を別タブに置いた欄の案内だけを出す場合に使う */
+  children?: ReactNode;
+}) {
+  const e = xsdEntry(el, under);
+  const parents = (e?.path ?? []).slice(0, -1);
+  // 届出種別によって中身が全部隠れるブロックがある（例：終了届のゲノム検査等）。
+  // 見出しだけが残ると「入力できない空の枠」に見えるので、その場合は出さない。
+  // note だけを持つブロック（入力が別タブにある欄の案内）は残す。
+  const empty = children !== undefined && Children.toArray(children).length === 0;
+  if (empty && !note) return null;
+  return (
+    <div className="fblock">
+      <div className="fblock-h">
+        {e?.no && <span className="fblock-no">{e.no}</span>}
+        <span className="fblock-name">{e?.label ?? el}</span>
+        {e?.repeat && <span className="fblock-rep">繰り返し</span>}
+        <div style={{ flex: 1 }} />
+        {right}
+      </div>
+      {parents.length > 0 && <div className="fblock-path">届書：{parents.join(" › ")}</div>}
+      {note && <div className="fblock-note">{note}</div>}
+      {children && <div className={`fblock-b${cols === "1" ? " one" : ""}`}>{children}</div>}
     </div>
   );
 }
