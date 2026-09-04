@@ -873,10 +873,20 @@ function CodePicker({ kind, codes, value, disabled, onChange }: { kind: CodeKind
       </>
     );
   }
+  // 剤形コードは42件あり、手引きの表も「経口投与する製剤」などの見出しで
+  // 区切られている。同じまとまりで出さないと目的のコードを探せない。
+  const groups = [...new Set(list.map((c) => c.group ?? ""))];
+  const grouped = groups.length > 1 || groups[0] !== "";
   return (
     <select className="sel" value={value} disabled={disabled} onChange={(e) => onChange(e.target.value)}>
       <option value="">—</option>
-      {list.map((c) => <option key={c.id} value={c.code}>{c.code} {c.name}</option>)}
+      {grouped
+        ? groups.map((g) => (
+            <optgroup key={g} label={g || t("(uncategorised)", "（分類なし）")}>
+              {list.filter((c) => (c.group ?? "") === g).map((c) => <option key={c.id} value={c.code}>{c.code} {c.name}</option>)}
+            </optgroup>
+          ))
+        : list.map((c) => <option key={c.id} value={c.code}>{c.code} {c.name}</option>)}
     </select>
   );
 }

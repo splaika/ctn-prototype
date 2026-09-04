@@ -16,8 +16,16 @@
   ],
   "payloadVersion": "1",
   "groups": [
-    { "name": "CTN 起票担当", "role": "drafter", "description": "治験届の起票・編集を行う" },
-    { "name": "CTN レビュー担当", "role": "reviewer", "description": "社内レビュー・レビュー完了（提出）・XML生成を行う。起票者との兼務は職務分離で拒否される" }
+    {
+      "name": "CTN 起票担当",
+      "role": "drafter",
+      "description": "治験届の起票・編集を行う"
+    },
+    {
+      "name": "CTN レビュー担当",
+      "role": "reviewer",
+      "description": "社内レビュー・レビュー完了（提出）・XML生成を行う。起票者との兼務は職務分離で拒否される"
+    }
   ],
   "lists": [
     {
@@ -26,18 +34,91 @@
       "entity": "Notification",
       "description": "治験届。集約全体を CtnPayload(JSON) に保持し、一覧・絞り込み用に主要項目を昇格列へ投影する。正は CtnPayload。",
       "fields": [
-        { "prop": "(表示名)", "name": "Title", "type": "Text", "builtIn": true, "note": "例: ABC-123 届2/変1 変更届。保存時にリポジトリが組み立てる" },
-        { "prop": "compoundId", "name": "CtnCompound", "type": "Lookup", "lookupList": "CtnCompounds", "note": "一覧の絞り込み用。書き込みは CtnCompoundId" },
-        { "prop": "notifType", "name": "CtnNotifType", "type": "Choice", "choices": ["plan", "change", "termination", "completion", "devDiscontinuation"], "note": "NotifTypeKey の値をそのまま選択肢値に" },
-        { "prop": "filingCount", "name": "CtnFilingCount", "type": "Number", "note": "届出回数" },
-        { "prop": "changeCount", "name": "CtnChangeCount", "type": "Number", "note": "変更回数（計画届等は空）" },
-        { "prop": "status", "name": "CtnStatus", "type": "Choice", "choices": ["draft", "review", "submitted"] },
-        { "prop": "protocolNo", "name": "CtnProtocolNo", "type": "Text", "note": "実施計画書識別記号" },
-        { "prop": "noteDate", "name": "CtnNoteDate", "type": "Text", "note": "届出年月日 YYYY-MM-DD（TZずれ回避のため日付型にしない）" },
-        { "prop": "createdBy", "name": "CtnCreatedByUser", "type": "Text", "note": "loginName。職務分離の判定に使用" },
-        { "prop": "reviewedBy", "name": "CtnReviewedByUser", "type": "Text", "note": "loginName。レビュー完了者。起票者と異なることを強制（職務分離）" },
-        { "prop": "(集約全体)", "name": "CtnPayload", "type": "Note", "note": "Notification 集約全体の JSON（studyDrugs/sites/attachments/references/inquiries を含む）" },
-        { "prop": "(スキーマ版)", "name": "CtnPayloadVersion", "type": "Text", "note": "ペイロードのスキーマ版。初期値 1" }
+        {
+          "prop": "(表示名)",
+          "name": "Title",
+          "type": "Text",
+          "builtIn": true,
+          "note": "例: ABC-123 届2/変1 変更届。保存時にリポジトリが組み立てる"
+        },
+        {
+          "prop": "compoundId",
+          "name": "CtnCompound",
+          "type": "Lookup",
+          "lookupList": "CtnCompounds",
+          "note": "一覧の絞り込み用。書き込みは CtnCompoundId"
+        },
+        {
+          "prop": "notifType",
+          "name": "CtnNotifType",
+          "type": "Choice",
+          "choices": [
+            "plan",
+            "change",
+            "termination",
+            "completion",
+            "devDiscontinuation"
+          ],
+          "note": "NotifTypeKey の値をそのまま選択肢値に"
+        },
+        {
+          "prop": "filingCount",
+          "name": "CtnFilingCount",
+          "type": "Number",
+          "note": "届出回数"
+        },
+        {
+          "prop": "changeCount",
+          "name": "CtnChangeCount",
+          "type": "Number",
+          "note": "変更回数（計画届等は空）"
+        },
+        {
+          "prop": "status",
+          "name": "CtnStatus",
+          "type": "Choice",
+          "choices": [
+            "draft",
+            "review",
+            "submitted"
+          ]
+        },
+        {
+          "prop": "protocolNo",
+          "name": "CtnProtocolNo",
+          "type": "Text",
+          "note": "実施計画書識別記号"
+        },
+        {
+          "prop": "noteDate",
+          "name": "CtnNoteDate",
+          "type": "Text",
+          "note": "届出年月日 YYYY-MM-DD（TZずれ回避のため日付型にしない）"
+        },
+        {
+          "prop": "createdBy",
+          "name": "CtnCreatedByUser",
+          "type": "Text",
+          "note": "loginName。職務分離の判定に使用"
+        },
+        {
+          "prop": "reviewedBy",
+          "name": "CtnReviewedByUser",
+          "type": "Text",
+          "note": "loginName。レビュー完了者。起票者と異なることを強制（職務分離）"
+        },
+        {
+          "prop": "(集約全体)",
+          "name": "CtnPayload",
+          "type": "Note",
+          "note": "Notification 集約全体の JSON（studyDrugs/sites/attachments/references/inquiries を含む）"
+        },
+        {
+          "prop": "(スキーマ版)",
+          "name": "CtnPayloadVersion",
+          "type": "Text",
+          "note": "ペイロードのスキーマ版。初期値 1"
+        }
       ]
     },
     {
@@ -46,16 +127,66 @@
       "entity": "Compound",
       "description": "治験成分（シリーズ親）。届出をまたぐ共通事項を保持する。",
       "fields": [
-        { "prop": "compoundCode", "name": "Title", "type": "Text", "builtIn": true, "note": "治験成分記号をそのまま表示名にする" },
-        { "prop": "compoundCode", "name": "CtnCompoundCode", "type": "Text", "note": "半角英数字20桁以内・「&」不可" },
-        { "prop": "targetCategory", "name": "CtnTargetCategory", "type": "Number", "note": "対象区分（医薬品/医療機器/再生医療等製品）" },
-        { "prop": "trialKind", "name": "CtnTrialKind", "type": "Text" },
-        { "prop": "initReceptNo", "name": "CtnInitReceptNo", "type": "Text", "note": "初回届出受付番号" },
-        { "prop": "initNoteDate", "name": "CtnInitNoteDate", "type": "Text", "note": "初回届出年月日 YYYY-MM-DD" },
-        { "prop": "devStatus", "name": "CtnDevStatus", "type": "Number", "note": "開発状態（開発中/開発中止）。開発中止届の提出で更新される" },
-        { "prop": "sponsorId", "name": "CtnSponsor", "type": "Lookup", "lookupList": "CtnSponsors", "note": "主たる届出者" },
-        { "prop": "drugName", "name": "CtnDrugName", "type": "Text", "note": "代表的な被験薬名称（表示用）" },
-        { "prop": "createdAt", "name": "CtnCreatedAt", "type": "Text" }
+        {
+          "prop": "compoundCode",
+          "name": "Title",
+          "type": "Text",
+          "builtIn": true,
+          "note": "治験成分記号をそのまま表示名にする"
+        },
+        {
+          "prop": "compoundCode",
+          "name": "CtnCompoundCode",
+          "type": "Text",
+          "note": "半角英数字20桁以内・「&」不可"
+        },
+        {
+          "prop": "targetCategory",
+          "name": "CtnTargetCategory",
+          "type": "Number",
+          "note": "対象区分（医薬品/医療機器/再生医療等製品）"
+        },
+        {
+          "prop": "trialKind",
+          "name": "CtnTrialKind",
+          "type": "Text"
+        },
+        {
+          "prop": "initReceptNo",
+          "name": "CtnInitReceptNo",
+          "type": "Text",
+          "note": "初回届出受付番号"
+        },
+        {
+          "prop": "initNoteDate",
+          "name": "CtnInitNoteDate",
+          "type": "Text",
+          "note": "初回届出年月日 YYYY-MM-DD"
+        },
+        {
+          "prop": "devStatus",
+          "name": "CtnDevStatus",
+          "type": "Number",
+          "note": "開発状態（開発中/開発中止）。開発中止届の提出で更新される"
+        },
+        {
+          "prop": "sponsorId",
+          "name": "CtnSponsor",
+          "type": "Lookup",
+          "lookupList": "CtnSponsors",
+          "note": "主たる届出者"
+        },
+        {
+          "prop": "drugName",
+          "name": "CtnDrugName",
+          "type": "Text",
+          "note": "代表的な被験薬名称（表示用）"
+        },
+        {
+          "prop": "createdAt",
+          "name": "CtnCreatedAt",
+          "type": "Text"
+        }
       ]
     },
     {
@@ -64,19 +195,80 @@
       "entity": "Sponsor",
       "description": "治験届出者。",
       "fields": [
-        { "prop": "name", "name": "Title", "type": "Text", "builtIn": true },
-        { "prop": "sponsorType", "name": "CtnSponsorType", "type": "Text", "note": "届出者の種別" },
-        { "prop": "name", "name": "CtnName", "type": "Text", "note": "届出者の名称" },
-        { "prop": "repName", "name": "CtnRepName", "type": "Text", "note": "代表者の氏名" },
-        { "prop": "address1", "name": "CtnAddress1", "type": "Text" },
-        { "prop": "address2", "name": "CtnAddress2", "type": "Text" },
-        { "prop": "manufacturerCode", "name": "CtnManufacturerCode", "type": "Text", "note": "業者コード" },
-        { "prop": "contactName", "name": "CtnContactName", "type": "Text", "note": "届出担当者の氏名" },
-        { "prop": "contactTitle", "name": "CtnContactTitle", "type": "Text", "note": "届出担当者の所属" },
-        { "prop": "telNo", "name": "CtnTelNo", "type": "Text" },
-        { "prop": "faxOrMail", "name": "CtnFaxOrMail", "type": "Text" },
-        { "prop": "overseasInfo", "name": "CtnOverseasInfo", "type": "Note", "note": "海外依頼者・外国製造業者情報（該当時のみ・要確認）" },
-        { "prop": "active", "name": "CtnActive", "type": "Boolean", "note": "論理削除（false=無効）" }
+        {
+          "prop": "name",
+          "name": "Title",
+          "type": "Text",
+          "builtIn": true
+        },
+        {
+          "prop": "sponsorType",
+          "name": "CtnSponsorType",
+          "type": "Text",
+          "note": "届出者の種別"
+        },
+        {
+          "prop": "name",
+          "name": "CtnName",
+          "type": "Text",
+          "note": "届出者の名称"
+        },
+        {
+          "prop": "repName",
+          "name": "CtnRepName",
+          "type": "Text",
+          "note": "代表者の氏名"
+        },
+        {
+          "prop": "address1",
+          "name": "CtnAddress1",
+          "type": "Text"
+        },
+        {
+          "prop": "address2",
+          "name": "CtnAddress2",
+          "type": "Text"
+        },
+        {
+          "prop": "manufacturerCode",
+          "name": "CtnManufacturerCode",
+          "type": "Text",
+          "note": "業者コード"
+        },
+        {
+          "prop": "contactName",
+          "name": "CtnContactName",
+          "type": "Text",
+          "note": "届出担当者の氏名"
+        },
+        {
+          "prop": "contactTitle",
+          "name": "CtnContactTitle",
+          "type": "Text",
+          "note": "届出担当者の所属"
+        },
+        {
+          "prop": "telNo",
+          "name": "CtnTelNo",
+          "type": "Text"
+        },
+        {
+          "prop": "faxOrMail",
+          "name": "CtnFaxOrMail",
+          "type": "Text"
+        },
+        {
+          "prop": "overseasInfo",
+          "name": "CtnOverseasInfo",
+          "type": "Note",
+          "note": "海外依頼者・外国製造業者情報（該当時のみ・要確認）"
+        },
+        {
+          "prop": "active",
+          "name": "CtnActive",
+          "type": "Boolean",
+          "note": "論理削除（false=無効）"
+        }
       ]
     },
     {
@@ -85,14 +277,51 @@
       "entity": "Institution",
       "description": "医療機関マスタ。論理削除で履歴を保持する。",
       "fields": [
-        { "prop": "name", "name": "Title", "type": "Text", "builtIn": true },
-        { "prop": "code", "name": "CtnCode", "type": "Text", "note": "表示用の機関コード" },
-        { "prop": "name", "name": "CtnName", "type": "Text", "note": "機関名称" },
-        { "prop": "address1", "name": "CtnAddress1", "type": "Text" },
-        { "prop": "address2", "name": "CtnAddress2", "type": "Text" },
-        { "prop": "telNo", "name": "CtnTelNo", "type": "Text", "note": "代表電話番号" },
-        { "prop": "departments", "name": "CtnDepartments", "type": "Note", "note": "実施診療科の候補（改行区切り）。届の実施診療科の選択肢になる" },
-        { "prop": "active", "name": "CtnActive", "type": "Boolean" }
+        {
+          "prop": "name",
+          "name": "Title",
+          "type": "Text",
+          "builtIn": true
+        },
+        {
+          "prop": "code",
+          "name": "CtnCode",
+          "type": "Text",
+          "note": "表示用の機関コード"
+        },
+        {
+          "prop": "name",
+          "name": "CtnName",
+          "type": "Text",
+          "note": "機関名称"
+        },
+        {
+          "prop": "address1",
+          "name": "CtnAddress1",
+          "type": "Text"
+        },
+        {
+          "prop": "address2",
+          "name": "CtnAddress2",
+          "type": "Text"
+        },
+        {
+          "prop": "telNo",
+          "name": "CtnTelNo",
+          "type": "Text",
+          "note": "代表電話番号"
+        },
+        {
+          "prop": "departments",
+          "name": "CtnDepartments",
+          "type": "Note",
+          "note": "実施診療科の候補（改行区切り）。届の実施診療科の選択肢になる"
+        },
+        {
+          "prop": "active",
+          "name": "CtnActive",
+          "type": "Boolean"
+        }
       ]
     },
     {
@@ -101,16 +330,66 @@
       "entity": "Doctor",
       "description": "医師マスタ。SharePoint の Id が不変の同一性キー（改名しても不変）。",
       "fields": [
-        { "prop": "nameFiling", "name": "Title", "type": "Text", "builtIn": true },
-        { "prop": "doctorNo", "name": "CtnDoctorNo", "type": "Text", "note": "医師表示ID" },
-        { "prop": "nameOriginal", "name": "CtnNameOriginal", "type": "Text", "note": "氏名（原表記）" },
-        { "prop": "nameFiling", "name": "CtnNameFiling", "type": "Text", "note": "氏名（届出用表記＝外字正規化済み）" },
-        { "prop": "pronounce", "name": "CtnPronounce", "type": "Text", "note": "よみかな" },
-        { "prop": "medSchoolNo", "name": "CtnMedSchoolNo", "type": "Text", "note": "大学番号" },
-        { "prop": "graduationYear", "name": "CtnGraduationYear", "type": "Text" },
-        { "prop": "hasGaiji", "name": "CtnHasGaiji", "type": "Boolean", "note": "外字有無（検出結果）" },
-        { "prop": "institutionId", "name": "CtnInstitution", "type": "Lookup", "lookupList": "CtnInstitutions", "required": false, "note": "主たる所属医療機関（任意）" },
-        { "prop": "active", "name": "CtnActive", "type": "Boolean" }
+        {
+          "prop": "nameFiling",
+          "name": "Title",
+          "type": "Text",
+          "builtIn": true
+        },
+        {
+          "prop": "doctorNo",
+          "name": "CtnDoctorNo",
+          "type": "Text",
+          "note": "医師表示ID"
+        },
+        {
+          "prop": "nameOriginal",
+          "name": "CtnNameOriginal",
+          "type": "Text",
+          "note": "氏名（原表記）"
+        },
+        {
+          "prop": "nameFiling",
+          "name": "CtnNameFiling",
+          "type": "Text",
+          "note": "氏名（届出用表記＝外字正規化済み）"
+        },
+        {
+          "prop": "pronounce",
+          "name": "CtnPronounce",
+          "type": "Text",
+          "note": "よみかな"
+        },
+        {
+          "prop": "medSchoolNo",
+          "name": "CtnMedSchoolNo",
+          "type": "Text",
+          "note": "大学番号"
+        },
+        {
+          "prop": "graduationYear",
+          "name": "CtnGraduationYear",
+          "type": "Text"
+        },
+        {
+          "prop": "hasGaiji",
+          "name": "CtnHasGaiji",
+          "type": "Boolean",
+          "note": "外字有無（検出結果）"
+        },
+        {
+          "prop": "institutionId",
+          "name": "CtnInstitution",
+          "type": "Lookup",
+          "lookupList": "CtnInstitutions",
+          "required": false,
+          "note": "主たる所属医療機関（任意）"
+        },
+        {
+          "prop": "active",
+          "name": "CtnActive",
+          "type": "Boolean"
+        }
       ]
     },
     {
@@ -119,14 +398,54 @@
       "entity": "SiteStaff",
       "description": "CRC・SMO事務局。XML対象外だが運用で必須の連絡先。",
       "fields": [
-        { "prop": "name", "name": "Title", "type": "Text", "builtIn": true },
-        { "prop": "name", "name": "CtnName", "type": "Text" },
-        { "prop": "kana", "name": "CtnKana", "type": "Text" },
-        { "prop": "role", "name": "CtnStaffRole", "type": "Choice", "choices": ["CRC", "事務局", "薬剤部"], "note": "予約名衝突を避けるため Role ではなく CtnStaffRole" },
-        { "prop": "institutionId", "name": "CtnInstitution", "type": "Lookup", "lookupList": "CtnInstitutions" },
-        { "prop": "telNo", "name": "CtnTelNo", "type": "Text" },
-        { "prop": "mail", "name": "CtnMail", "type": "Text" },
-        { "prop": "active", "name": "CtnActive", "type": "Boolean" }
+        {
+          "prop": "name",
+          "name": "Title",
+          "type": "Text",
+          "builtIn": true
+        },
+        {
+          "prop": "name",
+          "name": "CtnName",
+          "type": "Text"
+        },
+        {
+          "prop": "kana",
+          "name": "CtnKana",
+          "type": "Text"
+        },
+        {
+          "prop": "role",
+          "name": "CtnStaffRole",
+          "type": "Choice",
+          "choices": [
+            "CRC",
+            "事務局",
+            "薬剤部"
+          ],
+          "note": "予約名衝突を避けるため Role ではなく CtnStaffRole"
+        },
+        {
+          "prop": "institutionId",
+          "name": "CtnInstitution",
+          "type": "Lookup",
+          "lookupList": "CtnInstitutions"
+        },
+        {
+          "prop": "telNo",
+          "name": "CtnTelNo",
+          "type": "Text"
+        },
+        {
+          "prop": "mail",
+          "name": "CtnMail",
+          "type": "Text"
+        },
+        {
+          "prop": "active",
+          "name": "CtnActive",
+          "type": "Boolean"
+        }
       ]
     },
     {
@@ -135,22 +454,80 @@
       "entity": "Irb",
       "description": "IRB マスタ。",
       "fields": [
-        { "prop": "ownerName", "name": "Title", "type": "Text", "builtIn": true },
-        { "prop": "irbType", "name": "CtnIrbType", "type": "Number", "note": "院内/外部（choice の整数値）" },
-        { "prop": "ownerName", "name": "CtnOwnerName", "type": "Text", "note": "設置者の名称" },
-        { "prop": "address1", "name": "CtnAddress1", "type": "Text" },
-        { "prop": "address2", "name": "CtnAddress2", "type": "Text" },
-        { "prop": "active", "name": "CtnActive", "type": "Boolean" }
+        {
+          "prop": "ownerName",
+          "name": "Title",
+          "type": "Text",
+          "builtIn": true
+        },
+        {
+          "prop": "irbType",
+          "name": "CtnIrbType",
+          "type": "Number",
+          "note": "院内/外部（choice の整数値）"
+        },
+        {
+          "prop": "ownerName",
+          "name": "CtnOwnerName",
+          "type": "Text",
+          "note": "設置者の名称"
+        },
+        {
+          "prop": "address1",
+          "name": "CtnAddress1",
+          "type": "Text"
+        },
+        {
+          "prop": "address2",
+          "name": "CtnAddress2",
+          "type": "Text"
+        },
+        {
+          "prop": "active",
+          "name": "CtnActive",
+          "type": "Boolean"
+        }
       ]
     },
     {
       "name": "CtnCodes",
       "description": "外部標準のコード表（剤形コード・投与経路コード・薬効分類番号）。実コードは日本薬局方等が正で手引きの範囲外のため、入手したコード表をここへ登録して届の入力を選択式にする。",
       "fields": [
-        { "prop": "kind", "name": "CtnCodeKind", "type": "Choice", "choices": ["dosageForm", "adminRoute", "therapeuticClass"], "note": "CodeKind の値をそのまま選択肢値に" },
-        { "prop": "code", "name": "CtnCode", "type": "Text", "note": "コード値（例 A1 / 11 / 429）" },
-        { "prop": "name", "name": "CtnName", "type": "Text", "note": "名称（例 錠剤 / 経口投与）" },
-        { "prop": "active", "name": "CtnActive", "type": "Boolean", "note": "statecode（無効化＝論理削除）" }
+        {
+          "prop": "kind",
+          "name": "CtnCodeKind",
+          "type": "Choice",
+          "choices": [
+            "dosageForm",
+            "adminRoute",
+            "therapeuticClass"
+          ],
+          "note": "CodeKind の値をそのまま選択肢値に"
+        },
+        {
+          "prop": "code",
+          "name": "CtnCode",
+          "type": "Text",
+          "note": "コード値（例 A1 / 11 / 429）"
+        },
+        {
+          "prop": "name",
+          "name": "CtnName",
+          "type": "Text",
+          "note": "名称（例 錠剤 / 経口投与）"
+        },
+        {
+          "prop": "group",
+          "name": "CtnCodeGroup",
+          "type": "Text",
+          "note": "分類（剤形コードのみ。手引きの表の見出し）"
+        },
+        {
+          "prop": "active",
+          "name": "CtnActive",
+          "type": "Boolean",
+          "note": "statecode（無効化＝論理削除）"
+        }
       ]
     },
     {
@@ -159,16 +536,62 @@
       "entity": "GaijiRecord",
       "description": "外字置換マッピングの確認履歴（医師単位）。",
       "fields": [
-        { "prop": "(表示名)", "name": "Title", "type": "Text", "builtIn": true, "note": "originalChar → replacementChar を組み立てて入れる" },
-        { "prop": "doctorId", "name": "CtnDoctor", "type": "Lookup", "lookupList": "CtnDoctors" },
-        { "prop": "notificationId", "name": "CtnNotification", "type": "Lookup", "lookupList": "CtnNotifications", "required": false },
-        { "prop": "targetColumn", "name": "CtnTargetColumn", "type": "Text" },
-        { "prop": "originalChar", "name": "CtnOriginalChar", "type": "Text" },
-        { "prop": "codePoint", "name": "CtnCodePoint", "type": "Text" },
-        { "prop": "replacementChar", "name": "CtnReplacementChar", "type": "Text" },
-        { "prop": "gaijiType", "name": "CtnGaijiType", "type": "Number", "note": "外字判定区分" },
-        { "prop": "confirmedBy", "name": "CtnConfirmedBy", "type": "Text" },
-        { "prop": "confirmedOn", "name": "CtnConfirmedOn", "type": "Text" }
+        {
+          "prop": "(表示名)",
+          "name": "Title",
+          "type": "Text",
+          "builtIn": true,
+          "note": "originalChar → replacementChar を組み立てて入れる"
+        },
+        {
+          "prop": "doctorId",
+          "name": "CtnDoctor",
+          "type": "Lookup",
+          "lookupList": "CtnDoctors"
+        },
+        {
+          "prop": "notificationId",
+          "name": "CtnNotification",
+          "type": "Lookup",
+          "lookupList": "CtnNotifications",
+          "required": false
+        },
+        {
+          "prop": "targetColumn",
+          "name": "CtnTargetColumn",
+          "type": "Text"
+        },
+        {
+          "prop": "originalChar",
+          "name": "CtnOriginalChar",
+          "type": "Text"
+        },
+        {
+          "prop": "codePoint",
+          "name": "CtnCodePoint",
+          "type": "Text"
+        },
+        {
+          "prop": "replacementChar",
+          "name": "CtnReplacementChar",
+          "type": "Text"
+        },
+        {
+          "prop": "gaijiType",
+          "name": "CtnGaijiType",
+          "type": "Number",
+          "note": "外字判定区分"
+        },
+        {
+          "prop": "confirmedBy",
+          "name": "CtnConfirmedBy",
+          "type": "Text"
+        },
+        {
+          "prop": "confirmedOn",
+          "name": "CtnConfirmedOn",
+          "type": "Text"
+        }
       ]
     },
     {
@@ -178,13 +601,56 @@
       "description": "全操作の記録。追記専用（更新・削除メソッドを実装しない）。",
       "appendOnly": true,
       "fields": [
-        { "prop": "summary", "name": "Title", "type": "Text", "builtIn": true },
-        { "prop": "at", "name": "CtnAt", "type": "Text", "note": "ISO 文字列" },
-        { "prop": "who", "name": "CtnWho", "type": "Text", "note": "ユーザー名" },
-        { "prop": "action", "name": "CtnAction", "type": "Choice", "choices": ["create", "update", "delete", "restore", "submit", "approve", "generate-xml"] },
-        { "prop": "entity", "name": "CtnEntity", "type": "Text", "note": "テーブル表示名" },
-        { "prop": "entityRef", "name": "CtnEntityRef", "type": "Text", "note": "対象の識別子" },
-        { "prop": "summary", "name": "CtnSummary", "type": "Note", "note": "何を・どう変えたか" }
+        {
+          "prop": "summary",
+          "name": "Title",
+          "type": "Text",
+          "builtIn": true
+        },
+        {
+          "prop": "at",
+          "name": "CtnAt",
+          "type": "Text",
+          "note": "ISO 文字列"
+        },
+        {
+          "prop": "who",
+          "name": "CtnWho",
+          "type": "Text",
+          "note": "ユーザー名"
+        },
+        {
+          "prop": "action",
+          "name": "CtnAction",
+          "type": "Choice",
+          "choices": [
+            "create",
+            "update",
+            "delete",
+            "restore",
+            "submit",
+            "approve",
+            "generate-xml"
+          ]
+        },
+        {
+          "prop": "entity",
+          "name": "CtnEntity",
+          "type": "Text",
+          "note": "テーブル表示名"
+        },
+        {
+          "prop": "entityRef",
+          "name": "CtnEntityRef",
+          "type": "Text",
+          "note": "対象の識別子"
+        },
+        {
+          "prop": "summary",
+          "name": "CtnSummary",
+          "type": "Note",
+          "note": "何を・どう変えたか"
+        }
       ]
     }
   ]

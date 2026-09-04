@@ -340,6 +340,10 @@
           "type": "Text"
         },
         {
+          "name": "CtnCodeGroup",
+          "type": "Text"
+        },
+        {
           "name": "CtnActive",
           "type": "Boolean"
         }

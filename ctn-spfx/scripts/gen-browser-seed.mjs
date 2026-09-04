@@ -44,6 +44,7 @@ const ORDER = [
   { list: "CtnIrbs", key: "irbs" },
   { list: "CtnDoctors", key: "doctors" },
   { list: "CtnSiteStaff", key: "siteStaff" },
+  { list: "CtnCodes", key: "codes" },
   { list: "CtnCompounds", key: "compounds" },
   { list: "CtnNotifications", key: "notifications" },
   { list: "CtnGaiji", key: "gaiji" },

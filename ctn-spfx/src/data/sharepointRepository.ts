@@ -216,7 +216,7 @@ export class SharePointCtnRepository implements CtnRepository {
       this.sp.getItems(LIST.doctors, sel(["Id", "CtnDoctorNo", "CtnNameOriginal", "CtnNameFiling", "CtnPronounce", "CtnMedSchoolNo", "CtnGraduationYear", "CtnHasGaiji", "CtnInstitutionId", "CtnActive"])),
       this.sp.getItems(LIST.siteStaff, sel(["Id", "CtnName", "CtnKana", "CtnStaffRole", "CtnInstitutionId", "CtnTelNo", "CtnMail", "CtnActive"])),
       this.sp.getItems(LIST.irbs, sel(["Id", "CtnIrbType", "CtnOwnerName", "CtnAddress1", "CtnAddress2", "CtnActive"])),
-      this.sp.getItems(LIST.codes, sel(["Id", "CtnCodeKind", "CtnCode", "CtnName", "CtnActive"])),
+      this.sp.getItems(LIST.codes, sel(["Id", "CtnCodeKind", "CtnCode", "CtnName", "CtnCodeGroup", "CtnActive"])),
       this.sp.getItems(LIST.sponsors, sel(["Id", "CtnSponsorType", "CtnName", "CtnRepName", "CtnAddress1", "CtnAddress2", "CtnManufacturerCode", "CtnContactName", "CtnContactTitle", "CtnTelNo", "CtnFaxOrMail", "CtnOverseasInfo", "CtnActive"])),
       this.sp.getItems(LIST.gaiji, sel(["Id", "CtnDoctorId", "CtnNotificationId", "CtnTargetColumn", "CtnOriginalChar", "CtnCodePoint", "CtnReplacementChar", "CtnGaijiType", "CtnConfirmedBy", "CtnConfirmedOn"])),
       this.sp.getItems(LIST.audit, `$select=Id,CtnAt,CtnWho,CtnAction,CtnEntity,CtnEntityRef,CtnSummary&$top=${TOP}&$orderby=Id desc`),
@@ -912,6 +912,8 @@ function readCode(i: SpListItem): CodeItem {
     kind: toStr(i.CtnCodeKind) as CodeItem["kind"],
     code: toStr(i.CtnCode),
     name: toStr(i.CtnName),
+    // 分類は剤形コードだけが持つ。空文字は「分類なし」なので undefined に寄せる
+    ...(toStr(i.CtnCodeGroup) ? { group: toStr(i.CtnCodeGroup) } : {}),
     active: toBool(i.CtnActive),
   };
 }
@@ -921,6 +923,7 @@ function writeCode(x: Omit<CodeItem, "id">): Record<string, unknown> {
     CtnCodeKind: x.kind,
     CtnCode: x.code,
     CtnName: x.name,
+    CtnCodeGroup: x.group ?? "",
     CtnActive: x.active,
   };
 }

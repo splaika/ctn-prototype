@@ -543,6 +543,12 @@ if (Test-CtnField 'CtnCodes' 'CtnName') {
     Write-Host '  追加: CtnName' -ForegroundColor Green
     Add-PnPField -List 'CtnCodes' -DisplayName 'CtnName' -InternalName 'CtnName' -Type Text -AddToDefaultView | Out-Null
 }
+if (Test-CtnField 'CtnCodes' 'CtnCodeGroup') {
+    Write-Host '  既存: CtnCodeGroup' -ForegroundColor DarkGray
+} else {
+    Write-Host '  追加: CtnCodeGroup' -ForegroundColor Green
+    Add-PnPField -List 'CtnCodes' -DisplayName 'CtnCodeGroup' -InternalName 'CtnCodeGroup' -Type Text -AddToDefaultView | Out-Null
+}
 if (Test-CtnField 'CtnCodes' 'CtnActive') {
     Write-Host '  既存: CtnActive' -ForegroundColor DarkGray
 } else {

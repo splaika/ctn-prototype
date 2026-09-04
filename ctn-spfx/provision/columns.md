@@ -167,6 +167,7 @@ IRB マスタ。
 | `kind` | `CtnCodeKind` | 選択肢（dosageForm / adminRoute / therapeuticClass） | CodeKind の値をそのまま選択肢値に |
 | `code` | `CtnCode` | 1行テキスト | コード値（例 A1 / 11 / 429） |
 | `name` | `CtnName` | 1行テキスト | 名称（例 錠剤 / 経口投与） |
+| `group` | `CtnCodeGroup` | 1行テキスト | 分類（剤形コードのみ。手引きの表の見出し） |
 | `active` | `CtnActive` | はい/いいえ | statecode（無効化＝論理削除） |
 
 ## CtnGaiji

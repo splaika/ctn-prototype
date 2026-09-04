@@ -57,6 +57,12 @@ export interface CodeItem {
   kind: CodeKind;
   code: string;
   name: string;
+  /**
+   * 分類（剤形コードのみ）。手引きの表が「経口投与する製剤」などの見出しで
+   * 区切られているため、選択肢も同じまとまりで出せるように持つ。
+   * 投与経路コードの表は見出しを持たないので空。
+   */
+  group?: string;
   active: boolean;
 }
 

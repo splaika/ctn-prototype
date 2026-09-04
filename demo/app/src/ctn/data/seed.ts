@@ -27,6 +27,7 @@ import type {
   StudyDrug,
 } from "../types";
 import type { CtnDb } from "./repository";
+import { OFFICIAL_CODES } from "./officialCodes";
 
 // ---------------------------------------------------------------------------
 // マスタ
@@ -383,13 +384,9 @@ const initialGaiji: CtnDb["gaiji"] = [
  * 既存デモデータで実際に確認できた値だけを入れている。** 推測値は入れない。
  * コード表を入手したらマスタ管理から登録（または一括取り込み）して置き換える。
  */
-export const CODES: CodeItem[] = [
-  { id: "code-df-a1", kind: "dosageForm", code: "A1", name: "錠剤", active: true },
-  { id: "code-ar-11", kind: "adminRoute", code: "11", name: "経口投与", active: true },
-  { id: "code-tc-429", kind: "therapeuticClass", code: "429", name: "その他の腫瘍用薬", active: true },
-  { id: "code-tc-3999", kind: "therapeuticClass", code: "3999", name: "他に分類されない代謝性医薬品", active: true },
-  { id: "code-tc-2399", kind: "therapeuticClass", code: "2399", name: "その他の消化器官用薬", active: true },
-];
+// コード表は手引きからの転記（data/officialCodes.ts に出典を書いてある）。
+// 以前はここに観測できた5件だけを置いていたため、届の入力がほぼ手打ちだった。
+export const CODES: CodeItem[] = OFFICIAL_CODES;
 
 export function makeSeedDb(): CtnDb {
   invSeq = 0; // 再生成のたびにイベント行IDを安定させる

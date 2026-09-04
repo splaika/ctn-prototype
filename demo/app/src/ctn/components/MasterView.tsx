@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useLang } from "../../i18n";
+import { DOSAGE_FORM_GROUPS } from "../data/officialCodes";
 import { detectGaiji } from "../logic";
 import { label, SET, options, IRB_TYPE, userById, CODE_KINDS, CODE_KIND_LABEL } from "../refData";
 import { Modal, Btn, Field, Icon, Empty } from "./common";
@@ -352,7 +353,7 @@ function CodeTable({ db, onEdit, onToggle }: { db: CtnDb; onEdit: (r: CodeItem) 
   if (!db.codes.length) return <Empty>{t("None. Register the official code tables here to turn the filing inputs into dropdowns.", "なし。公式のコード表をここへ登録すると、届の入力が選択式になります。")}</Empty>;
   return (
     <table className="mtbl">
-      <thead><tr><th>{t("Kind", "種別")}</th><th>{t("Code", "コード")}</th><th>{t("Name", "名称")}</th><th /></tr></thead>
+      <thead><tr><th>{t("Kind", "種別")}</th><th>{t("Code", "コード")}</th><th>{t("Name", "名称")}</th><th>{t("Category", "分類")}</th><th /></tr></thead>
       <tbody>
         {CODE_KINDS.flatMap((kind) =>
           db.codes.filter((c) => c.kind === kind).map((r) => (
@@ -360,6 +361,7 @@ function CodeTable({ db, onEdit, onToggle }: { db: CtnDb; onEdit: (r: CodeItem) 
               <td className="muted small">{CODE_KIND_LABEL[r.kind]}</td>
               <td className="nm">{r.code}{!r.active && <span className="del-badge">論理削除</span>}</td>
               <td>{r.name}</td>
+              <td className="muted small">{r.group ?? ""}</td>
               <td className="acts"><button className="icon-btn" onClick={() => onEdit(r)}>{Icon.edit}</button><ActiveCell active={r.active} onToggle={(a) => onToggle(r.id, a)} /></td>
             </tr>
           ))
@@ -381,7 +383,14 @@ function CodeForm({ rec, onClose, onSave }: { rec: CodeItem | null; onClose: () 
           </select>
         </Field>
         <Field label={t("Code", "コード")} mark="always"><input className="tin" value={v.code} onChange={on("code")} /></Field>
-        <Field label={t("Name", "名称")} mark="always" wide><input className="tin" value={v.name} onChange={on("name")} /></Field>
+        <Field label={t("Name", "名称")} mark="always"><input className="tin" value={v.name} onChange={on("name")} /></Field>
+        {/* 分類は剤形コードだけが持つ（手引きの表の見出し）。候補から選べるが直接入力もできる */}
+        <Field label={t("Category", "分類")} hint={t("Dosage form codes only — the heading in the Guide's table.", "剤形コードのみ。手引きの表の見出しです。")}>
+          <input className="tin" list="code-groups" value={v.group ?? ""} onChange={(e) => setV((x) => ({ ...x, group: e.target.value || undefined }))} />
+          <datalist id="code-groups">
+            {DOSAGE_FORM_GROUPS.map((g) => <option key={g} value={g} />)}
+          </datalist>
+        </Field>
       </div>
     </Modal>
   );
