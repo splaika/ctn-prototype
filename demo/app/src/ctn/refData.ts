@@ -3,7 +3,7 @@
 // ============================================================================
 import { choiceSet, choiceLabel } from "./schema";
 import { ROLE_LABEL, type CtnRole } from "./permissions";
-import type { Lang, NotifTypeKey, StatusKey } from "./types";
+import type { CodeKind, Lang, NotifTypeKey, StatusKey } from "./types";
 export { NOTIF_TYPE_ORDER } from "./types";
 export type { CtnRole } from "./permissions";
 
@@ -140,6 +140,14 @@ export const USERS: DemoUser[] = [
   { id: "u-d", name: "土井 直樹", initials: "DN", role: "reviewer", dept: "薬事部" },
 ];
 export const userById = (id: string) => USERS.find((u) => u.id === id);
+
+// ---- 外部標準のコード表の種別 ----
+export const CODE_KIND_LABEL: Record<CodeKind, string> = {
+  dosageForm: "剤形コード",
+  adminRoute: "投与経路コード",
+  therapeuticClass: "薬効分類番号",
+};
+export const CODE_KINDS = Object.keys(CODE_KIND_LABEL) as CodeKind[];
 /** ロール表示名の単一ソースは permissions.ts（viewer を含む） */
 export const roleLabel = ROLE_LABEL;
 

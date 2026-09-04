@@ -107,6 +107,15 @@ if (Test-CtnList 'CtnIrbs') {
 # 一覧の表示名と説明、バージョン管理（届のスナップショット履歴として機能させる）
 Set-PnPList -Identity 'CtnIrbs' -Title 'CtnIrbs' -Description 'IRB マスタ。' -EnableVersioning $true | Out-Null
 
+if (Test-CtnList 'CtnCodes') {
+    Write-Host '既存: CtnCodes' -ForegroundColor DarkGray
+} else {
+    Write-Host '作成: CtnCodes (undefined)' -ForegroundColor Green
+    New-PnPList -Title 'CtnCodes' -Template GenericList -OnQuickLaunch:$false | Out-Null
+}
+# 一覧の表示名と説明、バージョン管理（届のスナップショット履歴として機能させる）
+Set-PnPList -Identity 'CtnCodes' -Title 'CtnCodes' -Description '外部標準のコード表（剤形コード・投与経路コード・薬効分類番号）。実コードは日本薬局方等が正で手引きの範囲外のため、入手したコード表をここへ登録して届の入力を選択式にする。' -EnableVersioning $true | Out-Null
+
 if (Test-CtnList 'CtnGaiji') {
     Write-Host '既存: CtnGaiji' -ForegroundColor DarkGray
 } else {
@@ -513,6 +522,32 @@ if (Test-CtnField 'CtnIrbs' 'CtnActive') {
 } else {
     Write-Host '  追加: CtnActive' -ForegroundColor Green
     Add-PnPField -List 'CtnIrbs' -DisplayName 'CtnActive' -InternalName 'CtnActive' -Type Boolean -AddToDefaultView | Out-Null
+}
+
+Write-Host '列: CtnCodes' -ForegroundColor Cyan
+if (Test-CtnField 'CtnCodes' 'CtnCodeKind') {
+    Write-Host '  既存: CtnCodeKind' -ForegroundColor DarkGray
+} else {
+    Write-Host '  追加: CtnCodeKind' -ForegroundColor Green
+    Add-PnPField -List 'CtnCodes' -DisplayName 'CtnCodeKind' -InternalName 'CtnCodeKind' -Type Choice -Choices 'dosageForm', 'adminRoute', 'therapeuticClass' -AddToDefaultView | Out-Null
+}
+if (Test-CtnField 'CtnCodes' 'CtnCode') {
+    Write-Host '  既存: CtnCode' -ForegroundColor DarkGray
+} else {
+    Write-Host '  追加: CtnCode' -ForegroundColor Green
+    Add-PnPField -List 'CtnCodes' -DisplayName 'CtnCode' -InternalName 'CtnCode' -Type Text -AddToDefaultView | Out-Null
+}
+if (Test-CtnField 'CtnCodes' 'CtnName') {
+    Write-Host '  既存: CtnName' -ForegroundColor DarkGray
+} else {
+    Write-Host '  追加: CtnName' -ForegroundColor Green
+    Add-PnPField -List 'CtnCodes' -DisplayName 'CtnName' -InternalName 'CtnName' -Type Text -AddToDefaultView | Out-Null
+}
+if (Test-CtnField 'CtnCodes' 'CtnActive') {
+    Write-Host '  既存: CtnActive' -ForegroundColor DarkGray
+} else {
+    Write-Host '  追加: CtnActive' -ForegroundColor Green
+    Add-PnPField -List 'CtnCodes' -DisplayName 'CtnActive' -InternalName 'CtnActive' -Type Boolean -AddToDefaultView | Out-Null
 }
 
 Write-Host '列: CtnGaiji' -ForegroundColor Cyan

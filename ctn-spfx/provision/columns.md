@@ -156,6 +156,19 @@ IRB マスタ。
 | `address2` | `CtnAddress2` | 1行テキスト | — |
 | `active` | `CtnActive` | はい/いいえ | — |
 
+## CtnCodes
+
+**表示名**: undefined　**対応する型**: `undefined`
+
+外部標準のコード表（剤形コード・投与経路コード・薬効分類番号）。実コードは日本薬局方等が正で手引きの範囲外のため、入手したコード表をここへ登録して届の入力を選択式にする。
+
+| `types.ts` プロパティ | 内部名 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `kind` | `CtnCodeKind` | 選択肢（dosageForm / adminRoute / therapeuticClass） | CodeKind の値をそのまま選択肢値に |
+| `code` | `CtnCode` | 1行テキスト | コード値（例 A1 / 11 / 429） |
+| `name` | `CtnName` | 1行テキスト | 名称（例 錠剤 / 経口投与） |
+| `active` | `CtnActive` | はい/いいえ | statecode（無効化＝論理削除） |
+
 ## CtnGaiji
 
 **表示名**: CTN 外字確認履歴　**対応する型**: `GaijiRecord`

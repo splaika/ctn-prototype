@@ -1,13 +1,13 @@
 import { useState } from "react";
 import { useLang } from "../../i18n";
 import { detectGaiji } from "../logic";
-import { label, SET, options, IRB_TYPE, userById } from "../refData";
+import { label, SET, options, IRB_TYPE, userById, CODE_KINDS, CODE_KIND_LABEL } from "../refData";
 import { Modal, Btn, Field, Icon, Empty } from "./common";
 import { GaijiDialog, type GaijiConfirmation } from "./GaijiDialog";
 import type { CtnRepository, CtnDb } from "../data/repository";
-import type { Doctor, Institution, Irb, SiteStaff, Sponsor, GaijiRecord } from "../types";
+import type { CodeItem, Doctor, Institution, Irb, SiteStaff, Sponsor, GaijiRecord } from "../types";
 
-type Tab = "institution" | "doctor" | "irb" | "sponsor" | "staff";
+type Tab = "institution" | "doctor" | "irb" | "sponsor" | "staff" | "code";
 
 export function MasterView({ db, repo, actorId, reload, flash }: { db: CtnDb; repo: CtnRepository; actorId: string; reload: () => Promise<void>; flash: (m: string) => void }) {
   const { t } = useLang();
@@ -21,6 +21,7 @@ export function MasterView({ db, repo, actorId, reload, flash }: { db: CtnDb; re
     ["staff", "CRC", "CRC", db.siteStaff.length],
     ["irb", "IRB", "IRB", db.irbs.length],
     ["sponsor", "Sponsors", "治験届出者", db.sponsors.length],
+    ["code", "Code tables", "コード表", db.codes.length],
   ];
 
   const toggleActive = async (kind: Tab, id: string, active: boolean) => {
@@ -30,6 +31,7 @@ export function MasterView({ db, repo, actorId, reload, flash }: { db: CtnDb; re
       irb: repo.setIrbActive.bind(repo),
       sponsor: repo.setSponsorActive.bind(repo),
       staff: repo.setSiteStaffActive.bind(repo),
+      code: repo.setCodeActive.bind(repo),
     };
     await map[kind](id, active, actorId);
     await reload();
@@ -83,6 +85,7 @@ export function MasterView({ db, repo, actorId, reload, flash }: { db: CtnDb; re
 
         {tab === "institution" && <InstTable db={db} onEdit={(r) => setEditing({ kind: "institution", rec: r })} onToggle={(id, a) => toggleActive("institution", id, a)} />}
         {tab === "doctor" && <DocTable db={db} onEdit={(r) => setEditing({ kind: "doctor", rec: r })} onToggle={(id, a) => toggleActive("doctor", id, a)} />}
+        {tab === "code" && <CodeTable db={db} onEdit={(r) => setEditing({ kind: "code", rec: r })} onToggle={(id, a) => toggleActive("code", id, a)} />}
         {tab === "irb" && <IrbTable db={db} onEdit={(r) => setEditing({ kind: "irb", rec: r })} onToggle={(id, a) => toggleActive("irb", id, a)} />}
         {tab === "sponsor" && <SponsorTable db={db} onEdit={(r) => setEditing({ kind: "sponsor", rec: r })} onToggle={(id, a) => toggleActive("sponsor", id, a)} />}
         {tab === "staff" && <StaffTable db={db} onEdit={(r) => setEditing({ kind: "staff", rec: r })} onToggle={(id, a) => toggleActive("staff", id, a)} />}
@@ -94,6 +97,9 @@ export function MasterView({ db, repo, actorId, reload, flash }: { db: CtnDb; re
       )}
       {editing?.kind === "doctor" && (
         <DocForm db={db} rec={editing.rec as Doctor | null} onClose={() => setEditing(null)} onSave={saveDoctor} />
+      )}
+      {editing?.kind === "code" && (
+        <CodeForm rec={editing.rec as CodeItem | null} onClose={() => setEditing(null)} onSave={async (rec, isNew) => { if (isNew) await repo.createCode(rec as Omit<CodeItem, "id">, actorId); else await repo.updateCode(rec as CodeItem, actorId); setEditing(null); await reload(); flash(t("Saved", "保存しました")); }} />
       )}
       {editing?.kind === "irb" && (
         <IrbForm rec={editing.rec as Irb | null} onClose={() => setEditing(null)} onSave={async (rec, isNew) => { if (isNew) await repo.createIrb(rec as Omit<Irb, "id">, actorId); else await repo.updateIrb(rec as Irb, actorId); await reload(); setEditing(null); flash(t("Saved", "保存しました")); }} />
@@ -332,6 +338,50 @@ function StaffForm({ db, rec, onClose, onSave }: { db: CtnDb; rec: SiteStaff | n
         <Field label={t("Institution", "所属機関")} mark="always"><select className="sel" value={v.institutionId} onChange={(e) => setV((s) => ({ ...s, institutionId: e.target.value }))}>{db.institutions.filter((i) => i.active).map((i) => <option key={i.id} value={i.id}>{i.name}</option>)}</select></Field>
         <Field label={t("Tel", "電話")} mark="optional"><input className="tin" value={v.telNo} onChange={on("telNo")} /></Field>
         <Field label={t("Mail", "メール")} mark="optional"><input className="tin" value={v.mail} onChange={on("mail")} /></Field>
+      </div>
+    </Modal>
+  );
+}
+
+/**
+ * コード表（剤形・投与経路・薬効分類）。実コードは日本薬局方等の外部標準が正で、
+ * 手引きの範囲外。届の入力を選択式にして表記ブレを防ぐためここで登録する。
+ */
+function CodeTable({ db, onEdit, onToggle }: { db: CtnDb; onEdit: (r: CodeItem) => void; onToggle: (id: string, a: boolean) => void }) {
+  const { t } = useLang();
+  if (!db.codes.length) return <Empty>{t("None. Register the official code tables here to turn the filing inputs into dropdowns.", "なし。公式のコード表をここへ登録すると、届の入力が選択式になります。")}</Empty>;
+  return (
+    <table className="mtbl">
+      <thead><tr><th>{t("Kind", "種別")}</th><th>{t("Code", "コード")}</th><th>{t("Name", "名称")}</th><th /></tr></thead>
+      <tbody>
+        {CODE_KINDS.flatMap((kind) =>
+          db.codes.filter((c) => c.kind === kind).map((r) => (
+            <tr key={r.id} className={r.active ? "" : "inactive"}>
+              <td className="muted small">{CODE_KIND_LABEL[r.kind]}</td>
+              <td className="nm">{r.code}{!r.active && <span className="del-badge">論理削除</span>}</td>
+              <td>{r.name}</td>
+              <td className="acts"><button className="icon-btn" onClick={() => onEdit(r)}>{Icon.edit}</button><ActiveCell active={r.active} onToggle={(a) => onToggle(r.id, a)} /></td>
+            </tr>
+          ))
+        )}
+      </tbody>
+    </table>
+  );
+}
+
+function CodeForm({ rec, onClose, onSave }: { rec: CodeItem | null; onClose: () => void; onSave: (r: CodeItem | Omit<CodeItem, "id">, isNew: boolean) => void }) {
+  const { t } = useLang();
+  const { v, on, setV } = useForm<Omit<CodeItem, "id">>(rec ?? { kind: "dosageForm", code: "", name: "", active: true });
+  return (
+    <Modal title={rec ? t("Edit code", "コードを編集") : t("Register code", "コードを登録")} onClose={onClose} footer={<FormFooter onClose={onClose} onSave={() => onSave(rec ? { ...v, id: rec.id } : v, !rec)} />}>
+      <div className="form-grid">
+        <Field label={t("Kind", "種別")} mark="always">
+          <select className="sel" value={v.kind} onChange={(e) => setV((x) => ({ ...x, kind: e.target.value as CodeItem["kind"] }))}>
+            {CODE_KINDS.map((k) => <option key={k} value={k}>{CODE_KIND_LABEL[k]}</option>)}
+          </select>
+        </Field>
+        <Field label={t("Code", "コード")} mark="always"><input className="tin" value={v.code} onChange={on("code")} /></Field>
+        <Field label={t("Name", "名称")} mark="always" wide><input className="tin" value={v.name} onChange={on("name")} /></Field>
       </div>
     </Modal>
   );

@@ -10,6 +10,7 @@ import type {
   Doctor,
   GaijiRecord,
   Institution,
+  CodeItem,
   Irb,
   Notification,
   SiteStaff,
@@ -24,6 +25,8 @@ export interface CtnDb {
   doctors: Doctor[];
   siteStaff: SiteStaff[];
   irbs: Irb[];
+  /** 外部標準のコード表（剤形・投与経路・薬効分類） */
+  codes: CodeItem[];
   sponsors: Sponsor[];
   gaiji: GaijiRecord[];
   audit: AuditEntry[];
@@ -51,6 +54,9 @@ export interface CtnRepository {
   updateDoctor(rec: Doctor, actor: string): Promise<Doctor>;
   setDoctorActive(id: string, active: boolean, actor: string): Promise<void>;
 
+  createCode(rec: Omit<CodeItem, "id">, actor: string): Promise<CodeItem>;
+  updateCode(rec: CodeItem, actor: string): Promise<CodeItem>;
+  setCodeActive(id: string, active: boolean, actor: string): Promise<void>;
   createIrb(rec: Omit<Irb, "id">, actor: string): Promise<Irb>;
   updateIrb(rec: Irb, actor: string): Promise<Irb>;
   setIrbActive(id: string, active: boolean, actor: string): Promise<void>;

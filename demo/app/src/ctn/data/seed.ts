@@ -18,6 +18,7 @@ import type {
   Doctor,
   Institution,
   Investigator,
+  CodeItem,
   Irb,
   Notification,
   SiteDrugQty,
@@ -377,6 +378,19 @@ const initialGaiji: CtnDb["gaiji"] = [
   { id: "gj-2", doctorId: "doc-10", notificationId: "nt-klm-1", targetColumn: "cr_doctor.cr_nameoriginal", originalChar: "德", codePoint: "U+5FB3", replacementChar: "徳", gaijiType: 100001501, confirmedBy: "青木 亮介", confirmedOn: "2025-11-06T09:05:00" },
 ];
 
+/**
+ * 外部標準のコード表。**実コード表が未入手のため、参照出力（AMG 410 第1回）と
+ * 既存デモデータで実際に確認できた値だけを入れている。** 推測値は入れない。
+ * コード表を入手したらマスタ管理から登録（または一括取り込み）して置き換える。
+ */
+export const CODES: CodeItem[] = [
+  { id: "code-df-a1", kind: "dosageForm", code: "A1", name: "錠剤", active: true },
+  { id: "code-ar-11", kind: "adminRoute", code: "11", name: "経口投与", active: true },
+  { id: "code-tc-429", kind: "therapeuticClass", code: "429", name: "その他の腫瘍用薬", active: true },
+  { id: "code-tc-3999", kind: "therapeuticClass", code: "3999", name: "他に分類されない代謝性医薬品", active: true },
+  { id: "code-tc-2399", kind: "therapeuticClass", code: "2399", name: "その他の消化器官用薬", active: true },
+];
+
 export function makeSeedDb(): CtnDb {
   invSeq = 0; // 再生成のたびにイベント行IDを安定させる
   return structuredClone({
@@ -386,6 +400,7 @@ export function makeSeedDb(): CtnDb {
     doctors: DOCTORS,
     siteStaff: SITE_STAFF,
     irbs: IRBS,
+    codes: CODES,
     sponsors: SPONSORS,
     gaiji: initialGaiji,
     audit: initialAudit,

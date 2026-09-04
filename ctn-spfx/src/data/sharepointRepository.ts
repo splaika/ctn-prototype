@@ -27,6 +27,7 @@ import {
 import { assertPermission, type CtnRole } from "../shared/ctn/permissions";
 import { NOTIF_TYPE_SHORT, TODAY } from "../shared/ctn/refData";
 import type {
+  CodeItem,
   AuditEntry,
   Compound,
   Doctor,
@@ -57,6 +58,7 @@ const LIST = {
   doctors: "CtnDoctors",
   siteStaff: "CtnSiteStaff",
   irbs: "CtnIrbs",
+  codes: "CtnCodes",
   gaiji: "CtnGaiji",
   audit: "CtnAudit",
 } as const;
@@ -203,6 +205,7 @@ export class SharePointCtnRepository implements CtnRepository {
       doctors,
       siteStaff,
       irbs,
+      codes,
       sponsors,
       gaiji,
       audit,
@@ -213,6 +216,7 @@ export class SharePointCtnRepository implements CtnRepository {
       this.sp.getItems(LIST.doctors, sel(["Id", "CtnDoctorNo", "CtnNameOriginal", "CtnNameFiling", "CtnPronounce", "CtnMedSchoolNo", "CtnGraduationYear", "CtnHasGaiji", "CtnInstitutionId", "CtnActive"])),
       this.sp.getItems(LIST.siteStaff, sel(["Id", "CtnName", "CtnKana", "CtnStaffRole", "CtnInstitutionId", "CtnTelNo", "CtnMail", "CtnActive"])),
       this.sp.getItems(LIST.irbs, sel(["Id", "CtnIrbType", "CtnOwnerName", "CtnAddress1", "CtnAddress2", "CtnActive"])),
+      this.sp.getItems(LIST.codes, sel(["Id", "CtnCodeKind", "CtnCode", "CtnName", "CtnActive"])),
       this.sp.getItems(LIST.sponsors, sel(["Id", "CtnSponsorType", "CtnName", "CtnRepName", "CtnAddress1", "CtnAddress2", "CtnManufacturerCode", "CtnContactName", "CtnContactTitle", "CtnTelNo", "CtnFaxOrMail", "CtnOverseasInfo", "CtnActive"])),
       this.sp.getItems(LIST.gaiji, sel(["Id", "CtnDoctorId", "CtnNotificationId", "CtnTargetColumn", "CtnOriginalChar", "CtnCodePoint", "CtnReplacementChar", "CtnGaijiType", "CtnConfirmedBy", "CtnConfirmedOn"])),
       this.sp.getItems(LIST.audit, `$select=Id,CtnAt,CtnWho,CtnAction,CtnEntity,CtnEntityRef,CtnSummary&$top=${TOP}&$orderby=Id desc`),
@@ -224,6 +228,7 @@ export class SharePointCtnRepository implements CtnRepository {
     doctors.forEach((i) => this.rememberEtag(LIST.doctors, i));
     siteStaff.forEach((i) => this.rememberEtag(LIST.siteStaff, i));
     irbs.forEach((i) => this.rememberEtag(LIST.irbs, i));
+    codes.forEach((i) => this.rememberEtag(LIST.codes, i));
     sponsors.forEach((i) => this.rememberEtag(LIST.sponsors, i));
 
     return {
@@ -243,6 +248,7 @@ export class SharePointCtnRepository implements CtnRepository {
       doctors: doctors.map(readDoctor),
       siteStaff: siteStaff.map(readSiteStaff),
       irbs: irbs.map(readIrb),
+      codes: codes.map(readCode),
       sponsors: sponsors.map(readSponsor),
       gaiji: gaiji.map(readGaiji),
       audit: audit.map(readAudit),
@@ -380,6 +386,22 @@ export class SharePointCtnRepository implements CtnRepository {
   }
 
   // ---- IRBマスタ ----
+  // ---- コード表マスタ（剤形・投与経路・薬効分類。実コードは外部標準が正） ----
+  public async createCode(rec: Omit<CodeItem, "id">, actor: string): Promise<CodeItem> {
+    const r = await this.createMaster(LIST.codes, writeCode(rec), readCode);
+    await this.pushAudit({ who: this.actorName(actor), action: "create", entity: "コード表マスタ", entityRef: r.code, summary: `コード「${r.code} ${r.name}」を登録` });
+    return r;
+  }
+  public async updateCode(rec: CodeItem, actor: string): Promise<CodeItem> {
+    const r = await this.updateMaster(LIST.codes, rec, writeCode(rec), readCode);
+    await this.pushAudit({ who: this.actorName(actor), action: "update", entity: "コード表マスタ", entityRef: r.code, summary: `コード「${r.code} ${r.name}」を更新` });
+    return r;
+  }
+  public async setCodeActive(id: string, active: boolean, actor: string): Promise<void> {
+    await this.setActive(LIST.codes, id, active);
+    await this.pushAudit({ who: this.actorName(actor), action: active ? "restore" : "delete", entity: "コード表マスタ", entityRef: id, summary: active ? "有効化" : "論理削除" });
+  }
+
   public async createIrb(rec: Omit<Irb, "id">, actor: string): Promise<Irb> {
     const r = await this.createMaster(LIST.irbs, writeIrb(rec), readIrb);
     await this.pushAudit({ who: this.actorName(actor), action: "create", entity: "IRBマスタ", entityRef: r.ownerName, summary: `IRB「${r.ownerName}」を登録` });
@@ -880,6 +902,26 @@ function writeSiteStaff(s: Omit<SiteStaff, "id">): Record<string, unknown> {
     CtnTelNo: s.telNo,
     CtnMail: s.mail,
     CtnActive: s.active,
+  };
+}
+
+/** 外部標準のコード表（剤形・投与経路・薬効分類） */
+function readCode(i: SpListItem): CodeItem {
+  return {
+    id: toId(i.Id),
+    kind: toStr(i.CtnCodeKind) as CodeItem["kind"],
+    code: toStr(i.CtnCode),
+    name: toStr(i.CtnName),
+    active: toBool(i.CtnActive),
+  };
+}
+function writeCode(x: Omit<CodeItem, "id">): Record<string, unknown> {
+  return {
+    Title: `${x.code} ${x.name}`.slice(0, 255),
+    CtnCodeKind: x.kind,
+    CtnCode: x.code,
+    CtnName: x.name,
+    CtnActive: x.active,
   };
 }
 

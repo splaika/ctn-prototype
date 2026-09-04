@@ -18,8 +18,10 @@ import {
   finalizeSerials,
   pickInheritanceSource,
 } from "../logic";
+import { CODE_KIND_LABEL } from "../refData";
 import type {
   AuditEntry,
+  CodeItem,
   Compound,
   Doctor,
   GaijiRecord,
@@ -125,6 +127,23 @@ export class MockCtnRepository implements CtnRepository {
   }
 
   // ---- IRBマスタ ----
+  async createCode(rec: Omit<CodeItem, "id">, actor: string) {
+    const r = this.createIn(this.db.codes, rec, "code");
+    this.pushAudit({ who: this.actorName(actor), action: "create", entity: "コード表マスタ", entityRef: r.code, summary: `${CODE_KIND_LABEL[r.kind]}「${r.code} ${r.name}」を登録` });
+    return r;
+  }
+  async updateCode(rec: CodeItem, actor: string) {
+    const r = this.updateIn(this.db.codes, rec);
+    this.pushAudit({ who: this.actorName(actor), action: "update", entity: "コード表マスタ", entityRef: r.code, summary: `${CODE_KIND_LABEL[r.kind]}「${r.code} ${r.name}」を更新` });
+    return r;
+  }
+  async setCodeActive(id: string, active: boolean, actor: string) {
+    const r = this.db.codes.find((x) => x.id === id);
+    if (!r) throw new Error(`Not found: ${id}`);
+    r.active = active;
+    this.pushAudit({ who: this.actorName(actor), action: active ? "restore" : "delete", entity: "コード表マスタ", entityRef: r.code, summary: `${active ? "有効化" : "論理削除"}：${r.code} ${r.name}` });
+  }
+
   async createIrb(rec: Omit<Irb, "id">, actor: string) {
     const r = this.createIn(this.db.irbs, rec, "irb");
     this.pushAudit({ who: this.actorName(actor), action: "create", entity: "IRBマスタ", entityRef: r.ownerName, summary: `IRB「${r.ownerName}」を登録` });

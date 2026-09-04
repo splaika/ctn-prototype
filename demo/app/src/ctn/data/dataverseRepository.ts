@@ -46,6 +46,15 @@ export class DataverseCtnRepository implements CtnRepository {
   async setDoctorActive(): Promise<void> {
     this.fail();
   }
+  async createCode(): Promise<never> {
+    this.fail();
+  }
+  async updateCode(): Promise<never> {
+    this.fail();
+  }
+  async setCodeActive(): Promise<void> {
+    this.fail();
+  }
   async createIrb(_r: Omit<Irb, "id">, _a: string): Promise<Irb> {
     this.fail();
   }

@@ -33,11 +33,12 @@ import {
   type DemoUser,
   statusName,
   STATUS_ORDER,
+  CODE_KIND_LABEL,
 } from "../refData";
 import { Section, Field, StatusPill, TypeBadge, Btn, Icon, UnconfirmedBadge, Modal } from "./common";
 import { requirePermission } from "../permissions";
 import type { CtnDb } from "../data/repository";
-import type { Investigator, Notification, ReferenceNote, Site, SiteDrugQty, StudyDrug } from "../types";
+import type { CodeItem, CodeKind, Investigator, Notification, ReferenceNote, Site, SiteDrugQty, StudyDrug } from "../types";
 
 type Cb = (n: Notification) => Promise<Notification | void> | Notification | void;
 
@@ -580,7 +581,7 @@ export function NotificationDetail({
         <Section title={t("Study drugs", "治験使用薬")} sub={t("Serial no. is assigned automatically on save (matching-key type: constant across the series, plan → completion). Expand a row for all fields.", "順序番号は保存時に自動採番されます（突合キー型：シリーズ内で不変・欠番可・再付番なし）。行を展開すると全項目を入力できます。")} right={editable ? <Btn kind="p" small onClick={addStudyDrug}>{Icon.plus} {t("Add drug", "薬を追加")}</Btn> : undefined}>
           {draft.studyDrugs.length === 0 && <div className="rt-empty">{t("No study drugs. Add the main investigational drug first.", "治験使用薬がありません。まず主たる被験薬を追加してください。")}</div>}
           {draft.studyDrugs.map((d) => (
-            <StudyDrugCard key={d.id} drug={d} editable={editable} onField={(fn) => setDrug(d.id, fn)} onRemove={() => rmStudyDrug(d.id)} />
+            <StudyDrugCard key={d.id} drug={d} editable={editable} onField={(fn) => setDrug(d.id, fn)} onRemove={() => rmStudyDrug(d.id)} codes={db.codes} />
           ))}
         </Section>
       )}
@@ -756,7 +757,30 @@ export function NotificationDetail({
 // ---------------------------------------------------------------------------
 // 治験使用薬カード（展開すると全項目）
 // ---------------------------------------------------------------------------
-function StudyDrugCard({ drug, editable, onField, onRemove }: { drug: StudyDrug; editable: boolean; onField: (fn: (d: StudyDrug) => void) => void; onRemove: () => void }) {
+/**
+ * 外部標準のコード表から選ぶ。コード表は日本薬局方等が正で、手引きの範囲外のため
+ * マスタとして登録する運用にした（推測値を持たない）。未登録なら登録先を案内する。
+ */
+function CodePicker({ kind, codes, value, disabled, onChange }: { kind: CodeKind; codes: CodeItem[]; value: string; disabled?: boolean; onChange: (v: string) => void }) {
+  const { t } = useLang();
+  const list = codes.filter((c) => c.kind === kind && (c.active || c.code === value));
+  if (list.length === 0) {
+    return (
+      <>
+        <input className="tin" value={value} disabled={disabled} onChange={(e) => onChange(e.target.value)} />
+        <div className="field-hint">{t(`No ${CODE_KIND_LABEL[kind]} registered. Register it under Masters › Code tables.`, `${CODE_KIND_LABEL[kind]}がマスタ未登録です。マスタ管理 › コード表 から登録すると選択式になります。`)}</div>
+      </>
+    );
+  }
+  return (
+    <select className="sel" value={value} disabled={disabled} onChange={(e) => onChange(e.target.value)}>
+      <option value="">—</option>
+      {list.map((c) => <option key={c.id} value={c.code}>{c.code} {c.name}</option>)}
+    </select>
+  );
+}
+
+function StudyDrugCard({ drug, editable, onField, onRemove, codes }: { drug: StudyDrug; editable: boolean; onField: (fn: (d: StudyDrug) => void) => void; onRemove: () => void; codes: CodeItem[] }) {
   const { t } = useLang();
   const ofl = oflWith(t);
   const [open, setOpen] = useState(false);
@@ -792,9 +816,18 @@ function StudyDrugCard({ drug, editable, onField, onRemove }: { drug: StudyDrug;
             <Field label={t("Manufacturer code", "製造所業者コード")} mark="always"><input className="tin" value={drug.plantCode} disabled={!editable} onChange={(e) => onField((d) => (d.plantCode = e.target.value))} /></Field>
             <Field label={ofl("製造所所在地1")} hint={ofHint("製造所所在地1")} mark="always"><input className="tin" value={drug.plantAddress1} disabled={!editable} onChange={(e) => onField((d) => (d.plantAddress1 = e.target.value))} /></Field>
             <Field label={ofl("製造所所在地2")} hint={ofHint("製造所所在地2")} mark="always"><input className="tin" value={drug.plantAddress2} disabled={!editable} onChange={(e) => onField((d) => (d.plantAddress2 = e.target.value))} /></Field>
-            <Field label={ofl(dk("薬効分類番号"))} hint={ofHint(dk("薬効分類番号"))} mark="always" unconfirmed><input className="tin" value={drug.efficacyClassCode} disabled={!editable} onChange={(e) => onField((d) => (d.efficacyClassCode = e.target.value))} /></Field>
-            <Field label={t("Dosage form code", "剤形コード")} unconfirmed><input className="tin" value={drug.dosageFormCode ?? ""} disabled={!editable} onChange={(e) => onField((d) => (d.dosageFormCode = e.target.value))} /></Field>
-            <Field label={t("Admin route code", "投与経路コード")}><input className="tin" value={drug.adminRouteCode ?? ""} disabled={!editable} onChange={(e) => onField((d) => (d.adminRouteCode = e.target.value))} /></Field>
+            <Field label={ofl(dk("薬効分類番号"))} hint={ofHint(dk("薬効分類番号"))} mark="always">
+              <CodePicker kind="therapeuticClass" codes={codes} value={drug.efficacyClassCode ?? ""} disabled={!editable}
+                onChange={(v) => onField((d) => (d.efficacyClassCode = v))} />
+            </Field>
+            <Field label={ofl(dk("剤形コード"))} hint={ofHint(dk("剤形コード"))}>
+              <CodePicker kind="dosageForm" codes={codes} value={drug.dosageFormCode ?? ""} disabled={!editable}
+                onChange={(v) => onField((d) => (d.dosageFormCode = v))} />
+            </Field>
+            <Field label={ofl(dk("投与経路コード"))} hint={ofHint(dk("投与経路コード"))}>
+              <CodePicker kind="adminRoute" codes={codes} value={drug.adminRouteCode ?? ""} disabled={!editable}
+                onChange={(v) => onField((d) => (d.adminRouteCode = v))} />
+            </Field>
           </div>
           <Field label={ofl(dk("成分及び分量"))} hint={ofHint(dk("成分及び分量"))} mark="always" wide><textarea className="ta" value={drug.ingredients} disabled={!editable} onChange={(e) => onField((d) => (d.ingredients = e.target.value))} /></Field>
           <Field label={ofl(dk("製造方法"))} hint={ofHint(dk("製造方法"))} wide><textarea className="ta" value={drug.manufactMethod ?? ""} disabled={!editable} onChange={(e) => onField((d) => (d.manufactMethod = e.target.value))} /></Field>

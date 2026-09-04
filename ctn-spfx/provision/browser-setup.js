@@ -319,6 +319,33 @@
       ]
     },
     {
+      "name": "CtnCodes",
+      "description": "外部標準のコード表（剤形コード・投与経路コード・薬効分類番号）。実コードは日本薬局方等が正で手引きの範囲外のため、入手したコード表をここへ登録して届の入力を選択式にする。",
+      "fields": [
+        {
+          "name": "CtnCodeKind",
+          "type": "Choice",
+          "choices": [
+            "dosageForm",
+            "adminRoute",
+            "therapeuticClass"
+          ]
+        },
+        {
+          "name": "CtnCode",
+          "type": "Text"
+        },
+        {
+          "name": "CtnName",
+          "type": "Text"
+        },
+        {
+          "name": "CtnActive",
+          "type": "Boolean"
+        }
+      ]
+    },
+    {
       "name": "CtnGaiji",
       "description": "外字置換マッピングの確認履歴（医師単位）。",
       "fields": [

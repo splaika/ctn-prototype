@@ -45,6 +45,21 @@ export interface User {
   dept: string;
 }
 
+/**
+ * 外部標準のコード表（cr_code）— 剤形・投与経路・薬効分類。
+ * 実コードは日本薬局方等の外部標準で、手引きの範囲外。推測値を入れず、
+ * 入手したコード表をこのマスタへ登録して届の入力を選択式にする（R-19 と同じ狙い）。
+ */
+export type CodeKind = "dosageForm" | "adminRoute" | "therapeuticClass";
+
+export interface CodeItem {
+  id: string;
+  kind: CodeKind;
+  code: string;
+  name: string;
+  active: boolean;
+}
+
 /** 治験届出者（cr_sponsor） */
 export interface Sponsor {
   id: string;
