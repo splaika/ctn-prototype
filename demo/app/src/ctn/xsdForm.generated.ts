@@ -51,7 +51,7 @@ export const XSD_FORM: XsdNode[] = [
       { el: "REASONTERMINATION", label: "中止理由", kind: "value", status: "update" },
       { el: "POSTTERMINATIONMEASURE", label: "その後の対応状況", kind: "value", status: "update", optional: true },
     ] },
-    { el: "INFONAMEADDRESSMANUFACTPLANT", label: "主たる被験薬の製造所又は営業所（治験薬提供者）の名称及び所在地", kind: "group", optional: true, children: [
+    { el: "INFONAMEADDRESSMANUFACTPLANT", label: "主たる被験薬の製造所又は営業所（治験薬提供者）の名称及び所在地", kind: "group", repeat: true, optional: true, children: [
       { el: "SERIALNO1", label: "順序番号", kind: "value", status: "add" },
       { el: "SPONSOR_NAME", label: "名称", kind: "value", status: "update" },
       { el: "SPONSOR_ADDRESS1", label: "所在地１", kind: "value", status: "update" },
@@ -60,7 +60,7 @@ export const XSD_FORM: XsdNode[] = [
     ] },
     { el: "INFOINGREDIENTQUANTITY", label: "主たる被験薬の成分及び分量情報", kind: "group", optional: true, children: [
       { el: "INGREDIENTSQUANTITIES", label: "成分及び分量", kind: "value", status: "update" },
-      { el: "INFODOSAGEFORMCODE", label: "剤形コード情報", kind: "group", children: [
+      { el: "INFODOSAGEFORMCODE", label: "剤形コード情報", kind: "group", repeat: true, children: [
         { el: "SERIALNO1", label: "順序番号", kind: "value", status: "add" },
         { el: "DOSAGEFORMCODE", label: "剤形コード", kind: "value", status: "update" },
       ] },
@@ -72,7 +72,7 @@ export const XSD_FORM: XsdNode[] = [
     ] },
     { el: "INFOINTENDDOSAGEADMIN", label: "主たる被験薬の予定される用法及び用量情報", kind: "group", optional: true, children: [
       { el: "INTENDDOSAGEADMIN", label: "予定される用法及び用量", kind: "value", status: "update" },
-      { el: "INFOADMINROUTECODE", label: "投与経路コード情報", kind: "group", children: [
+      { el: "INFOADMINROUTECODE", label: "投与経路コード情報", kind: "group", repeat: true, children: [
         { el: "SERIALNO1", label: "順序番号", kind: "value", status: "add" },
         { el: "ADMINROUTECODE", label: "投与経路コード", kind: "value", status: "update" },
       ] },
@@ -89,7 +89,7 @@ export const XSD_FORM: XsdNode[] = [
       { el: "TARGETDISEASE", label: "主たる被験薬の対象疾患", kind: "value", status: "update" },
       { el: "INFODOSAGEADMIN", label: "主たる被験薬の用法及び用量情報", kind: "group", children: [
         { el: "DOSAGEADMIN", label: "用法及び用量", kind: "value", status: "update" },
-        { el: "INFOADMINROUTECODE", label: "投与経路コード情報", kind: "group", children: [
+        { el: "INFOADMINROUTECODE", label: "投与経路コード情報", kind: "group", repeat: true, children: [
           { el: "SERIALNO1", label: "順序番号", kind: "value", status: "add" },
           { el: "ADMINROUTECODE", label: "投与経路コード", kind: "value", status: "update" },
         ] },
@@ -99,18 +99,18 @@ export const XSD_FORM: XsdNode[] = [
         { el: "ENDDATECLINTRIAL", label: "終了日年月日", kind: "value", status: "update" },
       ] },
       { el: "REASONONEROUS", label: "有償の理由等", kind: "value", status: "update" },
-      { el: "CHARGEOUTPERSONCLINTRIAL", label: "治験の費用負担者に関する情報", kind: "group", children: [
+      { el: "CHARGEOUTPERSONCLINTRIAL", label: "治験の費用負担者に関する情報", kind: "group", repeat: true, children: [
         { el: "SERIALNO1", label: "順序番号", kind: "value", status: "add" },
         { el: "CHARGEOUTPERSONNAME", label: "費用負担者氏名", kind: "value", status: "update" },
         { el: "VALIDITYREASONS", label: "妥当性", kind: "value", status: "update" },
       ] },
-      { el: "INFOCOORDINVESTIGATOR", label: "治験調整医師又は治験調整委員会構成医師に関する情報", kind: "group", children: [
+      { el: "INFOCOORDINVESTIGATOR", label: "治験調整医師又は治験調整委員会構成医師に関する情報", kind: "group", repeat: true, children: [
         { el: "SERIALNO1", label: "順序番号", kind: "value", status: "add" },
         { el: "KEYINVEST_NAME", label: "治験調整医師の氏名", kind: "value", status: "update" },
         { el: "NAMEMEDICALINSTITUT", label: "治験調整医師の所属機関", kind: "value", status: "update" },
         { el: "KEYINVEST_AFFILIATION", label: "治験調整医師の所属", kind: "value", status: "update" },
       ] },
-      { el: "INFOCRO", label: "治験の依頼（準備）及び管理に関する業務の全部又は一部を受託する者（開発業務受託機関（ＣＲＯ））の氏名、住所及び委託する業務の範囲", kind: "group", children: [
+      { el: "INFOCRO", label: "治験の依頼（準備）及び管理に関する業務の全部又は一部を受託する者（開発業務受託機関（ＣＲＯ））の氏名、住所及び委託する業務の範囲", kind: "group", repeat: true, children: [
         { el: "SERIALNO1", label: "順序番号", kind: "value", status: "add" },
         { el: "CRO_NAME", label: "氏名", kind: "value", status: "update" },
         { el: "CRO_ADDRESS1", label: "住所１", kind: "value", status: "update" },
@@ -155,18 +155,18 @@ export const XSD_FORM: XsdNode[] = [
       ] },
       { el: "OTHERCOMMENTS_PROTOCOL", label: "その他", kind: "value", status: "update", optional: true },
     ] },
-    { el: "REMARKS", label: "備考", kind: "group", children: [
+    { el: "REMARKS", label: "備考", kind: "group", repeat: true, children: [
       { el: "SERIALNO1", label: "順序番号", kind: "value", status: "add" },
       { el: "DETAIL", label: "内容", kind: "value", status: "update" },
     ] },
     { el: "DOCATTACHEDNOTE", label: "届書添付資料", kind: "group", children: [
-      { el: "INFONAMEDOCUMENTS", label: "資料名情報", kind: "group", children: [
+      { el: "INFONAMEDOCUMENTS", label: "資料名情報", kind: "group", repeat: true, children: [
         { el: "SERIALNO1", label: "順序番号", kind: "value", status: "add" },
         { el: "NAMEDOC", label: "資料名", kind: "value", status: "update" },
       ] },
       { el: "REMARK", label: "備考", kind: "value", status: "update" },
     ] },
-    { el: "INFOPERSONFILLNOTE", label: "治験届出者に関する情報", kind: "group", children: [
+    { el: "INFOPERSONFILLNOTE", label: "治験届出者に関する情報", kind: "group", repeat: true, children: [
       { el: "SERIALNO1", label: "順序番号", kind: "value", status: "add" },
       { el: "CLASSPERSONFILLNOTE", label: "治験届出者の種別", kind: "value", status: "update" },
       { el: "APPLICAT_NAME", label: "届出者の名称", kind: "value", status: "update" },
@@ -181,7 +181,7 @@ export const XSD_FORM: XsdNode[] = [
         { el: "FAXNUMBER", label: "ＦＡＸ番号又はメールアドレス", kind: "value", status: "update" },
       ] },
     ] },
-    { el: "INFOFOREIGNMANUFACTURER", label: "海外依頼者、外国製造業者に関する情報", kind: "group", optional: true, children: [
+    { el: "INFOFOREIGNMANUFACTURER", label: "海外依頼者、外国製造業者に関する情報", kind: "group", repeat: true, optional: true, children: [
       { el: "SERIALNO1", label: "順序番号", kind: "value", status: "add" },
       { el: "FOREIGN_SPONSOR_NAME", label: "海外依頼者、外国製造業者の名称（邦文）", kind: "value", status: "update" },
       { el: "FOREIGN_SPONSOR_REP_NAME", label: "海外依頼者、外国製造業者の(代表者の)氏名（邦文）", kind: "value", status: "update" },
@@ -193,7 +193,7 @@ export const XSD_FORM: XsdNode[] = [
       { el: "FOREIGN_ADDRESS2_FRGNLNG", label: "所在地２（外国文）", kind: "value", status: "update" },
     ] },
   ] },
-  { el: "INFOCOMBINATION", label: "治験使用薬、治験使用機器相当、治験使用製品相当（主たる被験薬を除く。）の情報", kind: "group", optional: true, children: [
+  { el: "INFOCOMBINATION", label: "治験使用薬、治験使用機器相当、治験使用製品相当（主たる被験薬を除く。）の情報", kind: "group", repeat: true, optional: true, children: [
     { el: "SERIALNO1", label: "順序番号", kind: "value", status: "add" },
     { el: "COMB_PRODUCTCATEGORY", label: "医薬品／医療機器／再生医療等製品の別", kind: "value", status: "update" },
     { el: "INFOCOMBINATIONID", label: "", kind: "group", children: [
@@ -208,7 +208,7 @@ export const XSD_FORM: XsdNode[] = [
     { el: "COMB_APPLICATIONSTATUS", label: "国内における承認状況", kind: "value", status: "update" },
     { el: "COMB_INFONOTE", label: "", kind: "group", children: [
       { el: "COMB_CATEGTESTPRODUCTSUBJ30DAYREVIEW", label: "30日調査対応被験薬区分", kind: "value", status: "updateNoValue", optional: true },
-      { el: "COMB_INFONAMEADDRESSMANUFACTPLANT", label: "製造所又は営業所（治験薬提供者）の名称及び所在地", kind: "group", optional: true, children: [
+      { el: "COMB_INFONAMEADDRESSMANUFACTPLANT", label: "製造所又は営業所（治験薬提供者）の名称及び所在地", kind: "group", repeat: true, optional: true, children: [
         { el: "SERIALNO2", label: "順序番号", kind: "value", status: "add" },
         { el: "COMB_SPONSOR_NAME", label: "名称", kind: "value", status: "update" },
         { el: "COMB_SPONSOR_ADDRESS1", label: "所在地１", kind: "value", status: "update" },
@@ -217,7 +217,7 @@ export const XSD_FORM: XsdNode[] = [
       ] },
       { el: "COMB_INFOINGREDIENTQUANTITY", label: "成分及び分量情報", kind: "group", optional: true, children: [
         { el: "COMB_INGREDIENTSQUANTITIES", label: "成分及び分量", kind: "value", status: "update" },
-        { el: "COMB_INFODOSAGEFORMCODE", label: "剤形コード情報", kind: "group", children: [
+        { el: "COMB_INFODOSAGEFORMCODE", label: "剤形コード情報", kind: "group", repeat: true, children: [
           { el: "SERIALNO2", label: "順序番号", kind: "value", status: "add" },
           { el: "COMB_DOSAGEFORMCODE", label: "剤形コード", kind: "value", status: "update" },
         ] },
@@ -229,7 +229,7 @@ export const XSD_FORM: XsdNode[] = [
       ] },
       { el: "COMB_INFOINTENDDOSAGEADMIN", label: "予定される用法及び用量情報", kind: "group", optional: true, children: [
         { el: "COMB_INTENDDOSAGEADMIN", label: "予定される用法及び用量", kind: "value", status: "update" },
-        { el: "COMB_INFOADMINROUTECODE", label: "投与経路コード情報", kind: "group", children: [
+        { el: "COMB_INFOADMINROUTECODE", label: "投与経路コード情報", kind: "group", repeat: true, children: [
           { el: "SERIALNO2", label: "順序番号", kind: "value", status: "add" },
           { el: "COMB_ADMINROUTECODE", label: "投与経路コード", kind: "value", status: "update" },
         ] },
@@ -238,7 +238,7 @@ export const XSD_FORM: XsdNode[] = [
         { el: "COMB_TARGETDISEASE", label: "対象疾患", kind: "value", status: "update" },
         { el: "COMB_INFODOSAGEADMIN", label: "用法及び用量情報", kind: "group", children: [
           { el: "COMB_DOSAGEADMIN", label: "用法及び用量", kind: "value", status: "update" },
-          { el: "COMB_INFOADMINROUTECODE", label: "投与経路コード情報", kind: "group", children: [
+          { el: "COMB_INFOADMINROUTECODE", label: "投与経路コード情報", kind: "group", repeat: true, children: [
             { el: "SERIALNO2", label: "順序番号", kind: "value", status: "add" },
             { el: "COMB_ADMINROUTECODE", label: "投与経路コード", kind: "value", status: "update" },
           ] },
@@ -260,7 +260,7 @@ export const XSD_FORM: XsdNode[] = [
         ] },
         { el: "OTHERCOMMENTS", label: "その他", kind: "value", status: "update", optional: true },
       ] },
-      { el: "COMB_INFOFOREIGNMANUFACTURER", label: "海外依頼者、外国製造業者に関する情報", kind: "group", optional: true, children: [
+      { el: "COMB_INFOFOREIGNMANUFACTURER", label: "海外依頼者、外国製造業者に関する情報", kind: "group", repeat: true, optional: true, children: [
         { el: "SERIALNO2", label: "順序番号", kind: "value", status: "add" },
         { el: "COMB_FOREIGN_SPONSOR_NAME", label: "海外依頼者、外国製造業者の名称（邦文）", kind: "value", status: "update" },
         { el: "COMB_FOREIGN_SPONSOR_REP_NAME", label: "海外依頼者、外国製造業者の(代表者の)氏名（邦文）", kind: "value", status: "update" },
@@ -276,26 +276,26 @@ export const XSD_FORM: XsdNode[] = [
     ] },
   ] },
   { el: "INFOMEDICALINSTITUT", label: "実施医療機関情報", kind: "group", optional: true, children: [
-    { el: "INFOEACHMEDICALINSTITUT", label: "実施医療機関ごとの事項", kind: "group", children: [
+    { el: "INFOEACHMEDICALINSTITUT", label: "実施医療機関ごとの事項", kind: "group", repeat: true, children: [
       { el: "SERIALNO1", label: "順序番号", kind: "value", status: "add" },
       { el: "INSTITUTE_NAME", label: "実施医療機関の名称", kind: "value", status: "update" },
       { el: "DEPARTMENT", label: "実施診療科", kind: "value", status: "update" },
       { el: "INSTITUTE_ADDRESS1", label: "所在地１", kind: "value", status: "update" },
       { el: "INSTITUTE_ADDRESS2", label: "所在地２", kind: "value", status: "update" },
       { el: "INSTITUTE_TELNUM", label: "電話番号", kind: "value", status: "update" },
-      { el: "INFOINVESTIGATOR", label: "治験責任医師に関する情報", kind: "group", children: [
+      { el: "INFOINVESTIGATOR", label: "治験責任医師に関する情報", kind: "group", repeat: true, children: [
         { el: "SERIALNO2", label: "順序番号", kind: "value", status: "add" },
         { el: "CHIEFINVEST_NAME", label: "治験責任医師の氏名", kind: "value", status: "update" },
         { el: "NUMMEDICALSCHOOL", label: "大学番号", kind: "value", status: "update" },
         { el: "GRADUATYEARMEDICALSCHOOL", label: "卒業年", kind: "value", status: "update" },
         { el: "CHIEFINVEST_PRONOUNCE", label: "氏名よみかな", kind: "value", status: "update" },
       ] },
-      { el: "INFOSUBINVESTIGATOR", label: "治験分担医師に関する情報", kind: "group", children: [
+      { el: "INFOSUBINVESTIGATOR", label: "治験分担医師に関する情報", kind: "group", repeat: true, children: [
         { el: "SERIALNO2", label: "順序番号", kind: "value", status: "add" },
         { el: "INVESTIGATER_NAME", label: "治験分担医師の氏名", kind: "value", status: "update" },
         { el: "INVEST_PRONOUNCE", label: "氏名よみかな", kind: "value", status: "update" },
       ] },
-      { el: "INFOQUANTITIESINVESTPRODUCT", label: "治験使用薬、治験使用機器相当、治験使用製品相当数量情報", kind: "group", children: [
+      { el: "INFOQUANTITIESINVESTPRODUCT", label: "治験使用薬、治験使用機器相当、治験使用製品相当数量情報", kind: "group", repeat: true, children: [
         { el: "SERIALNO2", label: "順序番号", kind: "value", status: "add" },
         { el: "NAMEINVESTPRODUCT", label: "治験使用薬、治験使用機器相当、治験使用製品相当の名称", kind: "value", status: "update" },
         { el: "QUANTITIESPLANNED", label: "予定交付（入手）数量", kind: "value", status: "update" },
@@ -306,14 +306,14 @@ export const XSD_FORM: XsdNode[] = [
       ] },
       { el: "PLANNUMSUBJMEDICALINSTUTUT", label: "実施医療機関予定被験者数", kind: "value", status: "update" },
       { el: "NUMSUBJENROLLINSTITUTION", label: "実施医療機関被験者数", kind: "value", status: "update" },
-      { el: "INFOSMOINMEDINST", label: "治験の実施に関する業務の一部を実施医療機関から受託する者（治験施設支援機関（ＳＭＯ）等）の氏名、住所及び委託する業務の範囲", kind: "group", children: [
+      { el: "INFOSMOINMEDINST", label: "治験の実施に関する業務の一部を実施医療機関から受託する者（治験施設支援機関（ＳＭＯ）等）の氏名、住所及び委託する業務の範囲", kind: "group", repeat: true, children: [
         { el: "SERIALNO2", label: "順序番号", kind: "value", status: "add" },
         { el: "SMO_NAME", label: "氏名", kind: "value", status: "update" },
         { el: "SMO_ADDRESS1", label: "住所１", kind: "value", status: "update" },
         { el: "SMO_ADDRESS2", label: "住所２", kind: "value", status: "update" },
         { el: "SMO_SERVICE", label: "委託する業務の範囲", kind: "value", status: "update" },
       ] },
-      { el: "INFOIRB", label: "治験審査委員会に関する情報", kind: "group", children: [
+      { el: "INFOIRB", label: "治験審査委員会に関する情報", kind: "group", repeat: true, children: [
         { el: "SERIALNO2", label: "順序番号", kind: "value", status: "add" },
         { el: "TYPEIRB", label: "院内・外部の区分", kind: "value", status: "update" },
         { el: "IRB_OWNER_NAME", label: "治験審査委員会の設置者の名称", kind: "value", status: "update" },
@@ -324,7 +324,7 @@ export const XSD_FORM: XsdNode[] = [
     ] },
     { el: "FOOTNOTE", label: "脚注", kind: "value", status: "update" },
   ] },
-  { el: "INFOREFCLINTRIALPLANNOTER", label: "参照する治験届出情報", kind: "group", optional: true, children: [
+  { el: "INFOREFCLINTRIALPLANNOTER", label: "参照する治験届出情報", kind: "group", repeat: true, optional: true, children: [
     { el: "SERIALNO1", label: "順序番号", kind: "value", status: "add" },
     { el: "REF_PRODUCTCATEGORY", label: "医薬品／医療機器／再生医療等製品の別", kind: "value", status: "update" },
     { el: "REF_INFOTESTSUBSTANCEIDCODE", label: "治験成分記号又は治験識別記号", kind: "value", status: "update" },

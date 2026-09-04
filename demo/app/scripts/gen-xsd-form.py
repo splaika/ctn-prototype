@@ -145,6 +145,23 @@ def build(elements: list[dict], types: dict[str, str], seen: tuple[str, ...]) ->
             elif t and t in seen:
                 node["children"] = []  # 再帰防止（現行XSDでは発生しない）
             else:
+                # 繰り返しは element ではなく直下の xsd:sequence に付く。
+                # つまり「子要素のまとまりが繰り返す」形。ここを element の
+                # maxOccurs で見ると繰り返しを1件も検出できない。
+                # 実際の並びは
+                #   <xsd:sequence>
+                #     <xsd:element name="VARIABLELABEL"/>
+                #     <xsd:sequence minOccurs=".." maxOccurs="unbounded">  ← 行の繰り返し
+                # という形。外側の sequence を見ても繰り返しは分からない。
+                inner = re.search(
+                    r'<xsd:sequence[^>]*>\s*<xsd:element name="VARIABLELABEL"[^>]*/>\s*'
+                    r'<xsd:sequence([^>]*)>',
+                    body,
+                )
+                if inner and 'maxOccurs="unbounded"' in inner.group(1):
+                    node["repeat"] = True
+                    if 'minOccurs="0"' in inner.group(1):
+                        node["optional"] = True
                 node["children"] = build(direct_elements(body), types, seen + ((t,) if t else ()))
         nodes.append(node)
     return nodes
