@@ -12,7 +12,8 @@
     "build:demo": "npm run build && node scripts/build-singlefile.mjs",
     "fonts": "node scripts/copy-font.mjs",
     "predev": "npm run fonts",
-    "prebuild": "npm run fonts"
+    "prebuild": "npm run fonts",
+    "xsd:gen": "python scripts/gen-xsd-form.py"
   },
   "dependencies": {
     "@microsoft/power-apps": "^1.1.1",
