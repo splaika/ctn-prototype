@@ -164,20 +164,26 @@ describe("XML生成・XSD検証 (S15) — 分岐ルール", () => {
     irbs: new Map(db.irbs.map((i) => [i.id, i])),
   });
 
-  it("主たる被験薬→ルート直下 / その他→INFOCOMBINATION", () => {
+  it("公式XSDのルート要素と共通子要素で出力される", () => {
     const xml = generateCtnXml(byId("nt-abc-1"), ctx());
-    expect(xml).toContain("<MAININVESTPRODUCT");
-    expect(xml).toContain("<INFOCOMBINATION");
+    expect(xml).toContain("<CLINTRIALPLANNOTE");
+    expect(xml).toContain('xsd:noNamespaceSchemaLocation="iykckn_all_v3_0_0.xsd"');
+    // 値要素は VARIABLELABEL（項目名）を内包する
+    expect(xml).toContain("<VARIABLELABEL>主たる被験薬の治験成分記号</VARIABLELABEL>");
+    // その他治験使用薬は INFOCOMBINATION の繰り返し行
+    expect(xml).toContain("<INFOCOMBINATION>");
   });
   it("責任→INFOINVESTIGATOR / 分担→INFOSUBINVESTIGATOR", () => {
     const xml = generateCtnXml(byId("nt-abc-1"), ctx());
     expect(xml).toContain("<INFOINVESTIGATOR");
     expect(xml).toContain("<INFOSUBINVESTIGATOR");
   });
-  it("異動区分→STATUS属性（追加=APPEND / 削除=DELETE）", () => {
+  it("値要素に STATUS が付く（現状は全て NONE。変更追跡は未実装）", () => {
     const xml = generateCtnXml(byId("nt-abc-2"), ctx());
-    expect(xml).toContain('STATUS="APPEND"'); // doc-7 追加
-    expect(xml).toContain('STATUS="DELETE"'); // doc-3 削除
+    expect(xml).toContain('STATUS="NONE"');
+    // 変更追跡（UPDATE/APPEND/DELETE と CHANGEDATE/CHANGEREASON）は変更届の
+    // 実装時に入れる。XSD 上は NONE が全種別で許容される
+    expect(xml).not.toContain('STATUS="APPEND"');
   });
   it("デモサブセットXSD検証：計画届は妥当", () => {
     const n = byId("nt-abc-1");

@@ -52,7 +52,7 @@ export const LABELS: Record<string, LabelEntry> = {
   // ---- 治験届出共通事項 ----
   当該届出受付番号: { ja: "当該治験計画届出受付番号", en: "Receipt no. (this filing)", path: [COMMON, "当該治験計画届出受付番号"] },
   当該届出年月日: { ja: "当該治験計画届出年月日", en: "Filing date (this filing)", path: [COMMON, "当該治験計画届出年月日"] },
-  "30日調査対応被験薬区分": { ja: "主たる被験薬の30 日調査対応被験薬区分", en: "30-day review category", path: [MAIN, "主たる被験薬の30 日調査対応被験薬区分"] },
+  "30日調査対応被験薬区分": { ja: "主たる被験薬の30日調査対応被験薬区分", en: "30-day review category", path: [MAIN, "主たる被験薬の30日調査対応被験薬区分"] },
 
   // ---- 届出事項 ----
   届出区分: { ja: "届出区分", en: "Submission category", path: [MAIN, "届出区分"] },
@@ -95,7 +95,7 @@ export const LABELS: Record<string, LabelEntry> = {
 
   // ---- 当該届出に関するその他の情報 ----
   "臨床試験の位置付け（拡大治験）": { ja: "該当の有無等", en: "Trial positioning", path: [...NOTE_OTHER, "臨床試験の位置付け", "該当の有無等"] },
-  国際共同治験: { ja: "該当の有無", en: "Global trial", path: [...NOTE_OTHER, "国際共同治験", "該当の有無"] },
+  国際共同治験: { ja: "該当の有無等", en: "Global trial", path: [...NOTE_OTHER, "国際共同治験", "該当の有無等"] },
   国際共同治験の内容: { ja: "内容", en: "Global trial detail", path: [...NOTE_OTHER, "国際共同治験", "内容"] },
   ゲノム検査等を含む治験: { ja: "該当の有無等", en: "Genomic testing", path: [...NOTE_OTHER, "ゲノム検査等を含む治験", "該当の有無等"] },
   マイクロドーズ臨床試験: { ja: "該当の有無等", en: "Microdose study", path: [...NOTE_OTHER, "マイクロドーズ臨床試験を利用した開発品目", "該当の有無等"] },
@@ -119,7 +119,7 @@ export const LABELS: Record<string, LabelEntry> = {
 
   // ---- その他治験使用薬（主たる被験薬を除く）。薬の明細画面は主従で同じ部品を
   //      使い回すため、主たる被験薬と別のパスを持つ項目は「（薬別）」で分ける ----
-  "30日調査対応被験薬区分（薬別）": { ja: "30 日調査対応被験薬区分", en: "30-day review category (drug)", path: [OD, ODF, "30 日調査対応被験薬区分"] },
+  "30日調査対応被験薬区分（薬別）": { ja: "30日調査対応被験薬区分", en: "30-day review category (drug)", path: [OD, ODF, "30日調査対応被験薬区分"] },
   "国内における承認状況": { ja: "国内における承認状況", en: "Domestic approval status", path: [OD, "国内における承認状況"] },
   "副作用報告の有無": { ja: "副作用報告の有無", en: "ADR report", path: [OD, ODF, "副作用報告の有無"] },
   "対象疾患（薬別）": { ja: "対象疾患", en: "Target disease (drug)", path: [OD, ODF, "治験計画の概要", "対象疾患"] },
