@@ -16,7 +16,7 @@ import { describe, expect, it } from "vitest";
 // 画面のソースをそのまま読む（?raw は Vite が中身を文字列で渡す）。
 // node:fs を使うとブラウザ向けの tsconfig に @types/node が要るので避ける。
 import src from "./NotificationDetail.tsx?raw";
-import { xsdLabel, xsdNo } from "../xsdLabels";
+import { XSD_ENTRIES, xsdLabel, xsdNo } from "../xsdLabels";
 
 /** セクションの開始位置。番号を持つものと持たないものの両方を拾う */
 const SECTION_RE = /<Section\s/g;
@@ -146,4 +146,80 @@ describe("タブが届書の連続した番号の範囲になっている", () =
       expect(cmp, `タブの並びが届書の順ではない: ${nos[i - 1]} → ${nos[i]}`).toBeLessThan(0);
     }
   });
+});
+
+// ---------------------------------------------------------------------------
+// ブロックの入れ子
+// ---------------------------------------------------------------------------
+// 届書で親子のブロックは、画面でも親の中に入れる。横並びにすると入れ子が1段
+// 浅く見え、ブロックに属さない単独の欄（主たる被験薬の製造方法など）が直前の
+// ブロックの続きに見える（クライアント指摘 2026-09-05）。
+
+/** ソースを走査して、各 FormBlock の「画面上の親ブロック」を求める */
+function screenParents(): { el: string; at: number; parents: string[] }[] {
+  const out: { el: string; at: number; parents: string[] }[] = [];
+  const stack: { els: string[] }[] = [];
+  // <FormBlock … > / <FormBlock … /> / </FormBlock> を出現順に見る
+  const TAG = /<FormBlock\b|<\/FormBlock>/g;
+  for (const m of src.matchAll(TAG)) {
+    if (m[0] === "</FormBlock>") {
+      stack.pop();
+      continue;
+    }
+    // このタグの終わりを探し、自己終了かどうかと el を読む。
+    // 属性の中にアロー関数（=>）や自己終了タグ（<Badge />）が入るので、
+    // 最初の ">" で切ってはいけない。波かっこと引用符の外の ">" を探す。
+    let depth = 0;
+    let quote = "";
+    let end = m.index!;
+    for (let i = m.index!; i < src.length; i++) {
+      const c = src[i];
+      if (quote) {
+        if (c === quote) quote = "";
+        continue;
+      }
+      if (c === '"' || c === "'" || c === "`") quote = c;
+      else if (c === "{") depth++;
+      else if (c === "}") depth--;
+      else if (c === ">" && depth === 0) {
+        end = i;
+        break;
+      }
+    }
+    const tag = src.slice(m.index!, end + 1);
+    const selfClosing = tag.trimEnd().endsWith("/>");
+    const elAttr = /el=(?:"([A-Z0-9_]+)"|\{([^}]*)\})/.exec(tag);
+    const els = elAttr
+      ? elAttr[1]
+        ? [elAttr[1]]
+        : [...elAttr[2].matchAll(/"([A-Z0-9_]+)"/g)].map((x) => x[1])
+      : [];
+    const parents = stack.flatMap((f) => f.els);
+    for (const el of els) out.push({ el, at: m.index!, parents });
+    if (!selfClosing) stack.push({ els });
+  }
+  return out;
+}
+
+describe("ブロックの入れ子が届書と一致する", () => {
+  const found = screenParents();
+  /** 画面に出ているブロック（同じタブに出ているかを見るため位置つき） */
+  const rendered = new Set(found.map((f) => f.el));
+
+  it("走査できている（FormBlock を1つも拾えていない、ということがない）", () => {
+    expect(found.length).toBeGreaterThan(20);
+  });
+
+  for (const f of found) {
+    const entry = XSD_ENTRIES.find((e) => e.el === f.el && e.no);
+    const parentEl = entry?.parentEl;
+    if (!parentEl || !rendered.has(parentEl)) continue; // 親を画面に出していないならこの検査の対象外
+    it(`「${xsdNo(f.el)} ${xsdLabel(f.el)}」は「${xsdNo(parentEl)} ${xsdLabel(parentEl)}」の中にある`, () => {
+      expect(
+        f.parents.includes(parentEl),
+        `届書では ${xsdNo(f.el)} は ${xsdNo(parentEl)} の中。画面でも中に入れること` +
+          `（いまの親: ${f.parents.join(" > ") || "なし"}）`
+      ).toBe(true);
+    });
+  }
 });

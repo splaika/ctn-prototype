@@ -763,16 +763,16 @@ export function NotificationDetail({
           {sponsor && <Field label={ofl("届出者所在地1")}><input className="tin" value={sponsor.address1} disabled /></Field>}
           {sponsor && <Field label={ofl("届出者所在地2")}><input className="tin" value={sponsor.address2} disabled /></Field>}
           {sponsor && <Field label={ofl("届出者業者コード")} hint={t(`Guide 5.2(17): ${MANUFACTURER_CODE_DIGITS} half-width digits.`, `手引き 5.2(17)：業者コードは${MANUFACTURER_CODE_DIGITS}桁。`)}><input className="tin" value={sponsor.manufacturerCode} disabled /></Field>}
+          {/* 届出担当者の情報は届書では治験届出者に関する情報の中 */}
+          {sponsor && (
+            <FormBlock el="INFOPERSONASSIGNNOTE">
+              <Field label={ofl("担当者の氏名")}><input className="tin" value={sponsor.contactName} disabled /></Field>
+              <Field label={ofl("担当者の所属")}><input className="tin" value={sponsor.contactTitle} disabled /></Field>
+              <Field label={ofl("担当者電話番号")}><input className="tin" value={sponsor.telNo} disabled /></Field>
+              <Field label={ofl("担当者FAX番号又はメールアドレス")}><input className="tin" value={sponsor.faxOrMail} disabled /></Field>
+            </FormBlock>
+          )}
         </FormBlock>
-
-        {sponsor && (
-          <FormBlock el="INFOPERSONASSIGNNOTE">
-            <Field label={ofl("担当者の氏名")}><input className="tin" value={sponsor.contactName} disabled /></Field>
-            <Field label={ofl("担当者の所属")}><input className="tin" value={sponsor.contactTitle} disabled /></Field>
-            <Field label={ofl("担当者電話番号")}><input className="tin" value={sponsor.telNo} disabled /></Field>
-            <Field label={ofl("担当者FAX番号又はメールアドレス")}><input className="tin" value={sponsor.faxOrMail} disabled /></Field>
-          </FormBlock>
-        )}
 
         {/* 海外依頼者、外国製造業者（該当時のみ・本デモは単数入力） */}
         <FormBlock el="INFOFOREIGNMANUFACTURER"
@@ -1019,8 +1019,9 @@ function StudyDrugCard({ drug, editable, onField, onRemove, codes }: { drug: Stu
       {open && (
         <div className="drugcard-b">
           {/* 主従の切り替えは届書の項目ではなく、出力先ブロックを決める入力。
-              出力先そのものは一覧側の見出し（2 / 3）が示すのでここには書かない */}
+              届書の欄と混ざらないよう見出しを付ける（他の運用項目の枠と同じ形） */}
           <div className="fblock" style={{ marginTop: 0, borderTop: "none", paddingTop: 0 }}>
+            <div className="fblock-h"><span className="fblock-name">{t("Handling on screen (not printed on the form)", "画面上の扱い（届書には出力されません）")}</span></div>
             <div className="fblock-b">
               <Field label={ofl("主従区分")} hint={ofHint("主従区分")} mark="always"><select className="sel" value={drug.drugRole} disabled={!editable} onChange={(e) => onField((d) => (d.drugRole = Number(e.target.value)))}>{options(SET.drugRole).map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}</select></Field>
               {isMain && <Field label={t("Name (management only)", "治験薬名称（管理用）")} hint={t("The main drug is identified on the form by its compound code; this name is for the screen.", "主たる被験薬は届書では治験成分記号で特定します。この名称は画面上の管理用です。")} mark="always"><input className="tin" value={drug.drugName} disabled={!editable} onChange={(e) => onField((d) => (d.drugName = e.target.value))} /></Field>}
@@ -1059,8 +1060,14 @@ function StudyDrugCard({ drug, editable, onField, onRemove, codes }: { drug: Stu
               {drug.combCategory === COMB.other && <Field label={ofl("区別の詳述")}><input className="tin" value={drug.combCategoryOther ?? ""} disabled={!editable} onChange={(e) => onField((d) => (d.combCategoryOther = e.target.value))} /></Field>}
             </FormBlock>
 
-            <FormBlock el="COMB_INFONOTE"
-              note={t("Guide 5.3(5): follow the main drug's method. For study drugs that are not the investigational drug, filling only 成分及び分量情報 and leaving the rest blank is acceptable.", "手引き 5.3(5)：主たる被験薬の記載方法に倣います。被験薬以外の治験使用薬は「成分及び分量情報」のみを記載し、その他を空欄とすることでも差し支えありません。")}>
+          </>)}
+
+          {/* 届書ではこの下の欄が「…の届出事項」（3.3）の中に入る。
+              主たる被験薬には対応する入れ物が無いので枠を出さない（transparent）。 */}
+          <FormBlock el="COMB_INFONOTE" cols="1" transparent={isMain}
+            note={t("Guide 5.3(5): follow the main drug's method. For study drugs that are not the investigational drug, filling only 成分及び分量情報 and leaving the rest blank is acceptable.", "手引き 5.3(5)：主たる被験薬の記載方法に倣います。被験薬以外の治験使用薬は「成分及び分量情報」のみを記載し、その他を空欄とすることでも差し支えありません。")}>
+          {!isMain && (
+            <div className="fblock-b">
               <Field label={ofl("30日調査対応被験薬区分（薬別）")}
                 hint={t("Guide 5.3(5): follow the main investigational drug. Same 30-day category even when the route differs.", "手引き 5.3(5)：主たる被験薬の記載方法に倣います。投与経路が異なる場合も同じ区分とするようPMDAの指示例があります。")}><select className="sel" value={drug.drugSubj30dayReview ?? ""} disabled={!editable} onChange={(e) => onField((d) => (d.drugSubj30dayReview = e.target.value ? Number(e.target.value) : undefined))}><option value="">—</option>{SUBJ30_OPTIONS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}</select></Field>
               <Field label={ofl("副作用報告の有無")} mark="conditional"
@@ -1070,8 +1077,8 @@ function StudyDrugCard({ drug, editable, onField, onRemove, codes }: { drug: Stu
                 </select>
               </Field>
               <Field label={ofl("その他備考（薬別）")} wide><textarea className="ta" value={drug.drugRemarks ?? ""} disabled={!editable} onChange={(e) => onField((d) => (d.drugRemarks = e.target.value))} placeholder={t("e.g. imported product note", "例：海外輸入品の記載 等")} /></Field>
-            </FormBlock>
-          </>)}
+            </div>
+          )}
 
           {/* ---- 製造所又は営業所（治験薬提供者） ---- */}
           <FormBlock el={gb("INFONAMEADDRESSMANUFACTPLANT", "COMB_INFONAMEADDRESSMANUFACTPLANT")}
@@ -1095,13 +1102,14 @@ function StudyDrugCard({ drug, editable, onField, onRemove, codes }: { drug: Stu
           <FormBlock el={gb("INFOINGREDIENTQUANTITY", "COMB_INFOINGREDIENTQUANTITY")} cols="1">
             <Field label={ofl(dk("成分及び分量"))} mark="always"
               hint={t("Guide 5.2(8): generic name (JAN or INN; the compound code when no generic name yet), and the content of the active ingredient per dosage unit.", "手引き 5.2(8)：成分名は一般名（JAN又はINN。未定なら治験成分記号）、分量は剤形当たりの有効成分の含量が分かるように入力します。")} wide><textarea className="ta" value={drug.ingredients} disabled={!editable} onChange={(e) => onField((d) => (d.ingredients = e.target.value))} /></Field>
-          </FormBlock>
-          <FormBlock el={gb("INFODOSAGEFORMCODE", "COMB_INFODOSAGEFORMCODE")} cols="1"
-            note={t("Guide 5.2(8): the first 2 alphanumerics of the 4-digit JP code, half-width.", "手引き 5.2(8)：日本薬局方が定める剤形コード（4桁）のうち頭の英数字2桁を半角で入力します。")}>
-            <Field label={ofl(dk("剤形コード"))}>
-              <CodePicker kind="dosageForm" codes={codes} value={drug.dosageFormCode ?? ""} disabled={!editable}
-                onChange={(v) => onField((d) => (d.dosageFormCode = v))} />
-            </Field>
+            {/* 剤形コード情報は届書では成分及び分量情報の中 */}
+            <FormBlock el={gb("INFODOSAGEFORMCODE", "COMB_INFODOSAGEFORMCODE")} cols="1"
+              note={t("Guide 5.2(8): the first 2 alphanumerics of the 4-digit JP code, half-width.", "手引き 5.2(8)：日本薬局方が定める剤形コード（4桁）のうち頭の英数字2桁を半角で入力します。")}>
+              <Field label={ofl(dk("剤形コード"))}>
+                <CodePicker kind="dosageForm" codes={codes} value={drug.dosageFormCode ?? ""} disabled={!editable}
+                  onChange={(v) => onField((d) => (d.dosageFormCode = v))} />
+              </Field>
+            </FormBlock>
           </FormBlock>
 
           {/* ---- 製造方法（入れ物要素の無い単独の欄） ---- */}
@@ -1122,16 +1130,16 @@ function StudyDrugCard({ drug, editable, onField, onRemove, codes }: { drug: Stu
           {/* ---- 予定される用法及び用量情報（＋投与経路コード情報） ---- */}
           <FormBlock el={gb("INFOINTENDDOSAGEADMIN", "COMB_INFOINTENDDOSAGEADMIN")} cols="1">
             <Field label={ofl(dk("予定される用法用量"))} mark="always" wide><textarea className="ta" value={drug.intendDosage} disabled={!editable} onChange={(e) => onField((d) => (d.intendDosage = e.target.value))} /></Field>
-          </FormBlock>
-          {/* 投与経路コードは届書では「投与経路コード情報」の中。同じ値が
-              治験計画の概要側の投与経路コード情報にも出力される */}
-          <FormBlock el={gb("INFOADMINROUTECODE", "COMB_INFOADMINROUTECODE")}
-            under={gb("INFOINTENDDOSAGEADMIN", "COMB_INFOINTENDDOSAGEADMIN")} cols="1"
-            note={t("Guide 5.2(11): 2 half-width digits.", "手引き 5.2(11)：投与経路コード情報（2桁）は半角数字で入力します。")}>
-            <Field label={ofl(dk("投与経路コード"))}>
-              <CodePicker kind="adminRoute" codes={codes} value={drug.adminRouteCode ?? ""} disabled={!editable}
-                onChange={(v) => onField((d) => (d.adminRouteCode = v))} />
-            </Field>
+            {/* 投与経路コード情報は届書では予定される用法及び用量情報の中。
+                同じ値が治験計画の概要側の投与経路コード情報にも出力される */}
+            <FormBlock el={gb("INFOADMINROUTECODE", "COMB_INFOADMINROUTECODE")}
+              under={gb("INFOINTENDDOSAGEADMIN", "COMB_INFOINTENDDOSAGEADMIN")} cols="1"
+              note={t("Guide 5.2(11): 2 half-width digits.", "手引き 5.2(11)：投与経路コード情報（2桁）は半角数字で入力します。")}>
+              <Field label={ofl(dk("投与経路コード"))}>
+                <CodePicker kind="adminRoute" codes={codes} value={drug.adminRouteCode ?? ""} disabled={!editable}
+                  onChange={(v) => onField((d) => (d.adminRouteCode = v))} />
+              </Field>
+            </FormBlock>
           </FormBlock>
 
           {/* ---- 治験計画の概要（薬ごとの用法及び用量／対象疾患）----
@@ -1178,6 +1186,7 @@ function StudyDrugCard({ drug, editable, onField, onRemove, codes }: { drug: Stu
               <Field label={ofl("海外依頼者 所在地2（外国文・薬別）")}><input className="tin" value={drug.foreignAddress2Frgn ?? ""} disabled={!editable} onChange={(e) => onField((d) => (d.foreignAddress2Frgn = e.target.value))} /></Field>
             </FormBlock>
           </>)}
+          </FormBlock>
         </div>
       )}
     </div>
@@ -1282,7 +1291,6 @@ function SiteCard({
             hint={t("Guide 5.4(6): blank on the plan notification; filled on the completion / discontinuation notification.", "手引き 5.4(6)：治験計画届では空欄。終了届・中止届で入力します。")}><input type="number" className="tin tin-sm" value={site.enrolledSubjects ?? ""} disabled={!editable} onChange={(e) => onField((s) => (s.enrolledSubjects = Number(e.target.value)))} /></Field>}
           <Field label={ofl("その他")}
             hint={t("Guide 5.4(9): anything to note about this particular site.", "手引き 5.4(9)：各実施医療機関に関する特記事項があれば入力します。")}><input className="tin tin-sm" value={site.others ?? ""} disabled={!editable} onChange={(e) => onField((s) => (s.others = e.target.value))} /></Field>
-        </FormBlock>
 
       {/* 医師ロスター。届書では治験責任医師（4.1.1）と治験分担医師（4.1.2）が
           別のブロックなので、画面も分ける。医師は施設マスタに紐づくものだけ選べる。 */}
@@ -1345,6 +1353,7 @@ function SiteCard({
         <FormBlock el="INFOIRB"
           note={t("Guide 5.4(8): entering “院内IRB” is enough for an IRB set up by the head of this site alone (no name/address needed). For a jointly established IRB, give its name and the address of its secretariat.", "手引き 5.4(8)：当該実施医療機関の長が単独で設置した治験審査委員会なら「院内IRB」と入力すれば設置者の名称・所在地は不要。共同設置の場合は委員会の名称と事務局の所在地を入力します。")}>
           <Field label={ofl("IRB")} mark="always"><select className="sel sel-sm" value={site.irbId} disabled={!editable} onChange={(e) => onField((s) => (s.irbId = e.target.value))}><option value="">{t("Select IRB…", "IRBを選択…")}</option>{activeIrbs.map((i) => <option key={i.id} value={i.id}>{i.ownerName}</option>)}</select></Field>
+        </FormBlock>
         </FormBlock>
 
       </div>

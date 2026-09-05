@@ -92,7 +92,7 @@ export function Section({ title, sub, right, children, tableSchema, colSchema }:
  * 畳むと欄の数だけを出す。
  */
 export function FormBlock({
-  el, under, note, right, cols = "2", collapsible = true, defaultOpen = true, children,
+  el, under, note, right, cols = "2", collapsible = true, defaultOpen = true, transparent = false, children,
 }: {
   el: string;
   /** 同名要素がXSD上の複数箇所にある場合の親要素名 */
@@ -103,10 +103,16 @@ export function FormBlock({
   /** 折りたたみを許す（既定 true。子が無いブロックは常に折りたためない） */
   collapsible?: boolean;
   defaultOpen?: boolean;
+  /**
+   * 見出しを出さず子だけを返す。届書では入れ物があるが、その画面では
+   * 入れ物が無い場合に使う（薬カードを主たる被験薬とその他で使い回すため）。
+   */
+  transparent?: boolean;
   /** 省略可。届書にはあるが入力を別タブに置いた欄の案内だけを出す場合に使う */
   children?: ReactNode;
 }) {
   const [open, setOpen] = useState(defaultOpen);
+  if (transparent) return <>{children}</>;
   const e = xsdEntry(el, under);
   const parents = (e?.path ?? []).slice(0, -1);
   // 届出種別によって中身が全部隠れるブロックがある（例：終了届のゲノム検査等）。
