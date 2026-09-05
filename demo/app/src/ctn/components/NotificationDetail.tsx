@@ -332,15 +332,23 @@ export function NotificationDetail({
   const terminal = draft.notifType === "termination" || draft.notifType === "completion";
   const activeSponsors = db.sponsors.filter((s) => s.active);
   const sponsor = db.sponsors.find((s) => s.id === draft.sponsorId);
+  // 届書では主たる被験薬の明細は「主たる被験薬に関する届出事項」、それ以外は
+  // 独立したブロックに出る。画面もタブを分ける
+  const mainDrug = draft.studyDrugs.find((d) => d.drugRole === DRUG_ROLE.main);
+  const otherDrugs = draft.studyDrugs.filter((d) => d.drugRole !== DRUG_ROLE.main);
 
-  // 詳細画面のセクションをかたまり（タブ）に分けて横並びのボタンで切替
+  // 詳細画面のタブ。1つのタブ＝届書の連続した番号の範囲にしてあるので、
+  // 左から順に進めば届書の上から順に入力していくことになる（＝届書PDFの並び）。
+  // no はタブのボタンにも出し、並びが届書と同じであることを画面から分かるようにする。
   const isDevDisc = draft.notifType === "devDiscontinuation";
-  const detailTabs: { key: string; label: [string, string]; show: boolean }[] = [
-    { key: "basic", label: ["Basics", "基本情報"], show: true },
-    { key: "plan", label: ["Plan summary", "治験計画概要"], show: !isDevDisc },
-    { key: "drugs", label: ["Study drugs", "治験使用薬"], show: !isDevDisc },
-    { key: "sites", label: ["Institutions", "実施医療機関"], show: !isDevDisc },
-    { key: "refs", label: ["Attachments / refs", "届書添付資料・参照・照会"], show: !isDevDisc || draft.inquiries.length > 0 },
+  const detailTabs: { key: string; no: string; label: [string, string]; show: boolean }[] = [
+    { key: "basic", no: "1–2.1", label: ["Filing items", "届出事項"], show: true },
+    { key: "maindrug", no: "2.2–2.5", label: ["Main drug", "主たる被験薬"], show: !isDevDisc },
+    { key: "plan", no: "2.6–2.8", label: ["Plan summary", "治験計画の概要"], show: !isDevDisc },
+    { key: "notes", no: "2.9–2.12", label: ["Remarks / notifier", "備考・添付・届出者"], show: true },
+    { key: "drugs", no: "3", label: ["Other drugs", "その他治験使用薬"], show: !isDevDisc },
+    { key: "sites", no: "4", label: ["Institutions", "実施医療機関"], show: !isDevDisc },
+    { key: "refs", no: "5", label: ["References", "参照・照会"], show: !isDevDisc || draft.inquiries.length > 0 },
   ];
   const visibleTabs = detailTabs.filter((tb) => tb.show);
   const activeTab = visibleTabs.some((tb) => tb.key === tab) ? tab : visibleTabs[0].key;
@@ -403,13 +411,18 @@ export function NotificationDetail({
         </div>
       )}
 
-      {/* ===== セクションタブ（横並びショートカット） ===== */}
-      <div className="detail-tabs">
-        {visibleTabs.map((tb) => (
-          <button key={tb.key} type="button" className={`dtab${activeTab === tb.key ? " on" : ""}`} onClick={() => setTab(tb.key)}>
-            {t(tb.label[0], tb.label[1])}
-          </button>
-        ))}
+      {/* ===== セクションタブ =====
+          スクロールしても常に見えるようにしている（届書の順に並べると縦に長く、
+          隣のブロックへ移りたくなるため）。番号は届書での範囲。 */}
+      <div className="detail-tabsbar">
+        <div className="detail-tabs">
+          {visibleTabs.map((tb) => (
+            <button key={tb.key} type="button" className={`dtab${activeTab === tb.key ? " on" : ""}`} onClick={() => setTab(tb.key)}>
+              <span className="dtab-no">{tb.no}</span>
+              {t(tb.label[0], tb.label[1])}
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* ===== 共通事項・届出事項タブ =====
@@ -417,6 +430,13 @@ export function NotificationDetail({
           FormBlock が届書の見出し番号と階層を出すので、入力欄が届書のどこに
           出るかが画面から追える（クライアント要望 2026-09）。 */}
       {activeTab === "basic" && (<>
+      {/* 届書の1行目。入れ物ではなく単独の欄なので番号は付かない */}
+      <Section title={t("Form version", "様式等のバージョン情報")} sub={t("Printed on the first line of the form.", "届書の1行目に出力されます。")}>
+        <div className="fblock-b one">
+          <Field label={ofl("様式等のバージョン情報")}><input className="tin" value={draft.formVersion ?? "医薬品治験届 令和２年８月改正版"} disabled={!editable} onChange={(e) => set((n) => (n.formVersion = e.target.value))} /></Field>
+        </div>
+      </Section>
+
       <Section title={xsdTitle("COMMONINFOCLINTRIALPLANNOTE")} sub={t("Common items — inherited from the series where possible", "共通事項。シリーズ（治験成分記号）から継承できるものは参照表示。")}>
         <div className="fblock-b">
           <Field label={ofl("治験成分記号")} mark="always" hint={t(`Alphanumerics, up to ${COMPOUND_CODE_MAX} characters (Guide 5.1(1))`, `手引き：アルファベット及び数字で計${COMPOUND_CODE_MAX}桁以内・半角`)}><input className="tin" value={compound.compoundCode} disabled /></Field>
@@ -543,52 +563,22 @@ export function NotificationDetail({
           </FormBlock>
         )}
 
-        {show("cr_remarks") && (
-          <FormBlock el="REMARKS" cols="1">
-            <Field label={ofl("備考（通信欄）")} mark={mk("cr_remarks")} wide><textarea className="ta" value={draft.remarks ?? ""} disabled={!editable} onChange={(e) => set((n) => (n.remarks = e.target.value))} placeholder={draft.notifType === "devDiscontinuation" ? "開発中止届では実質必須（中止の経緯・以降の対応等）" : ""} /></Field>
-          </FormBlock>
-        )}
-
-        {/* 治験届出者に関する情報（届出者はマスタから選ぶので他は参照表示） */}
-        <FormBlock el="INFOPERSONFILLNOTE"
-          note={t("Selected from the master; the printed values come from it.", "マスタから選択します。届書に出るのは選択した届出者の登録内容です。")}>
-          <Field label={ofl("届出者の名称")} mark="always"><select className="sel" value={draft.sponsorId} disabled={!editable} onChange={(e) => set((n) => (n.sponsorId = e.target.value))}>{activeSponsors.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}</select></Field>
-          {sponsor && <Field label={ofl("治験届出者の種別")}><input className="tin" value={sponsor.sponsorType ?? ""} disabled /></Field>}
-          {sponsor && <Field label={ofl("届出者の代表者氏名")}><input className="tin" value={sponsor.repName} disabled /></Field>}
-          {sponsor && <Field label={ofl("届出者所在地1")}><input className="tin" value={sponsor.address1} disabled /></Field>}
-          {sponsor && <Field label={ofl("届出者所在地2")}><input className="tin" value={sponsor.address2} disabled /></Field>}
-          {sponsor && <Field label={ofl("届出者業者コード")} hint={t(`Guide 5.2(17): ${MANUFACTURER_CODE_DIGITS} half-width digits.`, `手引き 5.2(17)：業者コードは${MANUFACTURER_CODE_DIGITS}桁。`)}><input className="tin" value={sponsor.manufacturerCode} disabled /></Field>}
-        </FormBlock>
-
-        {sponsor && (
-          <FormBlock el="INFOPERSONASSIGNNOTE">
-            <Field label={ofl("担当者の氏名")}><input className="tin" value={sponsor.contactName} disabled /></Field>
-            <Field label={ofl("担当者の所属")}><input className="tin" value={sponsor.contactTitle} disabled /></Field>
-            <Field label={ofl("担当者電話番号")}><input className="tin" value={sponsor.telNo} disabled /></Field>
-            <Field label={ofl("担当者FAX番号又はメールアドレス")}><input className="tin" value={sponsor.faxOrMail} disabled /></Field>
-          </FormBlock>
-        )}
-
-        {/* 海外依頼者、外国製造業者（該当時のみ・本デモは単数入力） */}
-        <FormBlock el="INFOFOREIGNMANUFACTURER"
-          note={t("Guide 5.2(18): name and address in Japanese and in the foreign language. 海外依頼者 applies when the notifier is an in-country caretaker; 外国製造業者 applies when the main drug is imported. List the 海外依頼者 first when there are several.", "手引き 5.2(18)：氏名・住所を邦文及び英文で入力します。「海外依頼者」は届出者が治験国内管理人である場合、「外国製造業者」は主たる被験薬を海外から輸入する場合。複数ある場合は海外依頼者を一番上に記載します（本デモは単数入力）。")}>
-          <Field label={ofl("海外依頼者 名称（邦文）")}><input className="tin" value={draft.foreignName ?? ""} disabled={!editable} onChange={(e) => set((n) => (n.foreignName = e.target.value))} /></Field>
-          <Field label={ofl("海外依頼者 氏名（邦文）")}><input className="tin" value={draft.foreignRepName ?? ""} disabled={!editable} onChange={(e) => set((n) => (n.foreignRepName = e.target.value))} /></Field>
-          <Field label={ofl("海外依頼者 所在地1（邦文）")}><input className="tin" value={draft.foreignAddress1 ?? ""} disabled={!editable} onChange={(e) => set((n) => (n.foreignAddress1 = e.target.value))} /></Field>
-          <Field label={ofl("海外依頼者 所在地2（邦文）")}><input className="tin" value={draft.foreignAddress2 ?? ""} disabled={!editable} onChange={(e) => set((n) => (n.foreignAddress2 = e.target.value))} /></Field>
-          <Field label={ofl("海外依頼者 名称（外国文）")}><input className="tin" value={draft.foreignNameFrgn ?? ""} disabled={!editable} onChange={(e) => set((n) => (n.foreignNameFrgn = e.target.value))} /></Field>
-          <Field label={ofl("海外依頼者 氏名（外国文）")}><input className="tin" value={draft.foreignRepNameFrgn ?? ""} disabled={!editable} onChange={(e) => set((n) => (n.foreignRepNameFrgn = e.target.value))} /></Field>
-          <Field label={ofl("海外依頼者 所在地1（外国文）")}><input className="tin" value={draft.foreignAddress1Frgn ?? ""} disabled={!editable} onChange={(e) => set((n) => (n.foreignAddress1Frgn = e.target.value))} /></Field>
-          <Field label={ofl("海外依頼者 所在地2（外国文）")}><input className="tin" value={draft.foreignAddress2Frgn ?? ""} disabled={!editable} onChange={(e) => set((n) => (n.foreignAddress2Frgn = e.target.value))} /></Field>
-        </FormBlock>
-
-        {/* 様式等のバージョン情報は届書の1行目（入れ物ではなく単独の欄）。
-            入力は最後で足りるのでここに置く */}
-        <div className="fblock-b one" style={{ marginTop: "20px", borderTop: "1px solid var(--line-2)", paddingTop: "18px" }}>
-          <Field label={ofl("様式等のバージョン情報")} hint={t("Printed on the first line of the form.", "届書の1行目に出力されます。")}><input className="tin" value={draft.formVersion ?? "医薬品治験届 令和２年８月改正版"} disabled={!editable} onChange={(e) => set((n) => (n.formVersion = e.target.value))} /></Field>
-        </div>
       </Section>
       </>)}
+
+      {/* ===== 主たる被験薬タブ（届書 2.2〜2.5）=====
+          届書では「主たる被験薬に関する届出事項」の中の薬の明細にあたる。
+          このブロックの他の欄（届出区分・中止情報など）は「届出事項」タブ。 */}
+      {activeTab === "maindrug" && (
+        <Section title={xsdTitle("INFONOTE")}
+          sub={t("Drug details of the main investigational drug (2.2–2.5). The other items of this block are on the first tab.", "主たる被験薬の薬の明細（2.2〜2.5）です。このブロックの他の欄（届出区分・中止情報など）は「届出事項」タブにあります。")}
+          right={editable && !mainDrug ? <Btn kind="p" small onClick={addStudyDrug}>{Icon.plus} {t("Add", "主たる被験薬を追加")}</Btn> : undefined}>
+          {!mainDrug && <div className="rt-empty">{t("No main investigational drug yet.", "主たる被験薬がありません。追加してください。")}</div>}
+          {mainDrug && (
+            <StudyDrugCard key={mainDrug.id} drug={mainDrug} editable={editable} onField={(fn) => setDrug(mainDrug.id, fn)} onRemove={() => rmStudyDrug(mainDrug.id)} codes={db.codes} />
+          )}
+        </Section>
+      )}
 
       {/* ===== 治験計画の概要タブ =====
           並び順は公式XSD の SUMMARYPROTOCOL のとおり。以前は入力しやすさだけで
@@ -613,10 +603,17 @@ export function NotificationDetail({
             </div>
           )}
 
-          {/* 主たる被験薬の用法及び用量情報 はこの直後に出るが、薬の明細なので
-              入力は「治験使用薬」タブにまとめている（どこに出るかは案内する） */}
+          {/* 主たる被験薬の用法及び用量。値は主たる被験薬に持たせているが、
+              届書ではここ（治験計画の概要）に出るので入力もここに置く */}
           <FormBlock el="INFODOSAGEADMIN" cols="1"
-            note={t("Entered on the Study drugs tab (main investigational drug).", "この欄は「治験使用薬」タブの主たる被験薬で入力します。")} />
+            note={mainDrug ? undefined : t("Add the main investigational drug first.", "先に「主たる被験薬」タブで主たる被験薬を追加してください。")}>
+            {mainDrug && (
+              <Field label={ofl("用法及び用量")} mark="always"
+                hint={t("Guide 5.2(12)7): the dosage and administration actually used, in detail.", "手引き 5.2(12)7）：用いられる用法及び用量を詳細に入力します。")} wide>
+                <textarea className="ta" value={mainDrug.dosageAdmin ?? ""} disabled={!editable} onChange={(e) => setDrug(mainDrug.id, (d) => (d.dosageAdmin = e.target.value))} />
+              </Field>
+            )}
+          </FormBlock>
 
           <FormBlock el="WHOLEDURATIONCLINTRIAL"
             note={t("Guide 5.2(12)8): earliest planned contract date across sites to the latest planned end-of-observation date.", "手引き 5.2(12)8）：実施医療機関ごとの予定契約締結日のうち最も早い日から、観察終了予定日のうち最も遅い日まで。")}>
@@ -719,33 +716,82 @@ export function NotificationDetail({
         </Section>
       </>)}
 
-      {/* ===== 治験使用薬タブ =====
-          このタブは届書の2つのブロックにまたがる。
-            主たる被験薬の薬の明細 … 2 主たる被験薬に関する届出事項（2.2〜2.5）
-            それ以外              … 3 治験使用薬…（主たる被験薬を除く。）の情報
-          入力の形は同じなので1画面にまとめているが、タブ全体に片方の番号を
-          付けると「3 のカードの中に 2.2 がある」という矛盾になる。
-          そこでタブには番号を付けず、出力先ごとに見出しを出す。 */}
+      {/* ===== 備考・添付・届出者タブ（届書 2.9〜2.12）===== */}
+      {activeTab === "notes" && (<>
+      <Section title={xsdTitle("INFONOTE")}
+        sub={t("The tail of the main-drug block: remarks, attached documents, the notifier and the foreign sponsor.", "「主たる被験薬に関する届出事項」の末尾（備考・届書添付資料・治験届出者・海外依頼者）です。")}>
+        {show("cr_remarks") && (
+          <FormBlock el="REMARKS" cols="1">
+            <Field label={ofl("備考（通信欄）")} mark={mk("cr_remarks")} wide><textarea className="ta" value={draft.remarks ?? ""} disabled={!editable} onChange={(e) => set((n) => (n.remarks = e.target.value))} placeholder={draft.notifType === "devDiscontinuation" ? "開発中止届では実質必須（中止の経緯・以降の対応等）" : ""} /></Field>
+          </FormBlock>
+        )}
+
+        {/* 治験届出者に関する情報（届出者はマスタから選ぶので他は参照表示） */}
+        <FormBlock el="INFOPERSONFILLNOTE"
+          note={t("Selected from the master; the printed values come from it.", "マスタから選択します。届書に出るのは選択した届出者の登録内容です。")}>
+          <Field label={ofl("届出者の名称")} mark="always"><select className="sel" value={draft.sponsorId} disabled={!editable} onChange={(e) => set((n) => (n.sponsorId = e.target.value))}>{activeSponsors.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}</select></Field>
+          {sponsor && <Field label={ofl("治験届出者の種別")}><input className="tin" value={sponsor.sponsorType ?? ""} disabled /></Field>}
+          {sponsor && <Field label={ofl("届出者の代表者氏名")}><input className="tin" value={sponsor.repName} disabled /></Field>}
+          {sponsor && <Field label={ofl("届出者所在地1")}><input className="tin" value={sponsor.address1} disabled /></Field>}
+          {sponsor && <Field label={ofl("届出者所在地2")}><input className="tin" value={sponsor.address2} disabled /></Field>}
+          {sponsor && <Field label={ofl("届出者業者コード")} hint={t(`Guide 5.2(17): ${MANUFACTURER_CODE_DIGITS} half-width digits.`, `手引き 5.2(17)：業者コードは${MANUFACTURER_CODE_DIGITS}桁。`)}><input className="tin" value={sponsor.manufacturerCode} disabled /></Field>}
+        </FormBlock>
+
+        {sponsor && (
+          <FormBlock el="INFOPERSONASSIGNNOTE">
+            <Field label={ofl("担当者の氏名")}><input className="tin" value={sponsor.contactName} disabled /></Field>
+            <Field label={ofl("担当者の所属")}><input className="tin" value={sponsor.contactTitle} disabled /></Field>
+            <Field label={ofl("担当者電話番号")}><input className="tin" value={sponsor.telNo} disabled /></Field>
+            <Field label={ofl("担当者FAX番号又はメールアドレス")}><input className="tin" value={sponsor.faxOrMail} disabled /></Field>
+          </FormBlock>
+        )}
+
+        {/* 海外依頼者、外国製造業者（該当時のみ・本デモは単数入力） */}
+        <FormBlock el="INFOFOREIGNMANUFACTURER"
+          note={t("Guide 5.2(18): name and address in Japanese and in the foreign language. 海外依頼者 applies when the notifier is an in-country caretaker; 外国製造業者 applies when the main drug is imported. List the 海外依頼者 first when there are several.", "手引き 5.2(18)：氏名・住所を邦文及び英文で入力します。「海外依頼者」は届出者が治験国内管理人である場合、「外国製造業者」は主たる被験薬を海外から輸入する場合。複数ある場合は海外依頼者を一番上に記載します（本デモは単数入力）。")}>
+          <Field label={ofl("海外依頼者 名称（邦文）")}><input className="tin" value={draft.foreignName ?? ""} disabled={!editable} onChange={(e) => set((n) => (n.foreignName = e.target.value))} /></Field>
+          <Field label={ofl("海外依頼者 氏名（邦文）")}><input className="tin" value={draft.foreignRepName ?? ""} disabled={!editable} onChange={(e) => set((n) => (n.foreignRepName = e.target.value))} /></Field>
+          <Field label={ofl("海外依頼者 所在地1（邦文）")}><input className="tin" value={draft.foreignAddress1 ?? ""} disabled={!editable} onChange={(e) => set((n) => (n.foreignAddress1 = e.target.value))} /></Field>
+          <Field label={ofl("海外依頼者 所在地2（邦文）")}><input className="tin" value={draft.foreignAddress2 ?? ""} disabled={!editable} onChange={(e) => set((n) => (n.foreignAddress2 = e.target.value))} /></Field>
+          <Field label={ofl("海外依頼者 名称（外国文）")}><input className="tin" value={draft.foreignNameFrgn ?? ""} disabled={!editable} onChange={(e) => set((n) => (n.foreignNameFrgn = e.target.value))} /></Field>
+          <Field label={ofl("海外依頼者 氏名（外国文）")}><input className="tin" value={draft.foreignRepNameFrgn ?? ""} disabled={!editable} onChange={(e) => set((n) => (n.foreignRepNameFrgn = e.target.value))} /></Field>
+          <Field label={ofl("海外依頼者 所在地1（外国文）")}><input className="tin" value={draft.foreignAddress1Frgn ?? ""} disabled={!editable} onChange={(e) => set((n) => (n.foreignAddress1Frgn = e.target.value))} /></Field>
+          <Field label={ofl("海外依頼者 所在地2（外国文）")}><input className="tin" value={draft.foreignAddress2Frgn ?? ""} disabled={!editable} onChange={(e) => set((n) => (n.foreignAddress2Frgn = e.target.value))} /></Field>
+        </FormBlock>
+
+      </Section>
+
+      {/* ===== 届書添付資料（2.10）===== */}
+      {draft.notifType !== "devDiscontinuation" && (
+        <Section title={xsdTitle("DOCATTACHEDNOTE")} sub={t("Guide 5.2(16): only the document name is printed on the form (type and status are operational). For a first-in-human drug, state in the remarks whether the final non-clinical safety report is submitted, and why not if it isn't. Files live in SharePoint (demo uses pseudo paths).", "手引き 5.2(16)：届書に出るのは資料名だけです（資料種別・状態は運用項目）。初めてヒトに投与する薬物では、備考に非臨床安全性試験の最終報告書を提出する旨（提出しない場合はその理由）を記載します。実体はSharePoint（デモは擬似パス）。")}
+          right={editable ? <Btn small onClick={() => set((n) => n.attachments.push({ id: `att-${Math.random().toString(36).slice(2, 7)}`, docType: options(SET.docType)[0].value, docName: "", spReference: "", hasBookmarks: false, hasText: false, attachStatus: ATTACH_STATUS.checking }))}>{Icon.plus} {t("Add", "追加")}</Btn> : undefined}>
+          <FormBlock el="INFONAMEDOCUMENTS" />
+          {draft.attachments.length === 0 ? <div className="rt-empty">{t("No attachments.", "添付資料はありません。")}</div> : (
+            <div className="row-table">
+              <div className="rt-head rt-att"><span>{ofl("資料種別")}</span><span>{ofl("資料名")}</span><span>{ofl("添付状態")}</span><span /></div>
+              {draft.attachments.map((a) => (
+                <div key={a.id} className="rt-row rt-att">
+                  <span><select className="sel sel-sm" value={a.docType} disabled={!editable} onChange={(e) => set((n) => { const x = n.attachments.find((y) => y.id === a.id)!; x.docType = Number(e.target.value); })}>{options(SET.docType).map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}</select></span>
+                  <span><input className="tin tin-sm" value={a.docName} disabled={!editable} onChange={(e) => set((n) => { const x = n.attachments.find((y) => y.id === a.id)!; x.docName = e.target.value; })} placeholder="ファイル名" /></span>
+                  <span><span className={`att-chip att-${a.attachStatus}`}>{label(SET.attachStatus, a.attachStatus)}</span></span>
+                  <span>{editable && <button className="icon-btn danger" onClick={() => set((n) => (n.attachments = n.attachments.filter((y) => y.id !== a.id)))}>{Icon.trash}</button>}</span>
+                </div>
+              ))}
+            </div>
+          )}
+        </Section>
+      )}
+
+      </>)}
+
+      {/* ===== その他治験使用薬タブ（届書 3）=====
+          主たる被験薬は届書 2 の中なので別タブ（主たる被験薬）にしてある。 */}
       {activeTab === "drugs" && (
-        <Section title={t("Study drugs", "治験使用薬")}
-          sub={t("This tab spans two blocks of the form: the main investigational drug goes under block 2, the others under block 3. Expand a row for all fields.", "このタブは届書の2つのブロックにまたがります（主たる被験薬は 2、それ以外は 3 に出力されます）。行を展開すると全項目を入力できます。")}
+        <Section title={xsdTitle("INFOCOMBINATION")}
+          sub={t("Study drugs other than the main investigational drug. Expand a row for all fields.", "主たる被験薬以外の治験使用薬です。行を展開すると全項目を入力できます。")}
           right={editable ? <Btn kind="p" small onClick={addStudyDrug}>{Icon.plus} {t("Add drug", "薬を追加")}</Btn> : undefined}>
-          {draft.studyDrugs.length === 0 && <div className="rt-empty">{t("No study drugs. Add the main investigational drug first.", "治験使用薬がありません。まず主たる被験薬を追加してください。")}</div>}
-
-          {/* 主たる被験薬（届書では「主たる被験薬に関する届出事項」の中の薬の明細） */}
-          {draft.studyDrugs.some((d) => d.drugRole === DRUG_ROLE.main) && (
-            <FormBlock el="INFONOTE"
-              note={t("Only the drug details of this block are here (2.2–2.5). The rest of the block is on the Basics tab.", "このブロックのうち薬の明細（2.2〜2.5）だけがここにあります。届出区分・備考・届出者などは「基本情報」タブです。")} />
-          )}
-          {draft.studyDrugs.filter((d) => d.drugRole === DRUG_ROLE.main).map((d) => (
-            <StudyDrugCard key={d.id} drug={d} editable={editable} onField={(fn) => setDrug(d.id, fn)} onRemove={() => rmStudyDrug(d.id)} codes={db.codes} />
-          ))}
-
-          {/* その他治験使用薬（届書では独立したブロック） */}
-          {draft.studyDrugs.some((d) => d.drugRole !== DRUG_ROLE.main) && (
-            <FormBlock el="INFOCOMBINATION" />
-          )}
-          {draft.studyDrugs.filter((d) => d.drugRole !== DRUG_ROLE.main).map((d) => (
+          {otherDrugs.length === 0 && <div className="rt-empty">{t("None. Add a control drug or a concomitant drug when the trial uses one.", "ありません。対照薬・併用薬などがある場合に追加してください。")}</div>}
+          {otherDrugs.map((d) => (
             <StudyDrugCard key={d.id} drug={d} editable={editable} onField={(fn) => setDrug(d.id, fn)} onRemove={() => rmStudyDrug(d.id)} codes={db.codes} />
           ))}
         </Section>
@@ -791,27 +837,6 @@ export function NotificationDetail({
                   <span><select className="sel sel-sm" value={r.refType} disabled={!editable} onChange={(e) => setRef(r.id, (x) => (x.refType = e.target.value))}><option value="">—</option>{REF_TYPE_OPTIONS.map((o) => <option key={o} value={o}>{o}</option>)}</select></span>
                   <span><input className="tin tin-sm" value={r.refContents} disabled={!editable} onChange={(e) => setRef(r.id, (x) => (x.refContents = e.target.value))} /></span>
                   <span>{editable && <button className="icon-btn danger" onClick={() => rmReference(r.id)}>{Icon.trash}</button>}</span>
-                </div>
-              ))}
-            </div>
-          )}
-        </Section>
-      )}
-
-      {/* ===== 添付資料 ===== */}
-      {draft.notifType !== "devDiscontinuation" && (
-        <Section title={xsdTitle("DOCATTACHEDNOTE")} sub={t("Guide 5.2(16): only the document name is printed on the form (type and status are operational). For a first-in-human drug, state in the remarks whether the final non-clinical safety report is submitted, and why not if it isn't. Files live in SharePoint (demo uses pseudo paths).", "手引き 5.2(16)：届書に出るのは資料名だけです（資料種別・状態は運用項目）。初めてヒトに投与する薬物では、備考に非臨床安全性試験の最終報告書を提出する旨（提出しない場合はその理由）を記載します。実体はSharePoint（デモは擬似パス）。")}
-          right={editable ? <Btn small onClick={() => set((n) => n.attachments.push({ id: `att-${Math.random().toString(36).slice(2, 7)}`, docType: options(SET.docType)[0].value, docName: "", spReference: "", hasBookmarks: false, hasText: false, attachStatus: ATTACH_STATUS.checking }))}>{Icon.plus} {t("Add", "追加")}</Btn> : undefined}>
-          <FormBlock el="INFONAMEDOCUMENTS" />
-          {draft.attachments.length === 0 ? <div className="rt-empty">{t("No attachments.", "添付資料はありません。")}</div> : (
-            <div className="row-table">
-              <div className="rt-head rt-att"><span>{ofl("資料種別")}</span><span>{ofl("資料名")}</span><span>{ofl("添付状態")}</span><span /></div>
-              {draft.attachments.map((a) => (
-                <div key={a.id} className="rt-row rt-att">
-                  <span><select className="sel sel-sm" value={a.docType} disabled={!editable} onChange={(e) => set((n) => { const x = n.attachments.find((y) => y.id === a.id)!; x.docType = Number(e.target.value); })}>{options(SET.docType).map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}</select></span>
-                  <span><input className="tin tin-sm" value={a.docName} disabled={!editable} onChange={(e) => set((n) => { const x = n.attachments.find((y) => y.id === a.id)!; x.docName = e.target.value; })} placeholder="ファイル名" /></span>
-                  <span><span className={`att-chip att-${a.attachStatus}`}>{label(SET.attachStatus, a.attachStatus)}</span></span>
-                  <span>{editable && <button className="icon-btn danger" onClick={() => set((n) => (n.attachments = n.attachments.filter((y) => y.id !== a.id)))}>{Icon.trash}</button>}</span>
                 </div>
               ))}
             </div>
@@ -1102,13 +1127,17 @@ function StudyDrugCard({ drug, editable, onField, onRemove, codes }: { drug: Stu
             </Field>
           </FormBlock>
 
-          {/* ---- 治験計画の概要（薬ごとの用法及び用量／対象疾患） ---- */}
+          {/* ---- 治験計画の概要（薬ごとの用法及び用量／対象疾患）----
+              主たる被験薬の用法及び用量は届書では「治験計画の概要」に出るので、
+              入力もそちらのタブに置いてある（ここには出さない） ---- */}
+          {!isMain && (
           <FormBlock el={gb("INFODOSAGEADMIN", "COMB_INFODOSAGEADMIN")} cols="1">
             {!isMain && <Field label={ofl("対象疾患（薬別）")}
               hint={t("Guide 5.2(12)6): the specific disease name. Say so when healthy volunteers are the subjects.", "手引き 5.2(12)6）：具体的な疾患名を入力します。健康人を対象とする場合はその旨を入力します。")}><input className="tin" value={drug.drugTargetDisease ?? ""} disabled={!editable} onChange={(e) => onField((d) => (d.drugTargetDisease = e.target.value))} /></Field>}
             <Field label={ofl(dk("用法及び用量"))} mark="always"
               hint={t("Guide 5.2(12)7): the dosage and administration actually used, in detail.", "手引き 5.2(12)7）：用いられる用法及び用量を詳細に入力します。")} wide><textarea className="ta" value={drug.dosageAdmin ?? ""} disabled={!editable} onChange={(e) => onField((d) => (d.dosageAdmin = e.target.value))} /></Field>
           </FormBlock>
+          )}
 
           {/* ---- その他の情報（薬別のみ。主たる被験薬は「治験計画の概要」タブ側） ---- */}
           {!isMain && (<>

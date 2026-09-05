@@ -46,8 +46,12 @@ const sections = [...src.matchAll(SECTION_RE)].map((m) => {
 const blocks = collect(BLOCK_RE);
 
 // 薬カード・施設カードは別の関数なので、本体の位置だけでセクションを決めると
-// ファイル末尾のセクションに引きずられる。カードが使われている場所の
-// セクションをそのカード全体のセクションとして扱う。
+// ファイル末尾のセクションに引きずられる。カードが「使われている場所」の
+// セクションを、そのカード全体のセクションとして扱う。
+//
+// 薬カードは2つのタブで使う（主たる被験薬＝届書2 と その他治験使用薬＝届書3）。
+// カードの中のブロックは gb() で主従を切り替えるので、どちらか一方の下にあれば
+// よい（両方を同時に満たすことはありえない）。
 const iDrugCard = src.indexOf("function StudyDrugCard(");
 const iSiteCard = src.indexOf("function SiteCard(");
 
@@ -57,11 +61,22 @@ const lastSectionBefore = (pos: number): string | undefined => {
   return cur?.el;
 };
 
-/** その位置を含むかたまりのセクション */
-const sectionAt = (pos: number): string | undefined => {
-  if (pos >= iSiteCard) return lastSectionBefore(src.indexOf("<SiteCard"));
-  if (pos >= iDrugCard) return lastSectionBefore(src.indexOf("<StudyDrugCard"));
-  return lastSectionBefore(pos);
+/** 部品が使われているすべての場所のセクション */
+const sectionsWhereUsed = (tag: string): (string | undefined)[] => {
+  const out: (string | undefined)[] = [];
+  let i = src.indexOf(tag);
+  while (i !== -1 && i < iDrugCard) {
+    out.push(lastSectionBefore(i));
+    i = src.indexOf(tag, i + 1);
+  }
+  return out.length ? out : [undefined];
+};
+
+/** その位置を含むかたまりのセクション（複数ありうる） */
+const sectionsAt = (pos: number): (string | undefined)[] => {
+  if (pos >= iSiteCard) return sectionsWhereUsed("<SiteCard");
+  if (pos >= iDrugCard) return sectionsWhereUsed("<StudyDrugCard");
+  return [lastSectionBefore(pos)];
 };
 
 describe("画面のブロック番号が届書の入れ子と矛盾しない", () => {
@@ -71,19 +86,22 @@ describe("画面のブロック番号が届書の入れ子と矛盾しない", (
     expect(blocks.length).toBeGreaterThan(15);
   });
 
+  const under = (no: string, sectionNo: string) => no === sectionNo || no.startsWith(`${sectionNo}.`);
+
   for (const b of blocks) {
-    const sectionEl = sectionAt(b.at);
-    if (!sectionEl) continue;
-    const sectionNo = xsdNo(sectionEl);
-    if (!sectionNo) continue; // 番号を付けていないセクションは何を入れてもよい
+    const sectionEls = sectionsAt(b.at);
+    // 番号を付けていないセクションが1つでもあれば、そこには何を入れてもよい
+    if (sectionEls.some((x) => !x || !xsdNo(x))) continue;
+    const sectionNos = sectionEls.map((x) => xsdNo(x!));
+    const where = sectionNos.join(" / ");
 
     for (const el of b.els) {
       const no = xsdNo(el);
       if (!no) continue;
-      it(`「${sectionNo} ${xsdLabel(sectionEl)}」の中の「${no} ${xsdLabel(el)}」`, () => {
+      it(`「${where}」の中の「${no} ${xsdLabel(el)}」`, () => {
         expect(
-          no === sectionNo || no.startsWith(`${sectionNo}.`),
-          `届書では ${no} は ${sectionNo} の下ではない。` +
+          sectionNos.some((sn) => under(no, sn)),
+          `届書では ${no} は ${where} のどれの下でもない。` +
             `セクションの番号を外すか、ブロックを別のセクションへ移すこと。`
         ).toBe(true);
       });
@@ -91,14 +109,35 @@ describe("画面のブロック番号が届書の入れ子と矛盾しない", (
   }
 });
 
-describe("届書の2ブロックにまたがるタブは番号を持たない", () => {
-  it("治験使用薬タブのセクションは番号なしで、中に 2 と 3 の見出しが出る", () => {
-    // 主たる被験薬の薬の明細は 2、それ以外は 3。片方の番号をタブ全体に
-    // 付けると入れ子が矛盾する（この検査の元になった不具合）。
-    const tab = src.slice(src.indexOf('activeTab === "drugs"'), src.indexOf('activeTab === "sites"'));
-    expect(tab).toContain('<Section title={t("Study drugs", "治験使用薬")}');
-    expect(tab).not.toMatch(/<Section title=\{xsdTitle\(/);
-    expect(tab).toContain('<FormBlock el="INFONOTE"');
-    expect(tab).toContain('<FormBlock el="INFOCOMBINATION"');
+describe("タブが届書の連続した番号の範囲になっている", () => {
+  it("薬のタブは主たる被験薬（届書2）とその他（届書3）で分かれている", () => {
+    // 以前はどちらも1つのタブにあり、タブに片方の番号を付けたため
+    // 「3 の中に 2.2 がある」という入れ子の矛盾になっていた。
+    const main = src.slice(src.indexOf('activeTab === "maindrug"'), src.indexOf('activeTab === "plan"'));
+    const others = src.slice(src.indexOf('activeTab === "drugs"'), src.indexOf('activeTab === "sites"'));
+    expect(main).toContain('<Section title={xsdTitle("INFONOTE")}');
+    expect(main).toContain("mainDrug");
+    expect(others).toContain('<Section title={xsdTitle("INFOCOMBINATION")}');
+    expect(others).toContain("otherDrugs");
+  });
+
+  it("タブの並びが届書の番号の順になっている", () => {
+    const conf = src.slice(src.indexOf("const detailTabs"), src.indexOf("const visibleTabs"));
+    const nos = [...conf.matchAll(/no: "([^"]+)"/g)].map((m) => m[1]);
+    expect(nos.length).toBeGreaterThan(5);
+    // 範囲の先頭の番号だけを取り出し、数値の並びとして昇順であることを見る
+    const head = nos.map((n) => n.split("–")[0].split(".").map(Number));
+    for (let i = 1; i < head.length; i++) {
+      const a = head[i - 1];
+      const b = head[i];
+      const cmp = (() => {
+        for (let k = 0; k < Math.max(a.length, b.length); k++) {
+          const d = (a[k] ?? 0) - (b[k] ?? 0);
+          if (d !== 0) return d;
+        }
+        return 0;
+      })();
+      expect(cmp, `タブの並びが届書の順ではない: ${nos[i - 1]} → ${nos[i]}`).toBeLessThan(0);
+    }
   });
 });

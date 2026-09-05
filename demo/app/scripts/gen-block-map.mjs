@@ -46,12 +46,15 @@ execFileSync(process.execPath, [bundle, jsonPath, pdfPath, FONT], { stdio: ["ign
 const { blocks, fields } = JSON.parse(readFileSync(jsonPath, "utf8"));
 
 // --- 画面のどのタブ・どの部品に出るかを NotificationDetail.tsx から拾う -----
+// タブは届書の連続した番号の範囲。並び順もこのとおり
 const TAB_LABEL = {
-  basic: "基本情報",
-  plan: "治験計画概要",
-  drugs: "治験使用薬",
-  sites: "実施医療機関",
-  refs: "届書添付資料・参照・照会",
+  basic: "1–2.1 届出事項",
+  maindrug: "2.2–2.5 主たる被験薬",
+  plan: "2.6–2.8 治験計画の概要",
+  notes: "2.9–2.12 備考・添付・届出者",
+  drugs: "3 その他治験使用薬",
+  sites: "4 実施医療機関",
+  refs: "5 参照・照会",
 };
 const src = readFileSync(join(APP, "src", "ctn", "components", "NotificationDetail.tsx"), "utf8");
 
@@ -63,12 +66,16 @@ const put = (el, where) => {
   screen.set(el, list);
 };
 
-// 部品ごとに区切る（薬カード・施設カードは常にそのタブの中で使われる）
+// 部品ごとに区切る。
+// 薬カードは2つのタブで使う（主たる被験薬＝届書2 と その他治験使用薬＝届書3）。
+// カードの中では gb(主, 従) で出力先を切り替えているので、第1引数は主たる被験薬の
+// タブ、第2引数はその他治験使用薬のタブに割り当てる。gb を使っていない要素は
+// すべて従（COMB_ 側）なので その他治験使用薬のタブ。
 const iDrug = src.indexOf("function StudyDrugCard(");
 const iSite = src.indexOf("function SiteCard(");
 const regions = [
   { text: src.slice(0, iDrug), tab: null }, // タブは本文中の activeTab で切り替える
-  { text: src.slice(iDrug, iSite), tab: "drugs" },
+  { text: src.slice(iDrug, iSite), tab: "drugs", gbTabs: ["maindrug", "drugs"] },
   { text: src.slice(iSite), tab: "sites" },
 ];
 
@@ -95,8 +102,14 @@ for (const region of regions) {
   for (const m of region.text.matchAll(BLOCK_RE)) {
     const tab = tabAt(m.index);
     if (!tab) continue;
-    const where = TAB_LABEL[tab] ?? tab;
-    for (const el of m.slice(1)) if (el) put(el, where);
+    const label = (k) => TAB_LABEL[k] ?? k;
+    // gb("主", "従") のときだけ引数ごとに行き先タブが違う
+    if (region.gbTabs && m[2] && m[3]) {
+      put(m[2], label(region.gbTabs[0]));
+      put(m[3], label(region.gbTabs[1]));
+      continue;
+    }
+    for (const el of m.slice(1)) if (el) put(el, label(tab));
   }
 }
 

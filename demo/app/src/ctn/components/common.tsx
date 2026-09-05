@@ -1,4 +1,4 @@
-import { Children, type ReactNode } from "react";
+import { Children, useState, type ReactNode } from "react";
 import { useLang } from "../../i18n";
 import { xsdEntry } from "../xsdLabels";
 import { isUnconfirmed } from "../schema";
@@ -86,9 +86,13 @@ export function Section({ title, sub, right, children, tableSchema, colSchema }:
  * 手で書かない（xsdLabels.ts）。
  *
  * el に入れ物要素名を渡すと見出し番号が付く。cols="1" は1列にする（長文欄用）。
+ *
+ * 見出しをクリックすると折りたためる。届書の順に並べると画面が縦に長くなるので、
+ * 済んだブロックを畳んで先へ進めるようにするため（クライアント要望 2026-09-05）。
+ * 畳むと欄の数だけを出す。
  */
 export function FormBlock({
-  el, under, note, right, cols = "2", children,
+  el, under, note, right, cols = "2", collapsible = true, defaultOpen = true, children,
 }: {
   el: string;
   /** 同名要素がXSD上の複数箇所にある場合の親要素名 */
@@ -96,28 +100,40 @@ export function FormBlock({
   note?: string;
   right?: ReactNode;
   cols?: "1" | "2";
+  /** 折りたたみを許す（既定 true。子が無いブロックは常に折りたためない） */
+  collapsible?: boolean;
+  defaultOpen?: boolean;
   /** 省略可。届書にはあるが入力を別タブに置いた欄の案内だけを出す場合に使う */
   children?: ReactNode;
 }) {
+  const [open, setOpen] = useState(defaultOpen);
   const e = xsdEntry(el, under);
   const parents = (e?.path ?? []).slice(0, -1);
   // 届出種別によって中身が全部隠れるブロックがある（例：終了届のゲノム検査等）。
   // 見出しだけが残ると「入力できない空の枠」に見えるので、その場合は出さない。
   // note だけを持つブロック（入力が別タブにある欄の案内）は残す。
-  const empty = children !== undefined && Children.toArray(children).length === 0;
-  if (empty && !note) return null;
+  const shown = children === undefined ? [] : Children.toArray(children);
+  if (children !== undefined && shown.length === 0 && !note) return null;
+  const canToggle = collapsible && shown.length > 0;
+  const body = !canToggle || open;
   return (
-    <div className="fblock">
+    <div className={`fblock${canToggle && !open ? " closed" : ""}`}>
       <div className="fblock-h">
+        {canToggle && (
+          <button type="button" className={`tog2${open ? " open" : ""}`} onClick={() => setOpen((o) => !o)} aria-expanded={open} aria-label={open ? "折りたたむ" : "開く"}>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5}><path d="m9 18 6-6-6-6" /></svg>
+          </button>
+        )}
         {e?.no && <span className="fblock-no">{e.no}</span>}
         <span className="fblock-name">{e?.label ?? el}</span>
         {e?.repeat && <span className="fblock-rep">繰り返し</span>}
+        {canToggle && !open && <span className="fblock-count">{shown.length}項目</span>}
         <div style={{ flex: 1 }} />
         {right}
       </div>
-      {parents.length > 0 && <div className="fblock-path">届書：{parents.join(" › ")}</div>}
-      {note && <div className="fblock-note">{note}</div>}
-      {children && <div className={`fblock-b${cols === "1" ? " one" : ""}`}>{children}</div>}
+      {body && parents.length > 0 && <div className="fblock-path">届書：{parents.join(" › ")}</div>}
+      {body && note && <div className="fblock-note">{note}</div>}
+      {body && children && <div className={`fblock-b${cols === "1" ? " one" : ""}`}>{children}</div>}
     </div>
   );
 }

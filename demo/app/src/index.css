@@ -350,6 +350,8 @@
 .fblock{grid-column:1/-1;margin-top:20px;border-top:1px solid var(--line-2);padding-top:14px}
 .sect-b>.fblock:first-child,.drugcard-b>.fblock:first-child{margin-top:0;border-top:none;padding-top:0}
 .fblock-h{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.fblock.closed{padding-bottom:2px}
+.fblock-count{font-size:10px;font-weight:700;color:var(--ink-4);background:var(--line-2);border-radius:5px;padding:1px 6px;white-space:nowrap}
 .fblock-no{font-size:10px;font-weight:800;color:var(--blue);background:color-mix(in srgb,var(--blue) 10%,transparent);border:1px solid color-mix(in srgb,var(--blue) 24%,transparent);border-radius:6px;padding:1px 6px;font-variant-numeric:tabular-nums;white-space:nowrap}
 .fblock-name{font-size:13px;font-weight:700;color:var(--ink)}
 .fblock-rep{font-size:9.5px;font-weight:700;color:var(--ink-3);background:var(--line-2);border-radius:5px;padding:1px 6px;white-space:nowrap}
@@ -655,8 +657,13 @@
    CTN — revision 3 (section tabs, import toolbar, perm banner, alert bg)
    ============================================================ */
 /* detail section tabs (horizontal shortcut buttons) */
-.detail-tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px;background:var(--surface);border:1px solid var(--line);border-radius:11px;padding:6px;box-shadow:var(--sh)}
-.dtab{padding:9px 16px;border-radius:8px;font-size:13px;font-weight:600;color:var(--ink-2);background:none;border:none;transition:.12s;white-space:nowrap}
+/* タブのボタンはスクロールしても常に見えるようにする（届書の順に並べると縦に長いため） */
+.detail-tabsbar{position:sticky;top:0;z-index:25;margin:0 -32px 16px;padding:2px 32px 6px;background:linear-gradient(to bottom,var(--bg) 76%,transparent)}
+.detail-tabs{display:flex;gap:6px;flex-wrap:wrap;background:var(--surface);border:1px solid var(--line);border-radius:11px;padding:6px;box-shadow:var(--sh)}
+.dtab{padding:8px 12px;border-radius:8px;font-size:12.5px;font-weight:600;color:var(--ink-2);background:none;border:none;transition:.12s;white-space:nowrap;display:flex;align-items:baseline;gap:6px}
+/* タブのボタンにも届書の番号を出す（並び順が届書と同じであることを示す） */
+.dtab-no{font-size:10px;font-weight:800;color:var(--blue);font-variant-numeric:tabular-nums}
+.dtab.on .dtab-no{color:#cdd6ff}
 .dtab:hover{background:var(--line-2)}
 .dtab.on{background:var(--navy);color:#fff}
 
