@@ -155,6 +155,27 @@ describe("タブが届書の連続した番号の範囲になっている", () =
 // 浅く見え、ブロックに属さない単独の欄（主たる被験薬の製造方法など）が直前の
 // ブロックの続きに見える（クライアント指摘 2026-09-05）。
 
+/**
+ * JSX タグの終わりの ">" を返す。属性の中にアロー関数（=>）や自己終了タグ
+ * （<Badge />）が入るので、最初の ">" で切ってはいけない。
+ */
+function tagEnd(text: string, from: number): number {
+  let depth = 0;
+  let quote = "";
+  for (let i = from; i < text.length; i++) {
+    const c = text[i];
+    if (quote) {
+      if (c === quote) quote = "";
+      continue;
+    }
+    if (c === '"' || c === "'" || c === "`") quote = c;
+    else if (c === "{") depth++;
+    else if (c === "}") depth--;
+    else if (c === ">" && depth === 0) return i;
+  }
+  return from;
+}
+
 /** ソースを走査して、各 FormBlock の「画面上の親ブロック」を求める */
 function screenParents(): { el: string; at: number; parents: string[] }[] {
   const out: { el: string; at: number; parents: string[] }[] = [];
@@ -166,27 +187,8 @@ function screenParents(): { el: string; at: number; parents: string[] }[] {
       stack.pop();
       continue;
     }
-    // このタグの終わりを探し、自己終了かどうかと el を読む。
-    // 属性の中にアロー関数（=>）や自己終了タグ（<Badge />）が入るので、
-    // 最初の ">" で切ってはいけない。波かっこと引用符の外の ">" を探す。
-    let depth = 0;
-    let quote = "";
-    let end = m.index!;
-    for (let i = m.index!; i < src.length; i++) {
-      const c = src[i];
-      if (quote) {
-        if (c === quote) quote = "";
-        continue;
-      }
-      if (c === '"' || c === "'" || c === "`") quote = c;
-      else if (c === "{") depth++;
-      else if (c === "}") depth--;
-      else if (c === ">" && depth === 0) {
-        end = i;
-        break;
-      }
-    }
-    const tag = src.slice(m.index!, end + 1);
+    // このタグの終わりを探し、自己終了かどうかと el を読む
+    const tag = src.slice(m.index!, tagEnd(src, m.index!) + 1);
     const selfClosing = tag.trimEnd().endsWith("/>");
     const elAttr = /el=(?:"([A-Z0-9_]+)"|\{([^}]*)\})/.exec(tag);
     const els = elAttr
@@ -262,6 +264,46 @@ describe("同じ親の中でブロックが届書の番号順に並んでいる"
         }
       }
       expect(out, "画面は届書の順に並べる（横3列の枠では左→右→次の行の順に読む）").toEqual([]);
+    });
+  }
+});
+
+// ---------------------------------------------------------------------------
+// 表を持つブロックは1列
+// ---------------------------------------------------------------------------
+// ブロックの既定は2列。表をその中に置くと、表が片方の列に入って半分の幅になり、
+// 列見出しと行の列位置までずれる（2.10.1 資料名情報で実際に起きた・2026-09-05）。
+describe("表を持つブロックは1列になっている", () => {
+  /** pos を囲むいちばん内側の <FormBlock ...> のタグ文字列 */
+  const enclosingBlockTag = (pos: number): string | undefined => {
+    const stack: string[] = [];
+    const TAG = /<FormBlock\b|<\/FormBlock>/g;
+    for (const m of src.matchAll(TAG)) {
+      if (m.index! >= pos) break;
+      if (m[0] === "</FormBlock>") {
+        stack.pop();
+        continue;
+      }
+      stack.push(src.slice(m.index!, tagEnd(src, m.index!) + 1));
+    }
+    return stack[stack.length - 1];
+  };
+
+  const tables = [...src.matchAll(/className="(row-table|qty-tbl)"/g)];
+
+  it("表を1つ以上見つけている（走査できている）", () => {
+    expect(tables.length).toBeGreaterThan(0);
+  });
+
+  for (const m of tables) {
+    const tag = enclosingBlockTag(m.index!);
+    if (!tag) continue; // Section 直下の表はブロックの列の影響を受けない
+    const el = /el="([A-Z0-9_]+)"/.exec(tag)?.[1] ?? "?";
+    it(`${xsdNo(el) ?? el} ${xsdLabel(el) ?? ""} の表が全幅で出る`, () => {
+      expect(
+        /cols="1"/.test(tag),
+        `表は全幅で使う。cols="1" を付けないと2列の片方に入って潰れる（${el}）`
+      ).toBe(true);
     });
   }
 });

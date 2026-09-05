@@ -349,16 +349,20 @@
 /* 届書のブロック（入力画面のかたまりを届書の見出しに合わせる・FormBlock） */
 .fblock{grid-column:1/-1;margin-top:20px;border-top:1px solid var(--line-2);padding-top:14px}
 .sect-b>.fblock:first-child,.drugcard-b>.fblock:first-child{margin-top:0;border-top:none;padding-top:0}
-.fblock-h{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.fblock-h{display:flex;align-items:flex-start;gap:8px}
+/* 番号・名前・印の塊。列が狭いときは名前が折り返す（番号だけが別行に残らない） */
+.fblock-t{flex:1;min-width:0;line-height:20px}
+.fblock-t>*{vertical-align:middle}
+.fblock-t>*+*{margin-left:7px}
 .fblock.closed{padding-bottom:2px}
 /* 折りたためるブロックは中身を1段下げ、見出しの ＞ が親であることを見せる */
 .fblock.has-tog>.fblock-b{padding-left:28px}
 /* 入れ子のブロック（2.10 の中の 2.10.1 など）は左の罫線で親子を示す */
 .fblock-b>.fblock{margin-top:14px;border-top:none;padding-top:0;padding-left:14px;border-left:2px solid var(--line-2)}
-.fblock-count{font-size:10px;font-weight:700;color:var(--ink-4);background:var(--line-2);border-radius:5px;padding:1px 6px;white-space:nowrap}
-.fblock-no{font-size:10px;font-weight:800;color:var(--blue);background:color-mix(in srgb,var(--blue) 10%,transparent);border:1px solid color-mix(in srgb,var(--blue) 24%,transparent);border-radius:6px;padding:1px 6px;font-variant-numeric:tabular-nums;white-space:nowrap}
+.fblock-count{display:inline-block;font-size:10px;font-weight:700;color:var(--ink-4);background:var(--line-2);border-radius:5px;padding:1px 6px;white-space:nowrap}
+.fblock-no{display:inline-block;font-size:10px;font-weight:800;color:var(--blue);background:color-mix(in srgb,var(--blue) 10%,transparent);border:1px solid color-mix(in srgb,var(--blue) 24%,transparent);border-radius:6px;padding:1px 6px;font-variant-numeric:tabular-nums;white-space:nowrap}
 .fblock-name{font-size:13px;font-weight:700;color:var(--ink)}
-.fblock-rep{font-size:9.5px;font-weight:700;color:var(--ink-3);background:var(--line-2);border-radius:5px;padding:1px 6px;white-space:nowrap}
+.fblock-rep{display:inline-block;font-size:9.5px;font-weight:700;color:var(--ink-3);background:var(--line-2);border-radius:5px;padding:1px 6px;white-space:nowrap}
 .fblock-path{font-size:10.5px;color:var(--ink-4);margin-top:4px;line-height:1.45}
 .fblock-b{margin-top:12px;display:grid;grid-template-columns:1fr 1fr;gap:14px 18px}
 .fblock-b.one{grid-template-columns:1fr}
@@ -471,8 +475,8 @@
 .rt-head{font-size:10.5px;text-transform:uppercase;letter-spacing:.4px;color:var(--ink-3);font-weight:700;border-bottom:1px solid var(--line-2)}
 .rt-row{border-bottom:1px solid var(--line-2)}
 .rt-row:last-child{border-bottom:none}
-.rt-drug{grid-template-columns:120px 66px 1fr 1.4fr 1fr 34px}
-.rt-att{grid-template-columns:1.4fr 2fr 90px 34px}
+.rt-drug{grid-template-columns:120px 66px minmax(0,1fr) minmax(0,1.4fr) minmax(0,1fr) 34px}
+.rt-att{grid-template-columns:minmax(0,1.4fr) minmax(0,2fr) 90px 34px}
 .rt-empty{padding:20px;text-align:center;color:var(--ink-4);font-size:12.5px}
 .serial{font-weight:700;font-variant-numeric:tabular-nums;color:var(--navy)}
 
@@ -675,7 +679,7 @@
 .settings-actions{display:flex;align-items:center;gap:10px;margin-top:6px}
 
 /* references row grid */
-.rt-ref{grid-template-columns:130px 1.2fr 90px 1fr 1.4fr 34px}
+.rt-ref{grid-template-columns:130px minmax(0,1.2fr) 90px minmax(0,1fr) minmax(0,1.4fr) 34px}
 
 /* study drug card (expandable) */
 .drugcard{border:1px solid var(--line);border-radius:11px;margin-bottom:12px;overflow:hidden}

@@ -184,17 +184,20 @@ export function FormBlock({
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5}><path d="m9 18 6-6-6-6" /></svg>
           </button>
         )}
-        {e?.no && <span className="fblock-no">{e.no}</span>}
-        <span className="fblock-name">{e?.label ?? el}</span>
-        {(note || parents.length > 0) && (
-          <Hint label={note} text={<>
-            {parents.length > 0 && <span className="hint-path">届書：{parents.join(" › ")}</span>}
-            {note}
-          </>} />
-        )}
-        {e?.repeat && <span className="fblock-rep">繰り返し</span>}
-        {canToggle && !open && <span className="fblock-count">{shown.length}項目</span>}
-        <div style={{ flex: 1 }} />
+        {/* 番号・名前・印は1つの塊にする。別々の flex 子にすると、幅が足りない
+            ときに名前だけが次の行へ送られて番号と離れる（3列にして起きた） */}
+        <div className="fblock-t">
+          {e?.no && <span className="fblock-no">{e.no}</span>}
+          <span className="fblock-name">{e?.label ?? el}</span>
+          {(note || parents.length > 0) && (
+            <Hint label={note} text={<>
+              {parents.length > 0 && <span className="hint-path">届書：{parents.join(" › ")}</span>}
+              {note}
+            </>} />
+          )}
+          {e?.repeat && <span className="fblock-rep">繰り返し</span>}
+          {canToggle && !open && <span className="fblock-count">{shown.length}項目</span>}
+        </div>
         {right}
       </div>
       {body && children && <div className={`fblock-b${cols === "1" ? " one" : cols === "3" ? " three" : ""}`}>{children}</div>}

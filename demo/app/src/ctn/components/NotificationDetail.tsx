@@ -734,7 +734,8 @@ export function NotificationDetail({
         {draft.notifType !== "devDiscontinuation" && (
           <FormBlock el="DOCATTACHEDNOTE" cols="1"
             note={t("Guide 5.2(16): only the document name is printed on the form (type and status are operational). Files live in SharePoint (demo uses pseudo paths).", "手引き 5.2(16)：届書に出るのは資料名だけです（資料種別・状態は運用項目）。実体はSharePoint（デモは擬似パス）。")}>
-            <FormBlock el="INFONAMEDOCUMENTS"
+            {/* 表は全幅で使う。既定の2列だと表が片方の列に入って潰れる */}
+            <FormBlock el="INFONAMEDOCUMENTS" cols="1"
               right={editable ? <Btn small onClick={() => set((n) => n.attachments.push({ id: `att-${Math.random().toString(36).slice(2, 7)}`, docType: options(SET.docType)[0].value, docName: "", spReference: "", hasBookmarks: false, hasText: false, attachStatus: ATTACH_STATUS.checking }))}>{Icon.plus} {t("Add", "追加")}</Btn> : undefined}>
               {draft.attachments.length === 0 ? <div className="rt-empty">{t("No attachments.", "添付資料はありません。")}</div> : (
                 <div className="row-table">
