@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useLang } from "../../i18n";
 import { columnOf, requiredFor, shouldShow, isRequired } from "../schema";
 import { ofHint, oflWith } from "../officialLabels";
-import { xsdLabel, xsdTitle } from "../xsdLabels";
+import { xsdLabel, xsdNo, xsdTitle } from "../xsdLabels";
 import { generateSubmissionPackage, downloadBlob, type SubmissionPackage } from "../output";
 import type { XmlContext } from "../xml";
 import {
@@ -783,6 +783,7 @@ export function NotificationDetail({
       {draft.notifType !== "devDiscontinuation" && (
         <Section title={xsdTitle("DOCATTACHEDNOTE")} sub={t("Guide 5.2(16): only the document name is printed on the form (type and status are operational). For a first-in-human drug, state in the remarks whether the final non-clinical safety report is submitted, and why not if it isn't. Files live in SharePoint (demo uses pseudo paths).", "手引き 5.2(16)：届書に出るのは資料名だけです（資料種別・状態は運用項目）。初めてヒトに投与する薬物では、備考に非臨床安全性試験の最終報告書を提出する旨（提出しない場合はその理由）を記載します。実体はSharePoint（デモは擬似パス）。")}
           right={editable ? <Btn small onClick={() => set((n) => n.attachments.push({ id: `att-${Math.random().toString(36).slice(2, 7)}`, docType: options(SET.docType)[0].value, docName: "", spReference: "", hasBookmarks: false, hasText: false, attachStatus: ATTACH_STATUS.checking }))}>{Icon.plus} {t("Add", "追加")}</Btn> : undefined}>
+          <FormBlock el="INFONAMEDOCUMENTS" />
           {draft.attachments.length === 0 ? <div className="rt-empty">{t("No attachments.", "添付資料はありません。")}</div> : (
             <div className="row-table">
               <div className="rt-head rt-att"><span>{ofl("資料種別")}</span><span>{ofl("資料名")}</span><span>{ofl("添付状態")}</span><span /></div>
@@ -1208,9 +1209,16 @@ function SiteCard({
           </div>
         </div>
       </div>
-      {/* 医師ロスター */}
+      {/* 医師ロスター。届書では治験責任医師と治験分担医師が別のブロックになる */}
       <div className="roster">
-        <div className="roster-h">{t("Investigator roster", "治験責任医師・治験分担医師")} <span className="muted small">（{inst?.name}）</span></div>
+        <div className="fblock" style={{ marginTop: 0, borderTop: "none", paddingTop: 0 }}>
+          <div className="fblock-h">
+            <span className="fblock-no">{`${xsdNo("INFOINVESTIGATOR")} / ${xsdNo("INFOSUBINVESTIGATOR")}`}</span>
+            <span className="fblock-name">{`${xsdLabel("INFOINVESTIGATOR")}・${xsdLabel("INFOSUBINVESTIGATOR")}`}</span>
+            <span className="fblock-rep">繰り返し</span>
+          </div>
+          <div className="fblock-path">{t("Roster on screen; the form splits it into the two blocks above.", "画面ではロスターで扱い、届書では責任医師・分担医師の2ブロックに分かれて出力されます。")} <span className="muted small">（{inst?.name}）</span></div>
+        </div>
         {site.investigators.map((inv) => (
           <div key={inv.id} className={`roster-row${inv.changeType === CHANGE_TYPE.remove ? " removed" : ""}`}>
             <span className={`role-chip ${inv.doctorRole === DOCTOR_ROLE.responsible ? "resp" : "sub"}`}>{label(SET.doctorRole, inv.doctorRole)}</span>
@@ -1237,7 +1245,15 @@ function SiteCard({
       {/* 数量マトリクス */}
       {draft.studyDrugs.length > 0 && (
         <div className="qty">
-          <div className="qty-h" title={t("Guide 5.4(4): planned supply quantity per type (dosage form, content). For a set-based double-blind design you may enter the number of sets and put the breakdown in the footnote.", "手引き 5.4(4)：予定交付（入手）数量を種類（剤形・含量）別に入力。組単位で割付する二重盲検では組数を入力し、1組当たりの内訳を脚注に示すことができます。")}>{xsdLabel("INFOQUANTITIESINVESTPRODUCT")}{terminal && <UnconfirmedBadge label={t("supply→abrogation required", "交付〜廃棄が必須")} />}</div>
+          <div className="fblock" style={{ marginTop: 0, borderTop: "none", paddingTop: 0 }}>
+            <div className="fblock-h">
+              <span className="fblock-no">{xsdNo("INFOQUANTITIESINVESTPRODUCT")}</span>
+              <span className="fblock-name">{xsdLabel("INFOQUANTITIESINVESTPRODUCT")}</span>
+              <span className="fblock-rep">繰り返し</span>
+              {terminal && <UnconfirmedBadge label={t("supply→abrogation required", "交付〜廃棄が必須")} />}
+            </div>
+            <div className="fblock-path">{t("Guide 5.4(4): planned supply quantity per type (dosage form, content). For a set-based double-blind design you may enter the number of sets and put the breakdown in the footnote.", "手引き 5.4(4)：予定交付（入手）数量を種類（剤形・含量）別に入力します。組単位で割付する二重盲検では組数を入力し、1組当たりの内訳を脚注に示せます。")}</div>
+          </div>
           <table className="qty-tbl">
             <thead><tr><th>{ofl("治験使用薬の名称")}</th><th>{ofl("予定交付（入手）数量")}</th>{terminal && <><th>{ofl("交付数量")}</th><th>{ofl("使用数量")}</th><th>{ofl("回収数量")}</th><th>{ofl("廃棄数量")}</th></>}</tr></thead>
             <tbody>

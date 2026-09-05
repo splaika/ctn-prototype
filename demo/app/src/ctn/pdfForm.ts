@@ -16,9 +16,11 @@
 // IPA明朝を使う（半角0.5em・全角1.0em が MS明朝と一致するので、文字位置・
 // 折り返し位置・行数がずれない）。字形はごくわずかに異なる。
 // ============================================================================
-import { PDFDocument, type PDFFont, type PDFPage } from "pdf-lib";
+import { PDFDocument, rgb, type PDFFont, type PDFPage } from "pdf-lib";
 import fontkit from "@pdf-lib/fontkit";
 import type { FormDocument, FormNode } from "./formTree";
+import { xsdNo } from "./xsdLabels";
+import { XSD_ROOT } from "./xsdForm.generated";
 
 // ---------------------------------------------------------------------------
 // 実測レイアウト定数（参照出力より）
@@ -111,6 +113,11 @@ export function wrapText(s: string, maxWidth: number, size = LAYOUT.fontSize): s
 interface RenderLine {
   /** 描画テキストと x 座標の組（1行に項目名と値が並ぶ） */
   cells: { x: number; text: string }[];
+  /**
+   * 画面のブロック番号（"2.6.1" 等）。blockNumbers オプションのときだけ
+   * 左余白に刷る診断用の印で、公式様式には無い。
+   */
+  blockNo?: string;
 }
 
 /** 1ノードを行に展開する。項目名が値の位置を越える場合は値を項目名の直後に置く */
@@ -149,10 +156,19 @@ function nodeToLines(node: FormNode, level: number): RenderLine[] {
   return lines;
 }
 
-function treeToLines(nodes: FormNode[], level = 0, acc: RenderLine[] = []): RenderLine[] {
+function treeToLines(
+  nodes: FormNode[],
+  level = 0,
+  acc: RenderLine[] = [],
+  parentEl = XSD_ROOT
+): RenderLine[] {
   for (const node of nodes) {
-    acc.push(...nodeToLines(node, level));
-    if (node.children) treeToLines(node.children, level + 1, acc);
+    const lines = nodeToLines(node, level);
+    // 入れ物要素の先頭行に画面のブロック番号を添える（描画するかは呼び出し側）
+    const no = xsdNo(node.el, parentEl);
+    if (no && lines.length) lines[0].blockNo = no;
+    acc.push(...lines);
+    if (node.children) treeToLines(node.children, level + 1, acc, node.el);
   }
   return acc;
 }
@@ -163,17 +179,42 @@ function treeToLines(nodes: FormNode[], level = 0, acc: RenderLine[] = []): Rend
 const baselineY = (lineIndex: number): number =>
   LAYOUT.pageHeight - (LAYOUT.firstLineTop + lineIndex * LAYOUT.linePitch + LAYOUT.fontSize * LAYOUT.ascentRatio);
 
-function drawLine(page: PDFPage, font: PDFFont, line: RenderLine, lineIndex: number): void {
+/** ブロック番号を刷る左余白の位置と色（画面のバッジと同じ紫） */
+const BLOCK_NO_X = 26;
+const BLOCK_NO_COLOR = rgb(0.36, 0.32, 0.8);
+
+function drawLine(
+  page: PDFPage,
+  font: PDFFont,
+  line: RenderLine,
+  lineIndex: number,
+  blockNumbers = false
+): void {
   const y = baselineY(lineIndex);
   for (const cell of line.cells) {
     if (!cell.text) continue;
     page.drawText(cell.text, { x: cell.x, y, size: LAYOUT.fontSize, font });
+  }
+  if (blockNumbers && line.blockNo) {
+    page.drawText(line.blockNo, {
+      x: BLOCK_NO_X,
+      y,
+      size: LAYOUT.fontSize * 0.85,
+      font,
+      color: BLOCK_NO_COLOR,
+    });
   }
 }
 
 export interface RenderFormOptions {
   /** IPA明朝など、半角0.5em・全角1.0em の日本語フォント（TTF/OTF） */
   fontBytes: Uint8Array | ArrayBuffer;
+  /**
+   * 左余白に画面のブロック番号を刷る（診断用）。
+   * 画面のどのブロックが届書のどこに出るのかを目で突き合わせるためのもので、
+   * 公式様式には無い印。提出用の出力では使わないこと。
+   */
+  blockNumbers?: boolean;
 }
 
 /**
@@ -202,6 +243,7 @@ export async function renderFormPdf(
   const H = LAYOUT.headerLines;
   const h0 = LAYOUT.labelX[0];
   const v0 = LAYOUT.valueX[0];
+  const withNo = opts.blockNumbers === true;
   drawLine(page, font, { cells: [{ x: h0, text: "届出年月日" }, { x: v0, text: form.header.noteDate }] }, H.noteDate);
   page.drawText(form.header.addressee, {
     x: h0,
@@ -221,7 +263,7 @@ export async function renderFormPdf(
       page = newPage();
       lineIndex = 0;
     }
-    drawLine(page, font, line, lineIndex);
+    drawLine(page, font, line, lineIndex, withNo);
     lineIndex++;
   }
 
@@ -234,6 +276,16 @@ export async function renderFormPdf(
       size: LAYOUT.fontSize,
       font,
     });
+    // 診断用の印であることをページ内に残す（提出用と取り違えないため）
+    if (withNo) {
+      p.drawText("※ 左端の番号は入力画面のブロック番号です（届書には印字されません）", {
+        x: BLOCK_NO_X,
+        y: LAYOUT.pageNoBaseline,
+        size: LAYOUT.fontSize * 0.85,
+        font,
+        color: BLOCK_NO_COLOR,
+      });
+    }
   });
 
   return pdf;

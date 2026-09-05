@@ -13,7 +13,8 @@
     "fonts": "node scripts/copy-font.mjs",
     "predev": "npm run fonts",
     "prebuild": "npm run fonts",
-    "xsd:gen": "python scripts/gen-xsd-form.py"
+    "xsd:gen": "python scripts/gen-xsd-form.py",
+    "blockmap": "node scripts/gen-block-map.mjs"
   },
   "dependencies": {
     "@microsoft/power-apps": "^1.1.1",
