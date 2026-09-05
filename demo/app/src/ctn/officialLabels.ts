@@ -229,6 +229,7 @@ const FIELDS: Record<string, Spec> = {
 
   // ---- 届書添付資料 ----
   資料名: { el: "NAMEDOC", en: "Document name" },
+  届書添付資料の備考: { el: "REMARK", en: "Attachment remarks" },
 
   // ---- 参照する治験届出情報 ----
   "医薬品等の別（参照）": { el: "REF_PRODUCTCATEGORY", en: "Product category (ref.)" },

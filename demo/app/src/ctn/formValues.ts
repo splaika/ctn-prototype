@@ -552,8 +552,9 @@ export function valueOf(el: string, s: RowScope): Resolved | undefined {
       return undefined;
     case "NAMEDOC":
       return plain(txt(s.attachment?.docName));
+    // 届書添付資料の備考（資料名情報の後に出る欄）
     case "REMARK":
-      return undefined;
+      return plain(txt(n.attachmentRemark));
 
     default:
       return undefined;

@@ -726,6 +726,35 @@ export function NotificationDetail({
           </FormBlock>
         )}
 
+        {/* 届書添付資料（2.10）。届書では備考（2.9）と治験届出者（2.11）の間。
+            中の「資料名情報」（2.10.1）が実際の資料の並び。 */}
+        {draft.notifType !== "devDiscontinuation" && (
+          <FormBlock el="DOCATTACHEDNOTE" cols="1"
+            note={t("Guide 5.2(16): only the document name is printed on the form (type and status are operational). Files live in SharePoint (demo uses pseudo paths).", "手引き 5.2(16)：届書に出るのは資料名だけです（資料種別・状態は運用項目）。実体はSharePoint（デモは擬似パス）。")}>
+            <FormBlock el="INFONAMEDOCUMENTS"
+              right={editable ? <Btn small onClick={() => set((n) => n.attachments.push({ id: `att-${Math.random().toString(36).slice(2, 7)}`, docType: options(SET.docType)[0].value, docName: "", spReference: "", hasBookmarks: false, hasText: false, attachStatus: ATTACH_STATUS.checking }))}>{Icon.plus} {t("Add", "追加")}</Btn> : undefined}>
+              {draft.attachments.length === 0 ? <div className="rt-empty">{t("No attachments.", "添付資料はありません。")}</div> : (
+                <div className="row-table">
+                  <div className="rt-head rt-att"><span>{ofl("資料種別")}</span><span>{ofl("資料名")}</span><span>{ofl("添付状態")}</span><span /></div>
+                  {draft.attachments.map((a) => (
+                    <div key={a.id} className="rt-row rt-att">
+                      <span><select className="sel sel-sm" value={a.docType} disabled={!editable} onChange={(e) => set((n) => { const x = n.attachments.find((y) => y.id === a.id)!; x.docType = Number(e.target.value); })}>{options(SET.docType).map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}</select></span>
+                      <span><input className="tin tin-sm" value={a.docName} disabled={!editable} onChange={(e) => set((n) => { const x = n.attachments.find((y) => y.id === a.id)!; x.docName = e.target.value; })} placeholder="ファイル名" /></span>
+                      <span><span className={`att-chip att-${a.attachStatus}`}>{label(SET.attachStatus, a.attachStatus)}</span></span>
+                      <span>{editable && <button className="icon-btn danger" onClick={() => set((n) => (n.attachments = n.attachments.filter((y) => y.id !== a.id)))}>{Icon.trash}</button>}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </FormBlock>
+            {/* 届書添付資料の備考。手引き 5.2(16) が初回ヒト投与時の記載を求めている欄 */}
+            <Field label={ofl("届書添付資料の備考")}
+              hint={t("Guide 5.2(16): for a first-in-human drug, state that the final non-clinical safety report is submitted — or why it is not.", "手引き 5.2(16)：初めてヒトに投与する薬物では、非臨床安全性試験の最終報告書を提出する旨（提出しない場合はその理由）を記載します。")} wide>
+              <textarea className="ta" value={draft.attachmentRemark ?? ""} disabled={!editable} onChange={(e) => set((n) => (n.attachmentRemark = e.target.value))} />
+            </Field>
+          </FormBlock>
+        )}
+
         {/* 治験届出者に関する情報（届出者はマスタから選ぶので他は参照表示） */}
         <FormBlock el="INFOPERSONFILLNOTE"
           note={t("Selected from the master; the printed values come from it.", "マスタから選択します。届書に出るのは選択した届出者の登録内容です。")}>
@@ -760,27 +789,6 @@ export function NotificationDetail({
         </FormBlock>
 
       </Section>
-
-      {/* ===== 届書添付資料（2.10）===== */}
-      {draft.notifType !== "devDiscontinuation" && (
-        <Section title={xsdTitle("DOCATTACHEDNOTE")} sub={t("Guide 5.2(16): only the document name is printed on the form (type and status are operational). For a first-in-human drug, state in the remarks whether the final non-clinical safety report is submitted, and why not if it isn't. Files live in SharePoint (demo uses pseudo paths).", "手引き 5.2(16)：届書に出るのは資料名だけです（資料種別・状態は運用項目）。初めてヒトに投与する薬物では、備考に非臨床安全性試験の最終報告書を提出する旨（提出しない場合はその理由）を記載します。実体はSharePoint（デモは擬似パス）。")}
-          right={editable ? <Btn small onClick={() => set((n) => n.attachments.push({ id: `att-${Math.random().toString(36).slice(2, 7)}`, docType: options(SET.docType)[0].value, docName: "", spReference: "", hasBookmarks: false, hasText: false, attachStatus: ATTACH_STATUS.checking }))}>{Icon.plus} {t("Add", "追加")}</Btn> : undefined}>
-          <FormBlock el="INFONAMEDOCUMENTS" />
-          {draft.attachments.length === 0 ? <div className="rt-empty">{t("No attachments.", "添付資料はありません。")}</div> : (
-            <div className="row-table">
-              <div className="rt-head rt-att"><span>{ofl("資料種別")}</span><span>{ofl("資料名")}</span><span>{ofl("添付状態")}</span><span /></div>
-              {draft.attachments.map((a) => (
-                <div key={a.id} className="rt-row rt-att">
-                  <span><select className="sel sel-sm" value={a.docType} disabled={!editable} onChange={(e) => set((n) => { const x = n.attachments.find((y) => y.id === a.id)!; x.docType = Number(e.target.value); })}>{options(SET.docType).map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}</select></span>
-                  <span><input className="tin tin-sm" value={a.docName} disabled={!editable} onChange={(e) => set((n) => { const x = n.attachments.find((y) => y.id === a.id)!; x.docName = e.target.value; })} placeholder="ファイル名" /></span>
-                  <span><span className={`att-chip att-${a.attachStatus}`}>{label(SET.attachStatus, a.attachStatus)}</span></span>
-                  <span>{editable && <button className="icon-btn danger" onClick={() => set((n) => (n.attachments = n.attachments.filter((y) => y.id !== a.id)))}>{Icon.trash}</button>}</span>
-                </div>
-              ))}
-            </div>
-          )}
-        </Section>
-      )}
 
       </>)}
 

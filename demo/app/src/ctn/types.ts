@@ -331,7 +331,9 @@ export interface Notification {
   applicCombEquipment?: number; // 併用する機械器具等の記載 該当有無（INFOCOMBEQUIPMENT/APPLICABLEORNOT）
   combEquipmentContents?: string; // 併用する機械器具等 内容（INFOCOMBEQUIPMENT/CONTENTS）
   globalContents?: string; // 国際共同治験の内容（INFOGLOBALCLINTRIAL/CONTENTS）
-  formVersion?: string; // 様式等のバージョン情報（INFOFORMVERSION）
+  formVersion?: string;
+  /** 届書添付資料の備考（DOCATTACHEDNOTE › REMARK）。手引き 5.2(16） */
+  attachmentRemark?: string; // 様式等のバージョン情報（INFOFORMVERSION）
   // ---- 海外依頼者・外国製造業者（INFOFOREIGNMANUFACTURER・本デモは単数入力） ----
   foreignName?: string; // 名称（邦文・FOREIGN_SPONSOR_NAME）
   foreignRepName?: string; // 代表者氏名（邦文・FOREIGN_SPONSOR_REP_NAME）
