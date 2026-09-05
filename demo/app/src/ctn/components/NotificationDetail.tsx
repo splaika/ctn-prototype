@@ -720,13 +720,32 @@ export function NotificationDetail({
       </>)}
 
       {/* ===== 治験使用薬タブ =====
-          主たる被験薬は「主たる被験薬に関する届出事項」、それ以外は
-          「治験使用薬…（主たる被験薬を除く。）の情報」に出る。届書では
-          離れた場所だが、入力は同じ形なので1画面にまとめて主従で切り替える。 */}
+          このタブは届書の2つのブロックにまたがる。
+            主たる被験薬の薬の明細 … 2 主たる被験薬に関する届出事項（2.2〜2.5）
+            それ以外              … 3 治験使用薬…（主たる被験薬を除く。）の情報
+          入力の形は同じなので1画面にまとめているが、タブ全体に片方の番号を
+          付けると「3 のカードの中に 2.2 がある」という矛盾になる。
+          そこでタブには番号を付けず、出力先ごとに見出しを出す。 */}
       {activeTab === "drugs" && (
-        <Section title={xsdTitle("INFOCOMBINATION")} sub={t("The main investigational drug is printed under the main drug block; the others under this one. Expand a row for all fields.", "主たる被験薬は「主たる被験薬に関する届出事項」に、それ以外はこのブロックに出力されます。行を展開すると全項目を入力できます。")} right={editable ? <Btn kind="p" small onClick={addStudyDrug}>{Icon.plus} {t("Add drug", "薬を追加")}</Btn> : undefined}>
+        <Section title={t("Study drugs", "治験使用薬")}
+          sub={t("This tab spans two blocks of the form: the main investigational drug goes under block 2, the others under block 3. Expand a row for all fields.", "このタブは届書の2つのブロックにまたがります（主たる被験薬は 2、それ以外は 3 に出力されます）。行を展開すると全項目を入力できます。")}
+          right={editable ? <Btn kind="p" small onClick={addStudyDrug}>{Icon.plus} {t("Add drug", "薬を追加")}</Btn> : undefined}>
           {draft.studyDrugs.length === 0 && <div className="rt-empty">{t("No study drugs. Add the main investigational drug first.", "治験使用薬がありません。まず主たる被験薬を追加してください。")}</div>}
-          {draft.studyDrugs.map((d) => (
+
+          {/* 主たる被験薬（届書では「主たる被験薬に関する届出事項」の中の薬の明細） */}
+          {draft.studyDrugs.some((d) => d.drugRole === DRUG_ROLE.main) && (
+            <FormBlock el="INFONOTE"
+              note={t("Only the drug details of this block are here (2.2–2.5). The rest of the block is on the Basics tab.", "このブロックのうち薬の明細（2.2〜2.5）だけがここにあります。届出区分・備考・届出者などは「基本情報」タブです。")} />
+          )}
+          {draft.studyDrugs.filter((d) => d.drugRole === DRUG_ROLE.main).map((d) => (
+            <StudyDrugCard key={d.id} drug={d} editable={editable} onField={(fn) => setDrug(d.id, fn)} onRemove={() => rmStudyDrug(d.id)} codes={db.codes} />
+          ))}
+
+          {/* その他治験使用薬（届書では独立したブロック） */}
+          {draft.studyDrugs.some((d) => d.drugRole !== DRUG_ROLE.main) && (
+            <FormBlock el="INFOCOMBINATION" />
+          )}
+          {draft.studyDrugs.filter((d) => d.drugRole !== DRUG_ROLE.main).map((d) => (
             <StudyDrugCard key={d.id} drug={d} editable={editable} onField={(fn) => setDrug(d.id, fn)} onRemove={() => rmStudyDrug(d.id)} codes={db.codes} />
           ))}
         </Section>
@@ -967,12 +986,9 @@ function StudyDrugCard({ drug, editable, onField, onRemove, codes }: { drug: Stu
       </div>
       {open && (
         <div className="drugcard-b">
-          {/* 主従の切り替えは届書の項目ではなく、出力先ブロックを決める入力 */}
-          <div className="fblock">
-            <div className="fblock-h"><span className="fblock-name">{t("Where this drug is printed", "この薬の出力先")}</span></div>
-            <div className="fblock-path">{isMain
-              ? "届書：主たる被験薬に関する届出事項"
-              : "届書：治験使用薬、治験使用機器相当、治験使用製品相当（主たる被験薬を除く。）の情報"}</div>
+          {/* 主従の切り替えは届書の項目ではなく、出力先ブロックを決める入力。
+              出力先そのものは一覧側の見出し（2 / 3）が示すのでここには書かない */}
+          <div className="fblock" style={{ marginTop: 0, borderTop: "none", paddingTop: 0 }}>
             <div className="fblock-b">
               <Field label={ofl("主従区分")} hint={ofHint("主従区分")} mark="always"><select className="sel" value={drug.drugRole} disabled={!editable} onChange={(e) => onField((d) => (d.drugRole = Number(e.target.value)))}>{options(SET.drugRole).map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}</select></Field>
               {isMain && <Field label={t("Name (management only)", "治験薬名称（管理用）")} hint={t("The main drug is identified on the form by its compound code; this name is for the screen.", "主たる被験薬は届書では治験成分記号で特定します。この名称は画面上の管理用です。")} mark="always"><input className="tin" value={drug.drugName} disabled={!editable} onChange={(e) => onField((d) => (d.drugName = e.target.value))} /></Field>}
