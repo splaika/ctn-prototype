@@ -6,9 +6,9 @@ import { label, SET, options, IRB_TYPE, userById, CODE_KINDS, CODE_KIND_LABEL } 
 import { Modal, Btn, Field, Icon, Empty } from "./common";
 import { GaijiDialog, type GaijiConfirmation } from "./GaijiDialog";
 import type { CtnRepository, CtnDb } from "../data/repository";
-import type { CodeItem, Doctor, Institution, Irb, SiteStaff, Sponsor, GaijiRecord } from "../types";
+import type { CodeItem, Doctor, Institution, Irb, Sponsor, GaijiRecord } from "../types";
 
-type Tab = "institution" | "doctor" | "irb" | "sponsor" | "staff" | "code";
+type Tab = "institution" | "doctor" | "irb" | "sponsor" | "code";
 
 export function MasterView({ db, repo, actorId, reload, flash }: { db: CtnDb; repo: CtnRepository; actorId: string; reload: () => Promise<void>; flash: (m: string) => void }) {
   const { t } = useLang();
@@ -19,7 +19,6 @@ export function MasterView({ db, repo, actorId, reload, flash }: { db: CtnDb; re
   const tabs: [Tab, string, string, number][] = [
     ["institution", "Institutions", "医療機関", db.institutions.length],
     ["doctor", "Doctors", "医師", db.doctors.length],
-    ["staff", "CRC", "CRC", db.siteStaff.length],
     ["irb", "IRB", "IRB", db.irbs.length],
     ["sponsor", "Sponsors", "治験届出者", db.sponsors.length],
     ["code", "Code tables", "コード表", db.codes.length],
@@ -31,7 +30,6 @@ export function MasterView({ db, repo, actorId, reload, flash }: { db: CtnDb; re
       doctor: repo.setDoctorActive.bind(repo),
       irb: repo.setIrbActive.bind(repo),
       sponsor: repo.setSponsorActive.bind(repo),
-      staff: repo.setSiteStaffActive.bind(repo),
       code: repo.setCodeActive.bind(repo),
     };
     await map[kind](id, active, actorId);
@@ -89,7 +87,6 @@ export function MasterView({ db, repo, actorId, reload, flash }: { db: CtnDb; re
         {tab === "code" && <CodeTable db={db} onEdit={(r) => setEditing({ kind: "code", rec: r })} onToggle={(id, a) => toggleActive("code", id, a)} />}
         {tab === "irb" && <IrbTable db={db} onEdit={(r) => setEditing({ kind: "irb", rec: r })} onToggle={(id, a) => toggleActive("irb", id, a)} />}
         {tab === "sponsor" && <SponsorTable db={db} onEdit={(r) => setEditing({ kind: "sponsor", rec: r })} onToggle={(id, a) => toggleActive("sponsor", id, a)} />}
-        {tab === "staff" && <StaffTable db={db} onEdit={(r) => setEditing({ kind: "staff", rec: r })} onToggle={(id, a) => toggleActive("staff", id, a)} />}
       </div>
 
       {/* ===== 編集モーダル ===== */}
@@ -107,9 +104,6 @@ export function MasterView({ db, repo, actorId, reload, flash }: { db: CtnDb; re
       )}
       {editing?.kind === "sponsor" && (
         <SponsorForm rec={editing.rec as Sponsor | null} onClose={() => setEditing(null)} onSave={async (rec, isNew) => { if (isNew) await repo.createSponsor(rec as Omit<Sponsor, "id">, actorId); else await repo.updateSponsor(rec as Sponsor, actorId); await reload(); setEditing(null); flash(t("Saved", "保存しました")); }} />
-      )}
-      {editing?.kind === "staff" && (
-        <StaffForm db={db} rec={editing.rec as SiteStaff | null} onClose={() => setEditing(null)} onSave={async (rec, isNew) => { if (isNew) await repo.createSiteStaff(rec as Omit<SiteStaff, "id">, actorId); else await repo.updateSiteStaff(rec as SiteStaff, actorId); await reload(); setEditing(null); flash(t("Saved", "保存しました")); }} />
       )}
 
       {gaiji && <GaijiDialog originalName={gaiji.base.nameOriginal} hits={gaiji.hits} onCancel={() => setGaiji(null)} onConfirm={confirmGaiji} />}
@@ -213,26 +207,6 @@ function SponsorTable({ db, onEdit, onToggle }: { db: CtnDb; onEdit: (r: Sponsor
   );
 }
 
-function StaffTable({ db, onEdit, onToggle }: { db: CtnDb; onEdit: (r: SiteStaff) => void; onToggle: (id: string, a: boolean) => void }) {
-  const { t } = useLang();
-  const instName = (id: string) => db.institutions.find((i) => i.id === id)?.name ?? "—";
-  return (
-    <table className="mtbl">
-      <thead><tr><th>{t("Name", "氏名")}</th><th>{t("Role", "役割")}</th><th>{t("Institution", "所属機関")}</th><th>{t("Contact", "連絡先")}</th><th></th></tr></thead>
-      <tbody>
-        {db.siteStaff.map((r) => (
-          <tr key={r.id} className={r.active ? "" : "inactive"}>
-            <td className="nm">{r.name}<small className="muted"> {r.kana}</small>{!r.active && <span className="del-badge">論理削除</span>}</td>
-            <td><span className="staff-role">{r.role}</span></td>
-            <td className="muted small">{instName(r.institutionId)}</td>
-            <td className="muted small">{r.telNo} / {r.mail}</td>
-            <td className="acts"><button className="icon-btn" onClick={() => onEdit(r)}>{Icon.edit}</button><ActiveCell active={r.active} onToggle={(a) => onToggle(r.id, a)} /></td>
-          </tr>
-        ))}
-      </tbody>
-    </table>
-  );
-}
 
 // ===========================================================================
 // フォーム
@@ -278,7 +252,7 @@ function DocForm({ db, rec, onClose, onSave }: { db: CtnDb; rec: Doctor | null; 
     <Modal title={rec ? t("Edit doctor", "医師を編集") : t("Register doctor", "医師を登録")} sub={t("Original / filing-form name (two-tier). Gaiji is detected on save.", "原表記／届出用表記の二段構え。保存時に外字を検出します。")} onClose={onClose} footer={<FormFooter onClose={onClose} onSave={() => onSave(rec ? { ...v, id: rec.id } : v, !rec)} />}>
       <div className="form-grid">
         <Field label={t("Display ID", "医師表示ID")} mark="auto"><input className="tin" value={v.doctorNo} onChange={on("doctorNo")} placeholder="自動採番（未入力可）" /></Field>
-        <Field label={t("Institution", "所属医療機関")} mark="optional"><select className="sel" value={v.institutionId ?? ""} onChange={(e) => setV((s) => ({ ...s, institutionId: e.target.value || undefined }))}><option value="">—</option>{db.institutions.filter((i) => i.active).map((i) => <option key={i.id} value={i.id}>{i.name}</option>)}</select></Field>
+        <Field label={t("Institution", "所属医療機関")} mark="always" hint={t("Drives which doctors can be picked for a site on a filing.", "届の実施医療機関で選べる医師はこの紐づけで決まります。")}><select className="sel" value={v.institutionId ?? ""} onChange={(e) => setV((s) => ({ ...s, institutionId: e.target.value || undefined }))}><option value="">—</option>{db.institutions.filter((i) => i.active).map((i) => <option key={i.id} value={i.id}>{i.name}</option>)}</select></Field>
         <Field label={t("Name (original)", "氏名（原表記）")} mark="always" hint={hits.length ? `⚠ 外字検出: ${hits.map((h) => h.char).join(" ")}` : "Unicode・サロゲートペア可"}><input className="tin" value={v.nameOriginal} onChange={(e) => { on("nameOriginal")(e); }} placeholder="例：髙島 幸雄" /></Field>
         <Field label={t("Name (filing)", "氏名（届出用表記）")} mark="always" hint={t("JIS L1/L2 only — blank → auto-normalized on save", "JIS第1・第2水準のみ。空欄なら保存時に自動正規化")}><input className="tin" value={v.nameFiling} onChange={on("nameFiling")} placeholder="例：高島 幸雄" /></Field>
         <Field label={t("Kana", "よみかな")} mark="always" hint="全角50/半角100バイト"><input className="tin" value={v.pronounce} onChange={on("pronounce")} /></Field>
@@ -327,22 +301,6 @@ function SponsorForm({ rec, onClose, onSave }: { rec: Sponsor | null; onClose: (
   );
 }
 
-function StaffForm({ db, rec, onClose, onSave }: { db: CtnDb; rec: SiteStaff | null; onClose: () => void; onSave: (r: SiteStaff | Omit<SiteStaff, "id">, isNew: boolean) => void }) {
-  const { t } = useLang();
-  const { v, on, setV } = useForm<Omit<SiteStaff, "id">>(rec ?? { name: "", kana: "", role: "CRC", institutionId: db.institutions[0]?.id ?? "", telNo: "", mail: "", active: true });
-  return (
-    <Modal title={rec ? t("Edit CRC", "CRCを編集") : t("Register CRC", "CRCを登録")} onClose={onClose} footer={<FormFooter onClose={onClose} onSave={() => onSave(rec ? { ...v, id: rec.id } : v, !rec)} />}>
-      <div className="form-grid">
-        <Field label={t("Name", "氏名")} mark="always"><input className="tin" value={v.name} onChange={on("name")} /></Field>
-        <Field label={t("Kana", "よみかな")} mark="optional"><input className="tin" value={v.kana} onChange={on("kana")} /></Field>
-        <Field label={t("Role", "役割")} mark="always"><select className="sel" value={v.role} onChange={(e) => setV((s) => ({ ...s, role: e.target.value as SiteStaff["role"] }))}><option value="CRC">CRC</option><option value="事務局">事務局</option><option value="薬剤部">薬剤部</option></select></Field>
-        <Field label={t("Institution", "所属機関")} mark="always"><select className="sel" value={v.institutionId} onChange={(e) => setV((s) => ({ ...s, institutionId: e.target.value }))}>{db.institutions.filter((i) => i.active).map((i) => <option key={i.id} value={i.id}>{i.name}</option>)}</select></Field>
-        <Field label={t("Tel", "電話")} mark="optional"><input className="tin" value={v.telNo} onChange={on("telNo")} /></Field>
-        <Field label={t("Mail", "メール")} mark="optional"><input className="tin" value={v.mail} onChange={on("mail")} /></Field>
-      </div>
-    </Modal>
-  );
-}
 
 /**
  * コード表（剤形・投与経路・薬効分類）。実コードは日本薬局方等の外部標準が正で、

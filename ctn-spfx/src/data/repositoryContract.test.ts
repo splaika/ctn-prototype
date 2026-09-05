@@ -239,12 +239,6 @@ for (const impl of IMPLS) {
       expect((await repo.updateSponsor({ ...sp2, telNo: "04" }, drafter)).telNo).toBe("04");
       await repo.setSponsorActive(sp2.id, false, drafter);
 
-      const staff = await repo.createSiteStaff(
-        { name: "鈴木", kana: "スズキ", role: "CRC", institutionId: inst.id, telNo: "03", mail: "s@x", active: true },
-        drafter
-      );
-      expect((await repo.updateSiteStaff({ ...staff, mail: "t@x" }, drafter)).mail).toBe("t@x");
-      await repo.setSiteStaffActive(staff.id, false, drafter);
     });
 
     it("外字確認履歴を追記すると医師の外字フラグが立つ", async () => {

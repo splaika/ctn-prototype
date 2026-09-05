@@ -113,17 +113,6 @@ export interface Doctor {
   active: boolean;
 }
 
-/** 治験実施の現場担当（CRC・SMO事務局）。XML対象外だが本番運用で必須の連絡先。 */
-export interface SiteStaff {
-  id: string;
-  name: string;
-  kana: string;
-  role: "CRC" | "事務局" | "薬剤部"; // 治験コーディネーター等
-  institutionId: string;
-  telNo: string;
-  mail: string;
-  active: boolean;
-}
 
 /** IRBマスタ（cr_irb） */
 export interface Irb {
@@ -245,7 +234,6 @@ export interface Site {
   smoAddress2?: string;
   smoService?: string;
   others?: string; // その他（要確認）
-  crcStaffId?: string; // 現場担当CRC（運用情報・XML対象外）
   investigators: Investigator[]; // 医師イベント行
   quantities: SiteDrugQty[]; // 施設×薬の数量
 }

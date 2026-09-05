@@ -13,7 +13,6 @@ import type {
   CodeItem,
   Irb,
   Notification,
-  SiteStaff,
   Sponsor,
 } from "../types";
 
@@ -23,7 +22,6 @@ export interface CtnDb {
   notifications: Notification[];
   institutions: Institution[];
   doctors: Doctor[];
-  siteStaff: SiteStaff[];
   irbs: Irb[];
   /** 外部標準のコード表（剤形・投与経路・薬効分類） */
   codes: CodeItem[];
@@ -65,9 +63,6 @@ export interface CtnRepository {
   updateSponsor(rec: Sponsor, actor: string): Promise<Sponsor>;
   setSponsorActive(id: string, active: boolean, actor: string): Promise<void>;
 
-  createSiteStaff(rec: Omit<SiteStaff, "id">, actor: string): Promise<SiteStaff>;
-  updateSiteStaff(rec: SiteStaff, actor: string): Promise<SiteStaff>;
-  setSiteStaffActive(id: string, active: boolean, actor: string): Promise<void>;
 
   // ---- シリーズ（治験成分） ----
   createCompound(rec: Omit<Compound, "id" | "createdAt">, actor: string): Promise<Compound>;

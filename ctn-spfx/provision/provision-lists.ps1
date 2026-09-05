@@ -89,15 +89,6 @@ if (Test-CtnList 'CtnDoctors') {
 # 一覧の表示名と説明、バージョン管理（届のスナップショット履歴として機能させる）
 Set-PnPList -Identity 'CtnDoctors' -Title 'CtnDoctors' -Description '医師マスタ。SharePoint の Id が不変の同一性キー（改名しても不変）。' -EnableVersioning $true | Out-Null
 
-if (Test-CtnList 'CtnSiteStaff') {
-    Write-Host '既存: CtnSiteStaff' -ForegroundColor DarkGray
-} else {
-    Write-Host '作成: CtnSiteStaff (CTN 現場担当)' -ForegroundColor Green
-    New-PnPList -Title 'CtnSiteStaff' -Template GenericList -OnQuickLaunch:$false | Out-Null
-}
-# 一覧の表示名と説明、バージョン管理（届のスナップショット履歴として機能させる）
-Set-PnPList -Identity 'CtnSiteStaff' -Title 'CtnSiteStaff' -Description 'CRC・SMO事務局。XML対象外だが運用で必須の連絡先。' -EnableVersioning $true | Out-Null
-
 if (Test-CtnList 'CtnIrbs') {
     Write-Host '既存: CtnIrbs' -ForegroundColor DarkGray
 } else {
@@ -442,53 +433,6 @@ if (Test-CtnField 'CtnDoctors' 'CtnActive') {
 } else {
     Write-Host '  追加: CtnActive' -ForegroundColor Green
     Add-PnPField -List 'CtnDoctors' -DisplayName 'CtnActive' -InternalName 'CtnActive' -Type Boolean -AddToDefaultView | Out-Null
-}
-
-Write-Host '列: CtnSiteStaff' -ForegroundColor Cyan
-# Title は既定列のため作成不要（用途: 表示名）
-if (Test-CtnField 'CtnSiteStaff' 'CtnName') {
-    Write-Host '  既存: CtnName' -ForegroundColor DarkGray
-} else {
-    Write-Host '  追加: CtnName' -ForegroundColor Green
-    Add-PnPField -List 'CtnSiteStaff' -DisplayName 'CtnName' -InternalName 'CtnName' -Type Text -AddToDefaultView | Out-Null
-}
-if (Test-CtnField 'CtnSiteStaff' 'CtnKana') {
-    Write-Host '  既存: CtnKana' -ForegroundColor DarkGray
-} else {
-    Write-Host '  追加: CtnKana' -ForegroundColor Green
-    Add-PnPField -List 'CtnSiteStaff' -DisplayName 'CtnKana' -InternalName 'CtnKana' -Type Text -AddToDefaultView | Out-Null
-}
-if (Test-CtnField 'CtnSiteStaff' 'CtnStaffRole') {
-    Write-Host '  既存: CtnStaffRole' -ForegroundColor DarkGray
-} else {
-    Write-Host '  追加: CtnStaffRole' -ForegroundColor Green
-    Add-PnPField -List 'CtnSiteStaff' -DisplayName 'CtnStaffRole' -InternalName 'CtnStaffRole' -Type Choice -Choices 'CRC', '事務局', '薬剤部' -AddToDefaultView | Out-Null
-}
-if (Test-CtnField 'CtnSiteStaff' 'CtnInstitution') {
-    Write-Host '  既存: CtnInstitution' -ForegroundColor DarkGray
-} else {
-    Write-Host '  追加: CtnInstitution' -ForegroundColor Green
-    $targetId = (Get-PnPList -Identity 'CtnInstitutions').Id
-    $xml = '<Field Type="Lookup" DisplayName="CtnInstitution" Name="CtnInstitution" StaticName="CtnInstitution" Required="FALSE" List="{{{0}}}" ShowField="Title" />' -f $targetId
-    Add-PnPFieldFromXml -List 'CtnSiteStaff' -FieldXml $xml | Out-Null
-}
-if (Test-CtnField 'CtnSiteStaff' 'CtnTelNo') {
-    Write-Host '  既存: CtnTelNo' -ForegroundColor DarkGray
-} else {
-    Write-Host '  追加: CtnTelNo' -ForegroundColor Green
-    Add-PnPField -List 'CtnSiteStaff' -DisplayName 'CtnTelNo' -InternalName 'CtnTelNo' -Type Text -AddToDefaultView | Out-Null
-}
-if (Test-CtnField 'CtnSiteStaff' 'CtnMail') {
-    Write-Host '  既存: CtnMail' -ForegroundColor DarkGray
-} else {
-    Write-Host '  追加: CtnMail' -ForegroundColor Green
-    Add-PnPField -List 'CtnSiteStaff' -DisplayName 'CtnMail' -InternalName 'CtnMail' -Type Text -AddToDefaultView | Out-Null
-}
-if (Test-CtnField 'CtnSiteStaff' 'CtnActive') {
-    Write-Host '  既存: CtnActive' -ForegroundColor DarkGray
-} else {
-    Write-Host '  追加: CtnActive' -ForegroundColor Green
-    Add-PnPField -List 'CtnSiteStaff' -DisplayName 'CtnActive' -InternalName 'CtnActive' -Type Boolean -AddToDefaultView | Out-Null
 }
 
 Write-Host '列: CtnIrbs' -ForegroundColor Cyan

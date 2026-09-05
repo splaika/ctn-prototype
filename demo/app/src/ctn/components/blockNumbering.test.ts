@@ -20,8 +20,8 @@ import { xsdLabel, xsdNo } from "../xsdLabels";
 
 /** セクションの開始位置。番号を持つものと持たないものの両方を拾う */
 const SECTION_RE = /<Section\s/g;
-const BLOCK_RE =
-  /<FormBlock\s+el=(?:"([A-Z0-9_]+)"|\{gb\("([A-Z0-9_]+)",\s*"([A-Z0-9_]+)"\)\})|xsdNo\("([A-Z0-9_]+)"\)/g;
+// el={gb("主","従")} や el={cond ? "A" : "B"} のように式で書いたものも拾う
+const BLOCK_RE = /<FormBlock\s+el=(?:"([A-Z0-9_]+)"|\{([^}]*)\})|xsdNo\("([A-Z0-9_]+)"\)/g;
 
 interface Hit {
   at: number;
@@ -30,7 +30,13 @@ interface Hit {
 const collect = (re: RegExp): Hit[] => {
   const out: Hit[] = [];
   for (const m of src.matchAll(re)) {
-    const els = m.slice(1).filter((x): x is string => Boolean(x));
+    const els: string[] = [];
+    for (const [i, g] of m.slice(1).entries()) {
+      if (!g) continue;
+      // el={...} の式は中の要素名をすべて取り出す（それ以外はそのまま要素名）
+      if (i === 1) els.push(...[...g.matchAll(/"([A-Z0-9_]+)"/g)].map((x) => x[1]));
+      else els.push(g);
+    }
     if (els.length) out.push({ at: m.index!, els });
   }
   return out;

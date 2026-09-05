@@ -28,7 +28,6 @@ import type {
   Institution,
   Irb,
   Notification,
-  SiteStaff,
   Sponsor,
 } from "../types";
 import { assertPermission, type CtnRole } from "../permissions";
@@ -178,21 +177,6 @@ export class MockCtnRepository implements CtnRepository {
   }
 
   // ---- 現場担当（CRC等） ----
-  async createSiteStaff(rec: Omit<SiteStaff, "id">, actor: string) {
-    const r = this.createIn(this.db.siteStaff, rec, "crc");
-    this.pushAudit({ who: this.actorName(actor), action: "create", entity: "現場担当", entityRef: r.name, summary: `${r.role}「${r.name}」を登録` });
-    return r;
-  }
-  async updateSiteStaff(rec: SiteStaff, actor: string) {
-    const r = this.updateIn(this.db.siteStaff, rec);
-    this.pushAudit({ who: this.actorName(actor), action: "update", entity: "現場担当", entityRef: r.name, summary: `${r.role}「${r.name}」を更新` });
-    return r;
-  }
-  async setSiteStaffActive(id: string, active: boolean, actor: string) {
-    this.setActiveIn(this.db.siteStaff, id, active);
-    const r = this.db.siteStaff.find((x) => x.id === id)!;
-    this.pushAudit({ who: this.actorName(actor), action: active ? "restore" : "delete", entity: "現場担当", entityRef: r.name, summary: `${r.role}「${r.name}」を${active ? "有効化" : "論理削除"}` });
-  }
 
   // ---- シリーズ（治験成分） ----
   async createCompound(rec: Omit<Compound, "id" | "createdAt">, actor: string) {

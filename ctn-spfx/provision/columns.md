@@ -124,23 +124,6 @@
 | `institutionId` | `CtnInstitution` | 参照 → `CtnInstitutions` | 任意。主たる所属医療機関（任意） |
 | `active` | `CtnActive` | はい/いいえ | — |
 
-## CtnSiteStaff
-
-**表示名**: CTN 現場担当　**対応する型**: `SiteStaff`
-
-CRC・SMO事務局。XML対象外だが運用で必須の連絡先。
-
-| `types.ts` プロパティ | 内部名 | 型 | 備考 |
-| --- | --- | --- | --- |
-| `name` | `Title` | 1行テキスト | 既定列 |
-| `name` | `CtnName` | 1行テキスト | — |
-| `kana` | `CtnKana` | 1行テキスト | — |
-| `role` | `CtnStaffRole` | 選択肢（CRC / 事務局 / 薬剤部） | 予約名衝突を避けるため Role ではなく CtnStaffRole |
-| `institutionId` | `CtnInstitution` | 参照 → `CtnInstitutions` | — |
-| `telNo` | `CtnTelNo` | 1行テキスト | — |
-| `mail` | `CtnMail` | 1行テキスト | — |
-| `active` | `CtnActive` | はい/いいえ | — |
-
 ## CtnIrbs
 
 **表示名**: CTN 治験審査委員会　**対応する型**: `Irb`

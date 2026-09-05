@@ -1,5 +1,5 @@
 // ============================================================================
-// シードデータ — 5施設・12名の医師（責任/分担）・6名のCRC等・3シリーズ
+// シードデータ — 5施設・12名の医師（責任/分担・施設に紐づく）・3シリーズ
 // シナリオ：新規届 / 変更届 / N回作成 / 終了届 / 開発中止届 / マスタCRUD / 下書き継続
 // ============================================================================
 import {
@@ -22,7 +22,6 @@ import type {
   Irb,
   Notification,
   SiteDrugQty,
-  SiteStaff,
   Sponsor,
   StudyDrug,
 } from "../types";
@@ -80,14 +79,6 @@ export const DOCTORS: Doctor[] = [
   { id: "doc-12", doctorNo: "D0012", nameOriginal: "濵田 亮", nameFiling: "浜田 亮", pronounce: "はまだ りょう", medSchoolNo: "33456", graduationYear: "2007", hasGaiji: true, institutionId: "inst-5", active: true },
 ];
 
-export const SITE_STAFF: SiteStaff[] = [
-  { id: "crc-1", name: "星野 恵", kana: "ほしの めぐみ", role: "CRC", institutionId: "inst-1", telNo: "011-706-5011", mail: "hoshino@hokuo-u.example.jp", active: true },
-  { id: "crc-2", name: "森田 拓也", kana: "もりた たくや", role: "CRC", institutionId: "inst-2", telNo: "03-3411-0122", mail: "morita@tmc.example.jp", active: true },
-  { id: "crc-3", name: "岡本 千夏", kana: "おかもと ちなつ", role: "CRC", institutionId: "inst-3", telNo: "06-6672-1233", mail: "okamoto@naniwa.example.jp", active: true },
-  { id: "crc-4", name: "藤井 健", kana: "ふじい けん", role: "CRC", institutionId: "inst-4", telNo: "052-832-1194", mail: "fujii@nagoya-cr.example.jp", active: true },
-  { id: "crc-5", name: "松本 あおい", kana: "まつもと あおい", role: "CRC", institutionId: "inst-5", telNo: "092-541-4945", mail: "matsumoto@kyushu-am.example.jp", active: true },
-  { id: "crc-6", name: "西村 大和", kana: "にしむら やまと", role: "事務局", institutionId: "inst-1", telNo: "011-706-5099", mail: "chiken-office@hokuo-u.example.jp", active: true },
-];
 
 export const COMPOUNDS: Compound[] = [
   { id: "cmp-abc", compoundCode: "ABC-123", targetCategory: TARGET_CATEGORY.drug, trialKind: "医薬品", initReceptNo: "R6薬第1234号", initNoteDate: "2026-03-25", devStatus: DEV_STATUS.active, sponsorId: "sp-1", drugName: "ABC-123（開発コード：リロマブ）", createdAt: "2026-03-20" },
@@ -181,7 +172,7 @@ export const NOTIFICATIONS: Notification[] = [
     studyDrugs: [abcMain(), abcPlacebo()],
     sites: [
       {
-        id: "site-abc1-a", institutionId: "inst-1", serialNo: 1, department: "リウマチ・膠原病内科", plannedSubjects: 12, irbId: "irb-1", crcStaffId: "crc-1",
+        id: "site-abc1-a", institutionId: "inst-1", serialNo: 1, department: "リウマチ・膠原病内科", plannedSubjects: 12, irbId: "irb-1",
         investigators: [
           inv("doc-1", DOCTOR_ROLE.responsible, 1, CHANGE_TYPE.register),
           inv("doc-3", DOCTOR_ROLE.sub, 2, CHANGE_TYPE.register),
@@ -190,7 +181,7 @@ export const NOTIFICATIONS: Notification[] = [
         quantities: [qty("sd-abc-main", 1, 480), qty("sd-abc-plc", 2, 480)],
       },
       {
-        id: "site-abc1-b", institutionId: "inst-2", serialNo: 2, department: "免疫・膠原病内科", plannedSubjects: 10, irbId: "irb-2", crcStaffId: "crc-2",
+        id: "site-abc1-b", institutionId: "inst-2", serialNo: 2, department: "免疫・膠原病内科", plannedSubjects: 10, irbId: "irb-2",
         investigators: [
           inv("doc-5", DOCTOR_ROLE.responsible, 4, CHANGE_TYPE.register),
           inv("doc-6", DOCTOR_ROLE.sub, 5, CHANGE_TYPE.register),
@@ -220,7 +211,7 @@ export const NOTIFICATIONS: Notification[] = [
     studyDrugs: [abcMain(), abcPlacebo()], // 突合キー型：順序番号 #1/#2 を計画届から引き継ぎ
     sites: [
       {
-        id: "site-abc2-a", institutionId: "inst-1", serialNo: 1, department: "リウマチ・膠原病内科", plannedSubjects: 12, irbId: "irb-1", crcStaffId: "crc-1",
+        id: "site-abc2-a", institutionId: "inst-1", serialNo: 1, department: "リウマチ・膠原病内科", plannedSubjects: 12, irbId: "irb-1",
         investigators: [
           inv("doc-1", DOCTOR_ROLE.responsible, 1, CHANGE_TYPE.change), // 継続（責任医師）
           inv("doc-2", DOCTOR_ROLE.sub, 2, CHANGE_TYPE.change), // 継続
@@ -246,7 +237,7 @@ export const NOTIFICATIONS: Notification[] = [
     studyDrugs: [abcMain(), abcPlacebo()], // #1/#2 は計画届と一致（突合キー不変）
     sites: [
       {
-        id: "site-abc3-a", institutionId: "inst-1", serialNo: 1, department: "リウマチ・膠原病内科", plannedSubjects: 12, enrolledSubjects: 11, irbId: "irb-1", crcStaffId: "crc-1",
+        id: "site-abc3-a", institutionId: "inst-1", serialNo: 1, department: "リウマチ・膠原病内科", plannedSubjects: 12, enrolledSubjects: 11, irbId: "irb-1",
         investigators: [
           inv("doc-1", DOCTOR_ROLE.responsible, 1, CHANGE_TYPE.change),
           inv("doc-2", DOCTOR_ROLE.sub, 2, CHANGE_TYPE.change),
@@ -258,7 +249,7 @@ export const NOTIFICATIONS: Notification[] = [
         ],
       },
       {
-        id: "site-abc3-b", institutionId: "inst-2", serialNo: 2, department: "免疫・膠原病内科", plannedSubjects: 10, enrolledSubjects: 9, irbId: "irb-2", crcStaffId: "crc-2",
+        id: "site-abc3-b", institutionId: "inst-2", serialNo: 2, department: "免疫・膠原病内科", plannedSubjects: 10, enrolledSubjects: 9, irbId: "irb-2",
         investigators: [inv("doc-5", DOCTOR_ROLE.responsible, 4, CHANGE_TYPE.change), inv("doc-6", DOCTOR_ROLE.sub, 5, CHANGE_TYPE.change)],
         quantities: [
           qty("sd-abc-main", 1, 400, { qtySupplied: 380, qtyUsed: 250, qtyWithdrawn: 100, qtyAbrogated: 30 }),
@@ -283,7 +274,7 @@ export const NOTIFICATIONS: Notification[] = [
     studyDrugs: [srpMain()],
     sites: [
       {
-        id: "site-srp1-a", institutionId: "inst-3", serialNo: 1, department: "消化器内科", plannedSubjects: 20, irbId: "irb-3", crcStaffId: "crc-3",
+        id: "site-srp1-a", institutionId: "inst-3", serialNo: 1, department: "消化器内科", plannedSubjects: 20, irbId: "irb-3",
         smoName: "臨床開発サポート株式会社", smoAddress1: "大阪府大阪市中央区本町3-4-10", smoService: "モニタリング補助・CRC派遣",
         investigators: [inv("doc-9", DOCTOR_ROLE.responsible, 1, CHANGE_TYPE.register), inv("doc-11", DOCTOR_ROLE.sub, 2, CHANGE_TYPE.register)],
         quantities: [qty("sd-srp-main", 1, 200)],
@@ -303,7 +294,7 @@ export const NOTIFICATIONS: Notification[] = [
     studyDrugs: [srpMain()],
     sites: [
       {
-        id: "site-srp2-a", institutionId: "inst-3", serialNo: 1, department: "消化器内科", plannedSubjects: 20, irbId: "irb-3", crcStaffId: "crc-3",
+        id: "site-srp2-a", institutionId: "inst-3", serialNo: 1, department: "消化器内科", plannedSubjects: 20, irbId: "irb-3",
         investigators: [inv("doc-9", DOCTOR_ROLE.responsible, 1, CHANGE_TYPE.change)],
         quantities: [qty("sd-srp-main", 1, 200)],
       },
@@ -322,7 +313,7 @@ export const NOTIFICATIONS: Notification[] = [
     studyDrugs: [srpMain(), srpAdjunct()], // 新規その他治験使用薬 → 順序番号 #2 を新規採番
     sites: [
       {
-        id: "site-srp3-a", institutionId: "inst-3", serialNo: 1, department: "消化器内科", plannedSubjects: 20, irbId: "irb-3", crcStaffId: "crc-3",
+        id: "site-srp3-a", institutionId: "inst-3", serialNo: 1, department: "消化器内科", plannedSubjects: 20, irbId: "irb-3",
         investigators: [inv("doc-9", DOCTOR_ROLE.responsible, 1, CHANGE_TYPE.change)],
         quantities: [qty("sd-srp-main", 1, 200), qty("sd-srp-adj", 2, 100)],
       },
@@ -342,7 +333,7 @@ export const NOTIFICATIONS: Notification[] = [
     studyDrugs: [klmMain()],
     sites: [
       {
-        id: "site-klm1-a", institutionId: "inst-4", serialNo: 1, department: "腫瘍内科", plannedSubjects: 15, irbId: "irb-4", crcStaffId: "crc-4",
+        id: "site-klm1-a", institutionId: "inst-4", serialNo: 1, department: "腫瘍内科", plannedSubjects: 15, irbId: "irb-4",
         investigators: [inv("doc-10", DOCTOR_ROLE.responsible, 1, CHANGE_TYPE.register), inv("doc-8", DOCTOR_ROLE.sub, 2, CHANGE_TYPE.register)],
         quantities: [qty("sd-klm-main", 1, 300)],
       },
@@ -395,7 +386,6 @@ export function makeSeedDb(): CtnDb {
     notifications: NOTIFICATIONS,
     institutions: INSTITUTIONS,
     doctors: DOCTORS,
-    siteStaff: SITE_STAFF,
     irbs: IRBS,
     codes: CODES,
     sponsors: SPONSORS,

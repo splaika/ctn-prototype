@@ -50,7 +50,7 @@ import {
 import { Section, Field, FormBlock, StatusPill, TypeBadge, Btn, Icon, UnconfirmedBadge, Modal } from "./common";
 import { requirePermission } from "../permissions";
 import type { CtnDb } from "../data/repository";
-import type { CodeItem, CodeKind, Investigator, Notification, ReferenceNote, Site, SiteDrugQty, StudyDrug } from "../types";
+import type { CodeItem, CodeKind, Doctor, Investigator, Notification, ReferenceNote, Site, SiteDrugQty, StudyDrug } from "../types";
 
 type Cb = (n: Notification) => Promise<Notification | void> | Notification | void;
 
@@ -168,7 +168,6 @@ export function NotificationDetail({
   const activeDoctors = db.doctors.filter((d) => d.active);
   const activeInstitutions = db.institutions.filter((i) => i.active);
   const activeIrbs = db.irbs.filter((i) => i.active);
-  const activeStaff = db.siteStaff.filter((s) => s.active);
 
   // 職務分離：起票者は自分の届をレビュー完了（＝提出）できない
   const jobSepBlocked = draft.createdBy === user.id;
@@ -816,7 +815,7 @@ export function NotificationDetail({
               onRemoveInv={(invId) => removeInvestigator(s.id, invId)}
               onQty={(drugId, field, val) => setQty(s.id, drugId, field, val)}
               onRemoveSite={() => rmSite(s.id)}
-              activeDoctors={activeDoctors} activeInstitutions={activeInstitutions} activeIrbs={activeIrbs} activeStaff={activeStaff}
+              activeDoctors={activeDoctors} activeInstitutions={activeInstitutions} activeIrbs={activeIrbs}
             />
           ))}
           {/* 脚注は施設ごとではなく実施医療機関情報の末尾に1つ出る */}
@@ -1185,12 +1184,59 @@ function StudyDrugCard({ drug, editable, onField, onRemove, codes }: { drug: Stu
   );
 }
 
+/**
+ * 医師をロスターへ足す部品。
+ *
+ * 選べるのは**その施設に紐づく医師だけ**にしている（クライアント要望 2026-09-05）。
+ * 紐づけは医師マスタの「所属医療機関」が単一ソース。施設を選ぶ前や、紐づく医師が
+ * 1人もいないときは、どこで直せばよいかを画面に出す（黙って空の選択肢を出さない）。
+ */
+function RosterAdd({
+  role, site, doctors, onAdd,
+}: {
+  role: number;
+  site: Site;
+  doctors: Doctor[];
+  onAdd: (doctorId: string, role: number) => void;
+}) {
+  const { t } = useLang();
+  const [pick, setPick] = useState("");
+  const already = new Set(site.investigators.map((i) => i.doctorId));
+
+  if (!site.institutionId) {
+    return <div className="roster-add"><span className="muted small">{t("Select the institution first.", "先に上の医療機関を選んでください。")}</span></div>;
+  }
+  const linked = doctors.filter((d) => d.institutionId === site.institutionId);
+  if (linked.length === 0) {
+    return (
+      <div className="roster-add">
+        <span className="muted small">
+          {t("No doctor is linked to this institution. Link them under Masters › Doctors (Institution).", "この医療機関に紐づく医師がマスタにいません。マスタ管理 › 医師 の「所属医療機関」で紐づけてください。")}
+        </span>
+      </div>
+    );
+  }
+  const selectable = linked.filter((d) => !already.has(d.id));
+  return (
+    <div className="roster-add">
+      <select className="sel sel-sm" value={pick} onChange={(e) => setPick(e.target.value)}>
+        <option value="">{t("Select doctor…", "医師を選択…")}</option>
+        {selectable.map((d) => <option key={d.id} value={d.id}>{d.nameFiling}（{d.doctorNo}）{d.hasGaiji ? " ⚠外字" : ""}</option>)}
+      </select>
+      <Btn small disabled={!pick} onClick={() => { if (pick) { onAdd(pick, role); setPick(""); } }}>
+        {Icon.plus} {t("Add", "追加")}
+      </Btn>
+      {selectable.length === 0 && <span className="muted small">{t("All linked doctors are already on the roster.", "この医療機関の医師はすべて登録済みです。")}</span>}
+    </div>
+  );
+}
+
 // ---------------------------------------------------------------------------
 // 施設カード（医師ロスター＋数量マトリクス）
 // ---------------------------------------------------------------------------
 function SiteCard({
   site, draft, db, editable, terminal, onField, onAddInv, onRemoveInv, onQty, onRemoveSite,
-  activeDoctors, activeInstitutions, activeIrbs, activeStaff,
+  activeDoctors, activeInstitutions, activeIrbs,
 }: {
   site: Site; draft: Notification; db: CtnDb; editable: boolean; terminal: boolean;
   onField: (fn: (s: Site) => void) => void;
@@ -1198,18 +1244,15 @@ function SiteCard({
   onRemoveInv: (invId: string) => void;
   onQty: (studyDrugId: string, field: keyof SiteDrugQty, val: number) => void;
   onRemoveSite: () => void;
-  activeDoctors: typeof db.doctors; activeInstitutions: typeof db.institutions; activeIrbs: typeof db.irbs; activeStaff: typeof db.siteStaff;
+  activeDoctors: typeof db.doctors; activeInstitutions: typeof db.institutions; activeIrbs: typeof db.irbs;
 }) {
   const { t } = useLang();
   const ofl = oflWith(t);
-  const [pickDoc, setPickDoc] = useState("");
-  const [pickRole, setPickRole] = useState(String(DOCTOR_ROLE.sub));
   const inst = db.institutions.find((i) => i.id === site.institutionId);
   const changeTypeBadge = (ct: number) => {
     const cls = ct === CHANGE_TYPE.add ? "add" : ct === CHANGE_TYPE.remove ? "remove" : ct === CHANGE_TYPE.register ? "register" : "cont";
     return <span className={`mv mv-${cls}`}>{label(SET.changeType, ct)}</span>;
   };
-  const rosterDoctorIds = new Set(site.investigators.map((i) => i.doctorId));
 
   return (
     <div className="sitecard">
@@ -1241,72 +1284,33 @@ function SiteCard({
             hint={t("Guide 5.4(9): anything to note about this particular site.", "手引き 5.4(9)：各実施医療機関に関する特記事項があれば入力します。")}><input className="tin tin-sm" value={site.others ?? ""} disabled={!editable} onChange={(e) => onField((s) => (s.others = e.target.value))} /></Field>
         </FormBlock>
 
-        <FormBlock el="INFOSMOINMEDINST"
-          note={t("Only when an SMO is used. This demo takes a single entry.", "SMOありの場合のみ入力します（本デモは単数入力）。")}>
-          <Field label={ofl("SMO名称")}><input className="tin tin-sm" value={site.smoName ?? ""} disabled={!editable} onChange={(e) => onField((s) => (s.smoName = e.target.value))} /></Field>
-          <Field label={ofl("SMO委託業務範囲")}><input className="tin tin-sm" value={site.smoService ?? ""} disabled={!editable} onChange={(e) => onField((s) => (s.smoService = e.target.value))} /></Field>
-          <Field label={ofl("SMO住所1")}><input className="tin tin-sm" value={site.smoAddress1 ?? ""} disabled={!editable} onChange={(e) => onField((s) => (s.smoAddress1 = e.target.value))} /></Field>
-          <Field label={ofl("SMO住所2")}><input className="tin tin-sm" value={site.smoAddress2 ?? ""} disabled={!editable} onChange={(e) => onField((s) => (s.smoAddress2 = e.target.value))} /></Field>
-        </FormBlock>
-
-        <FormBlock el="INFOIRB"
-          note={t("Guide 5.4(8): entering “院内IRB” is enough for an IRB set up by the head of this site alone (no name/address needed). For a jointly established IRB, give its name and the address of its secretariat.", "手引き 5.4(8)：当該実施医療機関の長が単独で設置した治験審査委員会なら「院内IRB」と入力すれば設置者の名称・所在地は不要。共同設置の場合は委員会の名称と事務局の所在地を入力します。")}>
-          <Field label={ofl("IRB")} mark="always"><select className="sel sel-sm" value={site.irbId} disabled={!editable} onChange={(e) => onField((s) => (s.irbId = e.target.value))}><option value="">{t("Select IRB…", "IRBを選択…")}</option>{activeIrbs.map((i) => <option key={i.id} value={i.id}>{i.ownerName}</option>)}</select></Field>
-        </FormBlock>
-
-        {/* 届書に出ない運用項目 */}
-        <div className="fblock">
-          <div className="fblock-h"><span className="fblock-name">{t("Operational items (not printed on the form)", "運用項目（届書には出力されません）")}</span></div>
-          <div className="fblock-b">
-            <Field label={ofl("CRC")} hint={ofHint("CRC")}><select className="sel sel-sm" value={site.crcStaffId ?? ""} disabled={!editable} onChange={(e) => onField((s) => (s.crcStaffId = e.target.value || undefined))}><option value="">—</option>{activeStaff.filter((st) => st.institutionId === site.institutionId).map((st) => <option key={st.id} value={st.id}>{st.name}（{st.role}）</option>)}</select></Field>
-          </div>
+      {/* 医師ロスター。届書では治験責任医師（4.1.1）と治験分担医師（4.1.2）が
+          別のブロックなので、画面も分ける。医師は施設マスタに紐づくものだけ選べる。 */}
+      {([DOCTOR_ROLE.responsible, DOCTOR_ROLE.sub] as const).map((role) => (
+        <div className="roster" key={role}>
+          <FormBlock el={role === DOCTOR_ROLE.responsible ? "INFOINVESTIGATOR" : "INFOSUBINVESTIGATOR"} cols="1">
+            {site.investigators.filter((inv) => inv.doctorRole === role).map((inv) => (
+              <div key={inv.id} className={`roster-row${inv.changeType === CHANGE_TYPE.remove ? " removed" : ""}`}>
+                <span className="rname">{inv.nameFiling}<small className="muted"> {inv.pronounce}</small>{inv.nameOriginal !== inv.nameFiling && <small className="gaiji-note"> 原表記:{inv.nameOriginal}</small>}</span>
+                <span className="rserial">{inv.serialNo > 0 ? `#${inv.serialNo}` : ""}</span>
+                {draft.notifType === "change" && changeTypeBadge(inv.changeType)}
+                {editable && inv.changeType !== CHANGE_TYPE.remove && <button className="icon-btn danger sm" onClick={() => onRemoveInv(inv.id)} title="この医師を外す">{Icon.x}</button>}
+              </div>
+            ))}
+            {site.investigators.filter((inv) => inv.doctorRole === role).length === 0 && (
+              <div className="rt-empty">{t("None yet.", "まだ登録がありません。")}</div>
+            )}
+            {editable && <RosterAdd role={role} site={site} doctors={activeDoctors} onAdd={onAddInv} />}
+          </FormBlock>
         </div>
-      </div>
-      {/* 医師ロスター。届書では治験責任医師と治験分担医師が別のブロックになる */}
-      <div className="roster">
-        <div className="fblock" style={{ marginTop: 0, borderTop: "none", paddingTop: 0 }}>
-          <div className="fblock-h">
-            <span className="fblock-no">{`${xsdNo("INFOINVESTIGATOR")} / ${xsdNo("INFOSUBINVESTIGATOR")}`}</span>
-            <span className="fblock-name">{`${xsdLabel("INFOINVESTIGATOR")}・${xsdLabel("INFOSUBINVESTIGATOR")}`}</span>
-            <span className="fblock-rep">繰り返し</span>
-          </div>
-          <div className="fblock-path">{t("Roster on screen; the form splits it into the two blocks above.", "画面ではロスターで扱い、届書では責任医師・分担医師の2ブロックに分かれて出力されます。")} <span className="muted small">（{inst?.name}）</span></div>
-        </div>
-        {site.investigators.map((inv) => (
-          <div key={inv.id} className={`roster-row${inv.changeType === CHANGE_TYPE.remove ? " removed" : ""}`}>
-            <span className={`role-chip ${inv.doctorRole === DOCTOR_ROLE.responsible ? "resp" : "sub"}`}>{label(SET.doctorRole, inv.doctorRole)}</span>
-            <span className="rname">{inv.nameFiling}<small className="muted"> {inv.pronounce}</small>{inv.nameOriginal !== inv.nameFiling && <small className="gaiji-note"> 原表記:{inv.nameOriginal}</small>}</span>
-            <span className="rserial">{inv.serialNo > 0 ? `#${inv.serialNo}` : ""}</span>
-            {draft.notifType === "change" && changeTypeBadge(inv.changeType)}
-            {editable && inv.changeType !== CHANGE_TYPE.remove && <button className="icon-btn danger sm" onClick={() => onRemoveInv(inv.id)} title="ロスターから抜く">{Icon.x}</button>}
-          </div>
-        ))}
-        {editable && (
-          <div className="roster-add">
-            <select className="sel sel-sm" value={pickDoc} onChange={(e) => setPickDoc(e.target.value)}>
-              <option value="">{t("Select doctor…", "医師を選択…")}</option>
-              {activeDoctors.filter((d) => !rosterDoctorIds.has(d.id)).map((d) => <option key={d.id} value={d.id}>{d.nameFiling}（{d.doctorNo}）{d.hasGaiji ? " ⚠外字" : ""}</option>)}
-            </select>
-            <select className="sel sel-sm" value={pickRole} onChange={(e) => setPickRole(e.target.value)}>
-              {options(SET.doctorRole).map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
-            </select>
-            <Btn small disabled={!pickDoc} onClick={() => { if (pickDoc) { onAddInv(pickDoc, Number(pickRole)); setPickDoc(""); } }}>{Icon.plus} {t("Add to roster", "ロスターに追加")}</Btn>
-          </div>
-        )}
-      </div>
+      ))}
 
       {/* 数量マトリクス */}
       {draft.studyDrugs.length > 0 && (
         <div className="qty">
-          <div className="fblock" style={{ marginTop: 0, borderTop: "none", paddingTop: 0 }}>
-            <div className="fblock-h">
-              <span className="fblock-no">{xsdNo("INFOQUANTITIESINVESTPRODUCT")}</span>
-              <span className="fblock-name">{xsdLabel("INFOQUANTITIESINVESTPRODUCT")}</span>
-              <span className="fblock-rep">繰り返し</span>
-              {terminal && <UnconfirmedBadge label={t("supply→abrogation required", "交付〜廃棄が必須")} />}
-            </div>
-            <div className="fblock-path">{t("Guide 5.4(4): planned supply quantity per type (dosage form, content). For a set-based double-blind design you may enter the number of sets and put the breakdown in the footnote.", "手引き 5.4(4)：予定交付（入手）数量を種類（剤形・含量）別に入力します。組単位で割付する二重盲検では組数を入力し、1組当たりの内訳を脚注に示せます。")}</div>
-          </div>
+          <FormBlock el="INFOQUANTITIESINVESTPRODUCT" cols="1"
+            right={terminal ? <UnconfirmedBadge label={t("supply→abrogation required", "交付〜廃棄が必須")} /> : undefined}
+            note={t("Guide 5.4(4): planned supply quantity per type (dosage form, content). For a set-based double-blind design you may enter the number of sets and put the breakdown in the footnote.", "手引き 5.4(4)：予定交付（入手）数量を種類（剤形・含量）別に入力します。組単位で割付する二重盲検では組数を入力し、1組当たりの内訳を脚注に示せます。")}>
           <table className="qty-tbl">
             <thead><tr><th>{ofl("治験使用薬の名称")}</th><th>{ofl("予定交付（入手）数量")}</th>{terminal && <><th>{ofl("交付数量")}</th><th>{ofl("使用数量")}</th><th>{ofl("回収数量")}</th><th>{ofl("廃棄数量")}</th></>}</tr></thead>
             <tbody>
@@ -1327,8 +1331,23 @@ function SiteCard({
               })}
             </tbody>
           </table>
+          </FormBlock>
         </div>
       )}
+        <FormBlock el="INFOSMOINMEDINST"
+          note={t("Only when an SMO is used. This demo takes a single entry.", "SMOありの場合のみ入力します（本デモは単数入力）。")}>
+          <Field label={ofl("SMO名称")}><input className="tin tin-sm" value={site.smoName ?? ""} disabled={!editable} onChange={(e) => onField((s) => (s.smoName = e.target.value))} /></Field>
+          <Field label={ofl("SMO委託業務範囲")}><input className="tin tin-sm" value={site.smoService ?? ""} disabled={!editable} onChange={(e) => onField((s) => (s.smoService = e.target.value))} /></Field>
+          <Field label={ofl("SMO住所1")}><input className="tin tin-sm" value={site.smoAddress1 ?? ""} disabled={!editable} onChange={(e) => onField((s) => (s.smoAddress1 = e.target.value))} /></Field>
+          <Field label={ofl("SMO住所2")}><input className="tin tin-sm" value={site.smoAddress2 ?? ""} disabled={!editable} onChange={(e) => onField((s) => (s.smoAddress2 = e.target.value))} /></Field>
+        </FormBlock>
+
+        <FormBlock el="INFOIRB"
+          note={t("Guide 5.4(8): entering “院内IRB” is enough for an IRB set up by the head of this site alone (no name/address needed). For a jointly established IRB, give its name and the address of its secretariat.", "手引き 5.4(8)：当該実施医療機関の長が単独で設置した治験審査委員会なら「院内IRB」と入力すれば設置者の名称・所在地は不要。共同設置の場合は委員会の名称と事務局の所在地を入力します。")}>
+          <Field label={ofl("IRB")} mark="always"><select className="sel sel-sm" value={site.irbId} disabled={!editable} onChange={(e) => onField((s) => (s.irbId = e.target.value))}><option value="">{t("Select IRB…", "IRBを選択…")}</option>{activeIrbs.map((i) => <option key={i.id} value={i.id}>{i.ownerName}</option>)}</select></Field>
+        </FormBlock>
+
+      </div>
     </div>
   );
 }

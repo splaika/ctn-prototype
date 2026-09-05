@@ -43,7 +43,6 @@ const ORDER = [
   { list: "CtnInstitutions", key: "institutions" },
   { list: "CtnIrbs", key: "irbs" },
   { list: "CtnDoctors", key: "doctors" },
-  { list: "CtnSiteStaff", key: "siteStaff" },
   { list: "CtnCodes", key: "codes" },
   { list: "CtnCompounds", key: "compounds" },
   { list: "CtnNotifications", key: "notifications" },
@@ -222,7 +221,6 @@ const script = `// =============================================================
     for (const s of c.sites || []) {
       s.institutionId = String(idMap.CtnInstitutions[s.institutionId] ?? "");
       s.irbId = String(idMap.CtnIrbs[s.irbId] ?? "");
-      if (s.crcStaffId) s.crcStaffId = String(idMap.CtnSiteStaff[s.crcStaffId] ?? "");
       for (const inv of s.investigators || []) {
         inv.doctorId = String(idMap.CtnDoctors[inv.doctorId] ?? "");
       }

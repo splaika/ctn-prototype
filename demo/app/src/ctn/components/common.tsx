@@ -117,7 +117,7 @@ export function FormBlock({
   const canToggle = collapsible && shown.length > 0;
   const body = !canToggle || open;
   return (
-    <div className={`fblock${canToggle && !open ? " closed" : ""}`}>
+    <div className={`fblock${canToggle ? " has-tog" : ""}${canToggle && !open ? " closed" : ""}`}>
       <div className="fblock-h">
         {canToggle && (
           <button type="button" className={`tog2${open ? " open" : ""}`} onClick={() => setOpen((o) => !o)} aria-expanded={open} aria-label={open ? "折りたたむ" : "開く"}>

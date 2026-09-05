@@ -288,11 +288,6 @@ const FIELDS: Record<string, Spec> = {
     en: "Attachment status",
     internal: "PDF の栞・テキスト有無などの確認状況を持つ運用項目。届書には出力されません。",
   },
-  CRC: {
-    ja: "CRC",
-    en: "CRC",
-    internal: "施設側の連絡先を持つ運用項目。届書には出力されません。",
-  },
 };
 
 /** 入力欄 → 公式様式の項目名・届書の階層（XSDから解決したもの） */

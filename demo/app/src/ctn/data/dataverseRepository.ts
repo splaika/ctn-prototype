@@ -12,7 +12,6 @@ import type {
   Institution,
   Irb,
   Notification,
-  SiteStaff,
   Sponsor,
   AuditEntry,
 } from "../types";
@@ -71,15 +70,6 @@ export class DataverseCtnRepository implements CtnRepository {
     this.fail();
   }
   async setSponsorActive(): Promise<void> {
-    this.fail();
-  }
-  async createSiteStaff(_r: Omit<SiteStaff, "id">, _a: string): Promise<SiteStaff> {
-    this.fail();
-  }
-  async updateSiteStaff(_r: SiteStaff, _a: string): Promise<SiteStaff> {
-    this.fail();
-  }
-  async setSiteStaffActive(): Promise<void> {
     this.fail();
   }
   async createCompound(_r: Omit<Compound, "id" | "createdAt">, _a: string): Promise<Compound> {

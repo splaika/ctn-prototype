@@ -35,7 +35,6 @@ import type {
   Institution,
   Irb,
   Notification,
-  SiteStaff,
   Sponsor,
 } from "../shared/ctn/types";
 import type {
@@ -56,7 +55,6 @@ const LIST = {
   sponsors: "CtnSponsors",
   institutions: "CtnInstitutions",
   doctors: "CtnDoctors",
-  siteStaff: "CtnSiteStaff",
   irbs: "CtnIrbs",
   codes: "CtnCodes",
   gaiji: "CtnGaiji",
@@ -203,7 +201,6 @@ export class SharePointCtnRepository implements CtnRepository {
       notifications,
       institutions,
       doctors,
-      siteStaff,
       irbs,
       codes,
       sponsors,
@@ -214,7 +211,6 @@ export class SharePointCtnRepository implements CtnRepository {
       this.sp.getItems(LIST.notifications, sel(["Id", "CtnCompoundId", "CtnPayload", "CtnPayloadVersion"])),
       this.sp.getItems(LIST.institutions, sel(["Id", "CtnCode", "CtnName", "CtnAddress1", "CtnAddress2", "CtnTelNo", "CtnDepartments", "CtnActive"])),
       this.sp.getItems(LIST.doctors, sel(["Id", "CtnDoctorNo", "CtnNameOriginal", "CtnNameFiling", "CtnPronounce", "CtnMedSchoolNo", "CtnGraduationYear", "CtnHasGaiji", "CtnInstitutionId", "CtnActive"])),
-      this.sp.getItems(LIST.siteStaff, sel(["Id", "CtnName", "CtnKana", "CtnStaffRole", "CtnInstitutionId", "CtnTelNo", "CtnMail", "CtnActive"])),
       this.sp.getItems(LIST.irbs, sel(["Id", "CtnIrbType", "CtnOwnerName", "CtnAddress1", "CtnAddress2", "CtnActive"])),
       this.sp.getItems(LIST.codes, sel(["Id", "CtnCodeKind", "CtnCode", "CtnName", "CtnCodeGroup", "CtnActive"])),
       this.sp.getItems(LIST.sponsors, sel(["Id", "CtnSponsorType", "CtnName", "CtnRepName", "CtnAddress1", "CtnAddress2", "CtnManufacturerCode", "CtnContactName", "CtnContactTitle", "CtnTelNo", "CtnFaxOrMail", "CtnOverseasInfo", "CtnActive"])),
@@ -226,7 +222,6 @@ export class SharePointCtnRepository implements CtnRepository {
     notifications.forEach((i) => this.rememberEtag(LIST.notifications, i));
     institutions.forEach((i) => this.rememberEtag(LIST.institutions, i));
     doctors.forEach((i) => this.rememberEtag(LIST.doctors, i));
-    siteStaff.forEach((i) => this.rememberEtag(LIST.siteStaff, i));
     irbs.forEach((i) => this.rememberEtag(LIST.irbs, i));
     codes.forEach((i) => this.rememberEtag(LIST.codes, i));
     sponsors.forEach((i) => this.rememberEtag(LIST.sponsors, i));
@@ -246,7 +241,6 @@ export class SharePointCtnRepository implements CtnRepository {
       }, []),
       institutions: institutions.map(readInstitution),
       doctors: doctors.map(readDoctor),
-      siteStaff: siteStaff.map(readSiteStaff),
       irbs: irbs.map(readIrb),
       codes: codes.map(readCode),
       sponsors: sponsors.map(readSponsor),
@@ -434,20 +428,6 @@ export class SharePointCtnRepository implements CtnRepository {
   }
 
   // ---- 現場担当（CRC等） ----
-  public async createSiteStaff(rec: Omit<SiteStaff, "id">, actor: string): Promise<SiteStaff> {
-    const r = await this.createMaster(LIST.siteStaff, writeSiteStaff(rec), readSiteStaff);
-    await this.pushAudit({ who: this.actorName(actor), action: "create", entity: "現場担当", entityRef: r.name, summary: `${r.role}「${r.name}」を登録` });
-    return r;
-  }
-  public async updateSiteStaff(rec: SiteStaff, actor: string): Promise<SiteStaff> {
-    const r = await this.updateMaster(LIST.siteStaff, rec, writeSiteStaff(rec), readSiteStaff);
-    await this.pushAudit({ who: this.actorName(actor), action: "update", entity: "現場担当", entityRef: r.name, summary: `${r.role}「${r.name}」を更新` });
-    return r;
-  }
-  public async setSiteStaffActive(id: string, active: boolean, actor: string): Promise<void> {
-    await this.setActive(LIST.siteStaff, id, active);
-    await this.pushAudit({ who: this.actorName(actor), action: active ? "restore" : "delete", entity: "現場担当", entityRef: id, summary: `現場担当を${active ? "有効化" : "論理削除"}` });
-  }
 
   // ---- シリーズ（治験成分） ----
   public async createCompound(rec: Omit<Compound, "id" | "createdAt">, actor: string): Promise<Compound> {
@@ -880,30 +860,6 @@ function writeDoctor(d: Omit<Doctor, "id">): Record<string, unknown> {
   };
 }
 
-function readSiteStaff(i: SpListItem): SiteStaff {
-  return {
-    id: toId(i.Id),
-    name: toStr(i.CtnName),
-    kana: toStr(i.CtnKana),
-    role: toStr(i.CtnStaffRole) as SiteStaff["role"],
-    institutionId: lookupId(i.CtnInstitutionId),
-    telNo: toStr(i.CtnTelNo),
-    mail: toStr(i.CtnMail),
-    active: toBool(i.CtnActive),
-  };
-}
-function writeSiteStaff(s: Omit<SiteStaff, "id">): Record<string, unknown> {
-  return {
-    Title: s.name.slice(0, 255),
-    CtnName: s.name,
-    CtnKana: s.kana,
-    CtnStaffRole: s.role,
-    CtnInstitutionId: lookupWrite(s.institutionId),
-    CtnTelNo: s.telNo,
-    CtnMail: s.mail,
-    CtnActive: s.active,
-  };
-}
 
 /** 外部標準のコード表（剤形・投与経路・薬効分類） */
 function readCode(i: SpListItem): CodeItem {

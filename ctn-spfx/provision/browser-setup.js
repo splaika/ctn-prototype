@@ -253,46 +253,6 @@
       ]
     },
     {
-      "name": "CtnSiteStaff",
-      "description": "CRC・SMO事務局。XML対象外だが運用で必須の連絡先。",
-      "fields": [
-        {
-          "name": "CtnName",
-          "type": "Text"
-        },
-        {
-          "name": "CtnKana",
-          "type": "Text"
-        },
-        {
-          "name": "CtnStaffRole",
-          "type": "Choice",
-          "choices": [
-            "CRC",
-            "事務局",
-            "薬剤部"
-          ]
-        },
-        {
-          "name": "CtnInstitution",
-          "type": "Lookup",
-          "lookupList": "CtnInstitutions"
-        },
-        {
-          "name": "CtnTelNo",
-          "type": "Text"
-        },
-        {
-          "name": "CtnMail",
-          "type": "Text"
-        },
-        {
-          "name": "CtnActive",
-          "type": "Boolean"
-        }
-      ]
-    },
-    {
       "name": "CtnIrbs",
       "description": "IRB マスタ。",
       "fields": [

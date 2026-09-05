@@ -393,62 +393,6 @@
       ]
     },
     {
-      "name": "CtnSiteStaff",
-      "title": "CTN 現場担当",
-      "entity": "SiteStaff",
-      "description": "CRC・SMO事務局。XML対象外だが運用で必須の連絡先。",
-      "fields": [
-        {
-          "prop": "name",
-          "name": "Title",
-          "type": "Text",
-          "builtIn": true
-        },
-        {
-          "prop": "name",
-          "name": "CtnName",
-          "type": "Text"
-        },
-        {
-          "prop": "kana",
-          "name": "CtnKana",
-          "type": "Text"
-        },
-        {
-          "prop": "role",
-          "name": "CtnStaffRole",
-          "type": "Choice",
-          "choices": [
-            "CRC",
-            "事務局",
-            "薬剤部"
-          ],
-          "note": "予約名衝突を避けるため Role ではなく CtnStaffRole"
-        },
-        {
-          "prop": "institutionId",
-          "name": "CtnInstitution",
-          "type": "Lookup",
-          "lookupList": "CtnInstitutions"
-        },
-        {
-          "prop": "telNo",
-          "name": "CtnTelNo",
-          "type": "Text"
-        },
-        {
-          "prop": "mail",
-          "name": "CtnMail",
-          "type": "Text"
-        },
-        {
-          "prop": "active",
-          "name": "CtnActive",
-          "type": "Boolean"
-        }
-      ]
-    },
-    {
       "name": "CtnIrbs",
       "title": "CTN 治験審査委員会",
       "entity": "Irb",

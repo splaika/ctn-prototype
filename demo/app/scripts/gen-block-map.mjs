@@ -80,11 +80,14 @@ const regions = [
 ];
 
 // 画面がブロックの見出しを出している書き方をすべて拾う:
-//   <FormBlock el="X" ...>        … ふつうのブロック
-//   <FormBlock el={gb("A","B")}>  … 主たる被験薬／その他治験使用薬で出力先が変わるもの
-//   <Section title={xsdTitle("X")}> … タブ直下の大きな枠
-//   xsdNo("X") / xsdLabel("X")    … 表など FormBlock を使えない場所で直接出しているもの
-const BLOCK_RE = /<FormBlock\s+el=(?:"([A-Z0-9_]+)"|\{gb\("([A-Z0-9_]+)",\s*"([A-Z0-9_]+)"\)\})|xsdTitle\("([A-Z0-9_]+)"\)|xsdNo\("([A-Z0-9_]+)"\)|xsdLabel\("([A-Z0-9_]+)"\)/g;
+//   <FormBlock el="X" ...>            … ふつうのブロック
+//   <FormBlock el={gb("A","B")}>      … 主たる被験薬／その他治験使用薬で出力先が変わるもの
+//   <FormBlock el={cond ? "A" : "B"}> … 責任医師／分担医師のように1部品で出し分けるもの
+//   <Section title={xsdTitle("X")}>   … タブ直下の大きな枠
+//   xsdNo("X") / xsdLabel("X")        … 表など FormBlock を使えない場所で直接出しているもの
+const BLOCK_RE = /<FormBlock\s+el=(?:"([A-Z0-9_]+)"|\{([^}]*)\})|xsdTitle\("([A-Z0-9_]+)"\)|xsdNo\("([A-Z0-9_]+)"\)|xsdLabel\("([A-Z0-9_]+)"\)/g;
+/** el={...} の中に書かれた要素名（gb の主従の順）を取り出す */
+const elsInExpr = (expr) => [...expr.matchAll(/"([A-Z0-9_]+)"/g)].map((m) => m[1]);
 const TAB_RE = /activeTab === "(\w+)"/g;
 
 for (const region of regions) {
@@ -103,10 +106,15 @@ for (const region of regions) {
     const tab = tabAt(m.index);
     if (!tab) continue;
     const label = (k) => TAB_LABEL[k] ?? k;
-    // gb("主", "従") のときだけ引数ごとに行き先タブが違う
-    if (region.gbTabs && m[2] && m[3]) {
-      put(m[2], label(region.gbTabs[0]));
-      put(m[3], label(region.gbTabs[1]));
+    if (m[2] !== undefined) {
+      const els = elsInExpr(m[2]);
+      // gb("主", "従") のときだけ引数ごとに行き先タブが違う
+      if (region.gbTabs && m[2].includes("gb(") && els.length === 2) {
+        put(els[0], label(region.gbTabs[0]));
+        put(els[1], label(region.gbTabs[1]));
+      } else {
+        for (const el of els) put(el, label(tab));
+      }
       continue;
     }
     for (const el of m.slice(1)) if (el) put(el, label(tab));
