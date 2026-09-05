@@ -85,7 +85,8 @@ export function Section({ title, sub, right, children, tableSchema, colSchema }:
  * どこに出るかが目で追える。ブロック名・階層・見出し番号は XSD から引くので
  * 手で書かない（xsdLabels.ts）。
  *
- * el に入れ物要素名を渡すと見出し番号が付く。cols="1" は1列にする（長文欄用）。
+ * el に入れ物要素名を渡すと見出し番号が付く。cols="1" は1列（長文欄用）、
+ * cols="3" は3列（短い欄が3つ以上並ぶブロック用）。
  *
  * 見出しをクリックすると折りたためる。届書の順に並べると画面が縦に長くなるので、
  * 済んだブロックを畳んで先へ進めるようにするため（クライアント要望 2026-09-05）。
@@ -99,7 +100,7 @@ export function FormBlock({
   under?: string;
   note?: string;
   right?: ReactNode;
-  cols?: "1" | "2";
+  cols?: "1" | "2" | "3";
   /** 折りたたみを許す（既定 true。子が無いブロックは常に折りたためない） */
   collapsible?: boolean;
   defaultOpen?: boolean;
@@ -139,15 +140,15 @@ export function FormBlock({
       </div>
       {body && parents.length > 0 && <div className="fblock-path">届書：{parents.join(" › ")}</div>}
       {body && note && <div className="fblock-note">{note}</div>}
-      {body && children && <div className={`fblock-b${cols === "1" ? " one" : ""}`}>{children}</div>}
+      {body && children && <div className={`fblock-b${cols === "1" ? " one" : cols === "3" ? " three" : ""}`}>{children}</div>}
     </div>
   );
 }
 
 // ---- フォーム項目 ----
-export function Field({ label, required, mark, unconfirmed, unconfirmedNote, hint, children, wide }: { label: string; required?: boolean; mark?: "always" | "conditional" | "optional" | "na" | "auto"; unconfirmed?: boolean; unconfirmedNote?: string; hint?: string; children: ReactNode; wide?: boolean }) {
+export function Field({ label, required, mark, unconfirmed, unconfirmedNote, hint, children, wide, w2 }: { label: string; required?: boolean; mark?: "always" | "conditional" | "optional" | "na" | "auto"; unconfirmed?: boolean; unconfirmedNote?: string; hint?: string; children: ReactNode; wide?: boolean; /** 3列のブロックで2列ぶんを占める（長文欄を短い欄と同じ行に置く） */ w2?: boolean }) {
   return (
-    <div className={`field${wide ? " field-wide" : ""}`}>
+    <div className={`field${wide ? " field-wide" : ""}${w2 ? " field-w2" : ""}`}>
       <label>
         {mark && <ReqMark mark={mark} />}
         {label}

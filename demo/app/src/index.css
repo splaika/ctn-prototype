@@ -363,9 +363,15 @@
 .fblock-note{font-size:11px;color:var(--ink-3);margin-top:5px;line-height:1.45}
 .fblock-b{margin-top:12px;display:grid;grid-template-columns:1fr 1fr;gap:14px 18px}
 .fblock-b.one{grid-template-columns:1fr}
-@media(max-width:760px){.fblock-b{grid-template-columns:1fr}}
+/* 短い欄が3つ以上並ぶブロックは3列。2列だと3つ目が必ず単独の行になる */
+.fblock-b.three{grid-template-columns:repeat(3,1fr)}
+@media(max-width:1180px){.fblock-b.three{grid-template-columns:1fr 1fr}}
+@media(max-width:760px){.fblock-b,.fblock-b.three{grid-template-columns:1fr}}
 .field{display:flex;flex-direction:column;gap:6px}
 .field-wide{grid-column:1/-1}
+/* 3列のうち2列ぶん（長文欄を、短い欄と同じ行に置くため） */
+.field-w2{grid-column:span 2}
+@media(max-width:760px){.field-w2{grid-column:1/-1}}
 .field>label{font-size:11px;font-weight:700;color:var(--ink-3);text-transform:uppercase;letter-spacing:.4px;display:flex;align-items:center}
 .field-hint{font-size:11px;color:var(--ink-3);line-height:1.4}
 .tin,.ta{width:100%;padding:9px 11px;border:1px solid var(--line);border-radius:9px;font-size:13px;background:var(--surface);color:var(--ink)}

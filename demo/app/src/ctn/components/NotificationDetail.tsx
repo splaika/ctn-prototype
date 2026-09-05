@@ -460,7 +460,7 @@ export function NotificationDetail({
       <Section title={xsdTitle("INFONOTE")} sub={t("Items of this filing itself. The drug details of the main investigational drug are on the Study drugs tab.", "この届そのものの事項。主たる被験薬の薬の明細は「治験使用薬」タブにあります。")}>
         {/* 届出事項の頭。XSD の並びのうち、届出区分の前に「何を変えたのか」を
             置いている（区分と提出期限がそこから決まるため） */}
-        <div className="fblock-b">
+        <div className="fblock-b three">
           <Field label={ofl("届出年月日")} mark="auto"><input className="tin" value={draft.noteDate ?? ""} disabled /></Field>
           <Field label={ofl("届出分類")} mark="always"><input className="tin" value={notifTypeName(draft.notifType, lang)} disabled /></Field>
           {draft.notifType === "change" && <Field label={ofl("変更回数")} mark="auto"><input className="tin" value={`${draft.changeCount ?? "—"}`} disabled /></Field>}
@@ -472,7 +472,7 @@ export function NotificationDetail({
           <div className="fblock">
             <div className="fblock-h"><span className="fblock-name">{t("What is being changed (drives the category and the deadline)", "変更内容（届出区分・提出期限を決めます）")}</span></div>
             <div className="fblock-path">{t("Not printed on the form.", "届書には出力されません。")}</div>
-            <div className="fblock-b one">
+            <div className="fblock-b three">
               <Field label={ofl("変更箇所")} mark="always" wide
                 hint={t("Pick every place that changes. The submission category below follows the heaviest one.", "変更する箇所をすべて選んでください。下の届出区分は、選んだうちで最も重い区分に自動で追従します。")}>
                 <div className="chips">
@@ -487,7 +487,7 @@ export function NotificationDetail({
                 </div>
               </Field>
               <Field label={ofl("変更年月日")} hint={ofHint("変更年月日")} mark="always"><input type="date" className="tin" value={draft.changeDate ?? ""} disabled={!editable} onChange={(e) => set((n) => (n.changeDate = e.target.value))} /></Field>
-              <Field label={ofl("変更理由")} hint={ofHint("変更理由")} mark="always" wide><textarea className="ta" value={draft.changeReason ?? ""} disabled={!editable} onChange={(e) => set((n) => (n.changeReason = e.target.value))} /></Field>
+              <Field label={ofl("変更理由")} hint={ofHint("変更理由")} mark="always" w2><textarea className="ta" value={draft.changeReason ?? ""} disabled={!editable} onChange={(e) => set((n) => (n.changeReason = e.target.value))} /></Field>
             </div>
           </div>
         )}
