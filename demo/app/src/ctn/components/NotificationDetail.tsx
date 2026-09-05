@@ -437,7 +437,7 @@ export function NotificationDetail({
       </Section>
 
       <Section title={xsdTitle("COMMONINFOCLINTRIALPLANNOTE")} sub={t("Common items — inherited from the series where possible", "共通事項。シリーズ（治験成分記号）から継承できるものは参照表示。")}>
-        <div className="fblock-b">
+        <div className="fblock-b three">
           <Field label={ofl("治験成分記号")} mark="always" hint={t(`Alphanumerics, up to ${COMPOUND_CODE_MAX} characters (Guide 5.1(1))`, `手引き：アルファベット及び数字で計${COMPOUND_CODE_MAX}桁以内・半角`)}><input className="tin" value={compound.compoundCode} disabled /></Field>
           <Field label={ofl("治験の種類")}><input className="tin" value={compound.trialKind ?? ""} disabled /></Field>
           <Field label={ofl("初回届出受付番号")}><input className="tin" value={compound.initReceptNo ?? ""} disabled /></Field>
@@ -584,7 +584,7 @@ export function NotificationDetail({
           並べていたため、届書のどこを入力しているのか対応が取れなかった。 */}
       {activeTab === "plan" && (<>
         <Section title={xsdTitle("SUMMARYPROTOCOL")} sub={t("Order follows the official form.", "並び順は届書（公式XSD）と同じです。")}>
-          <div className="fblock-b">
+          <div className="fblock-b three">
             {show("cr_protocolno") && <Field label={ofl("実施計画書識別記号")} mark={mk("cr_protocolno")}><input className="tin" value={draft.protocolNo} disabled={!editable} onChange={(e) => set((n) => (n.protocolNo = e.target.value))} /></Field>}
             {show("cr_phase") && <Field label={ofl("開発の相")} mark={mk("cr_phase")}><select className="sel" value={draft.phase ?? ""} disabled={!editable} onChange={(e) => set((n) => (n.phase = Number(e.target.value)))}><option value="">—</option>{options(SET.phase).map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}</select></Field>}
             {show("cr_trialtype") && <Field label={ofl("試験の種類")} mark={mk("cr_trialtype")}><select className="sel" value={draft.trialType ?? ""} disabled={!editable} onChange={(e) => set((n) => (n.trialType = Number(e.target.value)))}><option value="">—</option>{options(SET.trialType).map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}</select></Field>}
@@ -632,14 +632,14 @@ export function NotificationDetail({
             {show("cr_validityreasons") && <Field label={ofl("費用負担の妥当性の理由")} mark={mk("cr_validityreasons")} wide><textarea className="ta" value={draft.validityReasons ?? ""} disabled={!editable} onChange={(e) => set((n) => (n.validityReasons = e.target.value))} /></Field>}
           </FormBlock>
 
-          <FormBlock el="INFOCOORDINVESTIGATOR"
+          <FormBlock el="INFOCOORDINVESTIGATOR" cols="3"
             note={t("Guide 5.2(12)11): only when coordination of trial details is entrusted. This demo takes a single entry.", "手引き 5.2(12)11）：治験の細目について調整する業務を委嘱する場合に入力します（本デモは単数入力）。")}>
             {show("cr_coordname") && <Field label={ofl("治験調整医師 氏名")} mark={mk("cr_coordname")} unconfirmed unconfirmedNote="届書はこの枠を繰り返せますが、本デモは単数入力です（複数ある場合の入力・出力は未対応）。項目の記載方法は手引きと一致しています。"><input className="tin" value={draft.coordName ?? ""} disabled={!editable} onChange={(e) => set((n) => (n.coordName = e.target.value))} /></Field>}
             {show("cr_coordinstitution") && <Field label={ofl("医療機関名")} mark={mk("cr_coordinstitution")} unconfirmed unconfirmedNote="届書はこの枠を繰り返せますが、本デモは単数入力です（複数ある場合の入力・出力は未対応）。項目の記載方法は手引きと一致しています。"><input className="tin" value={draft.coordInstitution ?? ""} disabled={!editable} onChange={(e) => set((n) => (n.coordInstitution = e.target.value))} /></Field>}
             {show("cr_coordaffiliation") && <Field label={ofl("所属")} mark={mk("cr_coordaffiliation")} unconfirmed unconfirmedNote="届書はこの枠を繰り返せますが、本デモは単数入力です（複数ある場合の入力・出力は未対応）。項目の記載方法は手引きと一致しています。"><input className="tin" value={draft.coordAffiliation ?? ""} disabled={!editable} onChange={(e) => set((n) => (n.coordAffiliation = e.target.value))} /></Field>}
           </FormBlock>
 
-          <FormBlock el="INFOCRO"
+          <FormBlock el="INFOCRO" cols="3"
             note={t("Guide 5.2(12)12): only when the work is (partly) outsourced. This demo takes a single entry.", "手引き 5.2(12)12）：治験の依頼及び管理に係る業務の全部又は一部を委託する場合に入力します（本デモは単数入力）。")}>
             {show("cr_croname") && <Field label={ofl("CRO 名称")} mark={mk("cr_croname")} unconfirmed unconfirmedNote="届書はこの枠を繰り返せますが、本デモは単数入力です（複数ある場合の入力・出力は未対応）。項目の記載方法は手引きと一致しています。"><input className="tin" value={draft.croName ?? ""} disabled={!editable} onChange={(e) => set((n) => (n.croName = e.target.value))} /></Field>}
             {show("cr_croaddress1") && <Field label={ofl("CRO 所在地1")} mark={mk("cr_croaddress1")} unconfirmed unconfirmedNote="届書はこの枠を繰り返せますが、本デモは単数入力です（複数ある場合の入力・出力は未対応）。項目の記載方法は手引きと一致しています。"><input className="tin" value={draft.croAddress1 ?? ""} disabled={!editable} onChange={(e) => set((n) => (n.croAddress1 = e.target.value))} /></Field>}
@@ -755,7 +755,7 @@ export function NotificationDetail({
         )}
 
         {/* 治験届出者に関する情報（届出者はマスタから選ぶので他は参照表示） */}
-        <FormBlock el="INFOPERSONFILLNOTE"
+        <FormBlock el="INFOPERSONFILLNOTE" cols="3"
           note={t("Selected from the master; the printed values come from it.", "マスタから選択します。届書に出るのは選択した届出者の登録内容です。")}>
           <Field label={ofl("届出者の名称")} mark="always"><select className="sel" value={draft.sponsorId} disabled={!editable} onChange={(e) => set((n) => (n.sponsorId = e.target.value))}>{activeSponsors.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}</select></Field>
           {sponsor && <Field label={ofl("治験届出者の種別")}><input className="tin" value={sponsor.sponsorType ?? ""} disabled /></Field>}
@@ -775,7 +775,7 @@ export function NotificationDetail({
         </FormBlock>
 
         {/* 海外依頼者、外国製造業者（該当時のみ・本デモは単数入力） */}
-        <FormBlock el="INFOFOREIGNMANUFACTURER"
+        <FormBlock el="INFOFOREIGNMANUFACTURER" cols="3"
           note={t("Guide 5.2(18): name and address in Japanese and in the foreign language. 海外依頼者 applies when the notifier is an in-country caretaker; 外国製造業者 applies when the main drug is imported. List the 海外依頼者 first when there are several.", "手引き 5.2(18)：氏名・住所を邦文及び英文で入力します。「海外依頼者」は届出者が治験国内管理人である場合、「外国製造業者」は主たる被験薬を海外から輸入する場合。複数ある場合は海外依頼者を一番上に記載します（本デモは単数入力）。")}>
           <Field label={ofl("海外依頼者 名称（邦文）")}><input className="tin" value={draft.foreignName ?? ""} disabled={!editable} onChange={(e) => set((n) => (n.foreignName = e.target.value))} /></Field>
           <Field label={ofl("海外依頼者 氏名（邦文）")}><input className="tin" value={draft.foreignRepName ?? ""} disabled={!editable} onChange={(e) => set((n) => (n.foreignRepName = e.target.value))} /></Field>
@@ -1277,6 +1277,7 @@ function SiteCard({
       <div className="sitecard-b">
         <FormBlock el="INFOEACHMEDICALINSTITUT"
           note={t("Name / address / tel come from the institution master.", "名称・所在地・電話番号は医療機関マスタの登録内容が出力されます。")}>
+          <div className="frow3">
           <Field label={ofl("実施診療科")} mark="always">
             {/* 医療機関マスタの診療科から選ぶ（表記ブレ防止・R-19）。候補に無い科は直接入力もできる */}
             <input className="tin tin-sm" list={`depts-${site.id}`} value={site.department} disabled={!editable}
@@ -1291,6 +1292,7 @@ function SiteCard({
             hint={t("Guide 5.4(6): blank on the plan notification; filled on the completion / discontinuation notification.", "手引き 5.4(6)：治験計画届では空欄。終了届・中止届で入力します。")}><input type="number" className="tin tin-sm" value={site.enrolledSubjects ?? ""} disabled={!editable} onChange={(e) => onField((s) => (s.enrolledSubjects = Number(e.target.value)))} /></Field>}
           <Field label={ofl("その他")}
             hint={t("Guide 5.4(9): anything to note about this particular site.", "手引き 5.4(9)：各実施医療機関に関する特記事項があれば入力します。")}><input className="tin tin-sm" value={site.others ?? ""} disabled={!editable} onChange={(e) => onField((s) => (s.others = e.target.value))} /></Field>
+          </div>
 
       {/* 医師ロスター。届書では治験責任医師（4.1.1）と治験分担医師（4.1.2）が
           別のブロックなので、画面も分ける。医師は施設マスタに紐づくものだけ選べる。 */}

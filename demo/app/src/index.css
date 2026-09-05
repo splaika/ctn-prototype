@@ -352,7 +352,7 @@
 .fblock-h{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 .fblock.closed{padding-bottom:2px}
 /* 折りたためるブロックは中身を1段下げ、見出しの ＞ が親であることを見せる */
-.fblock.has-tog>.fblock-path,.fblock.has-tog>.fblock-note,.fblock.has-tog>.fblock-b{padding-left:28px}
+.fblock.has-tog>.fblock-b{padding-left:28px}
 /* 入れ子のブロック（2.10 の中の 2.10.1 など）は左の罫線で親子を示す */
 .fblock-b>.fblock{margin-top:14px;border-top:none;padding-top:0;padding-left:14px;border-left:2px solid var(--line-2)}
 .fblock-count{font-size:10px;font-weight:700;color:var(--ink-4);background:var(--line-2);border-radius:5px;padding:1px 6px;white-space:nowrap}
@@ -360,7 +360,6 @@
 .fblock-name{font-size:13px;font-weight:700;color:var(--ink)}
 .fblock-rep{font-size:9.5px;font-weight:700;color:var(--ink-3);background:var(--line-2);border-radius:5px;padding:1px 6px;white-space:nowrap}
 .fblock-path{font-size:10.5px;color:var(--ink-4);margin-top:4px;line-height:1.45}
-.fblock-note{font-size:11px;color:var(--ink-3);margin-top:5px;line-height:1.45}
 .fblock-b{margin-top:12px;display:grid;grid-template-columns:1fr 1fr;gap:14px 18px}
 .fblock-b.one{grid-template-columns:1fr}
 /* 短い欄が3つ以上並ぶブロックは3列。2列だと3つ目が必ず単独の行になる */
@@ -371,9 +370,24 @@
 .field-wide{grid-column:1/-1}
 /* 3列のうち2列ぶん（長文欄を、短い欄と同じ行に置くため） */
 .field-w2{grid-column:span 2}
+/* ブロックの中の一部の欄だけを3列にする（小ブロックの並びは変えない） */
+.frow3{grid-column:1/-1;display:grid;grid-template-columns:repeat(3,1fr);gap:14px 18px}
+@media(max-width:760px){.frow3{grid-template-columns:1fr}}
 @media(max-width:760px){.field-w2{grid-column:1/-1}}
 .field>label{font-size:11px;font-weight:700;color:var(--ink-3);text-transform:uppercase;letter-spacing:.4px;display:flex;align-items:center}
 .field-hint{font-size:11px;color:var(--ink-3);line-height:1.4}
+/* ヒント（マウスオーバーで出る手引きの補足） */
+.hint-w{display:inline-flex;align-items:center;margin-left:5px;color:var(--ink-4);cursor:help;flex:none}
+.hint-w:hover,.hint-w:focus-visible{color:var(--blue);outline:none}
+.hint-w>svg{width:13px;height:13px;display:block}
+.hint-tip{position:fixed;z-index:200;width:320px;max-width:calc(100vw - 16px);
+  background:var(--ink);color:var(--surface);border-radius:9px;box-shadow:var(--sh-2);
+  padding:9px 11px;font-size:11.5px;font-weight:400;line-height:1.55;
+  text-transform:none;letter-spacing:0;text-align:left;white-space:normal;pointer-events:none}
+/* ツールチップの中の「届書：…」（そのブロックが届書のどこに出るか） */
+.hint-path{display:block;margin-bottom:5px;padding-bottom:5px;border-bottom:1px solid color-mix(in srgb,var(--surface) 22%,transparent);opacity:.8;font-size:10.5px}
+/* 画面の下のほうでは上に出す */
+.hint-tip.up{transform:translateY(-100%)}
 .tin,.ta{width:100%;padding:9px 11px;border:1px solid var(--line);border-radius:9px;font-size:13px;background:var(--surface);color:var(--ink)}
 .tin:focus,.ta:focus{outline:none;border-color:var(--blue)}
 .tin:disabled,.sel:disabled{background:var(--line-2);color:var(--ink-2);cursor:not-allowed}

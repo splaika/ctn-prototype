@@ -1,4 +1,4 @@
-import { Children, useState, type ReactNode } from "react";
+import { Children, useEffect, useRef, useState, type ReactNode } from "react";
 import { useLang } from "../../i18n";
 import { xsdEntry } from "../xsdLabels";
 import { isUnconfirmed } from "../schema";
@@ -39,6 +39,54 @@ export function UnconfirmedBadge({ label, title }: { label?: string; title?: str
     <span className="unconf" title={title ?? "設計上の未確定箇所（本番仕様は手引きと突合が必要）"}>
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.4}><path d="M12 9v4M12 17h.01M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z" /></svg>
       {label ?? "要確認"}
+    </span>
+  );
+}
+
+// ---- ヒント（マウスオーバーで出る手引きの補足） ----
+/**
+ * 手引きの補足は欄ごとに長く、常時表示だと画面の縦の大半を注記が占めていた
+ * （クライアント要望 2026-09-05）。ⓘ は常に見えるので必要なときに読める。
+ *
+ * 位置は fixed。祖先の .sect が overflow:hidden なので、通常配置だと切れる。
+ * 祖先に transform 等が無いことが前提（fixed の包含ブロックが変わるため）。
+ */
+const TIP_W = 320;
+
+export function Hint({ text, label }: { text: ReactNode; label?: string }) {
+  const ref = useRef<HTMLSpanElement>(null);
+  const [pos, setPos] = useState<{ top: number; left: number; up: boolean } | null>(null);
+
+  const show = () => {
+    const r = ref.current?.getBoundingClientRect();
+    if (!r) return;
+    // 画面の右端・下端からはみ出さないところに置く
+    const left = Math.max(8, Math.min(r.left, window.innerWidth - TIP_W - 8));
+    const up = window.innerHeight - r.bottom < 160;
+    setPos({ top: up ? r.top - 6 : r.bottom + 6, left, up });
+  };
+  const hide = () => setPos(null);
+
+  // 出したまま画面が動くと、ツールチップだけが取り残される
+  useEffect(() => {
+    if (!pos) return;
+    window.addEventListener("scroll", hide, true);
+    return () => window.removeEventListener("scroll", hide, true);
+  }, [pos]);
+
+  return (
+    <span
+      ref={ref} className="hint-w" tabIndex={0} role="note" aria-label={label ?? (typeof text === "string" ? text : undefined)}
+      onMouseEnter={show} onMouseLeave={hide} onFocus={show} onBlur={hide}
+    >
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.2}>
+        <circle cx="12" cy="12" r="9" /><path d="M12 16v-4M12 8h.01" />
+      </svg>
+      {pos && (
+        <span className={`hint-tip${pos.up ? " up" : ""}`} style={{ top: pos.top, left: pos.left }}>
+          {text}
+        </span>
+      )}
     </span>
   );
 }
@@ -133,13 +181,17 @@ export function FormBlock({
         )}
         {e?.no && <span className="fblock-no">{e.no}</span>}
         <span className="fblock-name">{e?.label ?? el}</span>
+        {(note || parents.length > 0) && (
+          <Hint label={note} text={<>
+            {parents.length > 0 && <span className="hint-path">届書：{parents.join(" › ")}</span>}
+            {note}
+          </>} />
+        )}
         {e?.repeat && <span className="fblock-rep">繰り返し</span>}
         {canToggle && !open && <span className="fblock-count">{shown.length}項目</span>}
         <div style={{ flex: 1 }} />
         {right}
       </div>
-      {body && parents.length > 0 && <div className="fblock-path">届書：{parents.join(" › ")}</div>}
-      {body && note && <div className="fblock-note">{note}</div>}
       {body && children && <div className={`fblock-b${cols === "1" ? " one" : cols === "3" ? " three" : ""}`}>{children}</div>}
     </div>
   );
@@ -154,9 +206,9 @@ export function Field({ label, required, mark, unconfirmed, unconfirmedNote, hin
         {label}
         {required && <span className="req-star">*</span>}
         {unconfirmed && <> <UnconfirmedBadge title={unconfirmedNote} /></>}
+        {hint && <Hint text={hint} />}
       </label>
       {children}
-      {hint && <div className="field-hint">{hint}</div>}
     </div>
   );
 }
