@@ -223,3 +223,45 @@ describe("ブロックの入れ子が届書と一致する", () => {
     });
   }
 });
+
+// ---------------------------------------------------------------------------
+// 同じ親の中でのブロックの並び順
+// ---------------------------------------------------------------------------
+// ブロックを横に3つ並べる枠（.bgrid3）を入れたので、読む順が「左→右→次の行」に
+// なった。ソースの並びがそのまま画面の並びになるため、届書の番号順にソースを
+// 書いていないと、画面では番号が飛んで並ぶ（2026-09-05）。
+describe("同じ親の中でブロックが届書の番号順に並んでいる", () => {
+  const found = screenParents();
+  /** "2.6.5" → [2,6,5] */
+  const parts = (no: string) => no.split(".").map(Number);
+  const cmp = (a: number[], b: number[]) => {
+    for (let i = 0; i < Math.max(a.length, b.length); i++) {
+      const d = (a[i] ?? 0) - (b[i] ?? 0);
+      if (d !== 0) return d;
+    }
+    return 0;
+  };
+
+  // 親ごとにまとめる。親が同じでも、主たる被験薬（2.x）とその他治験使用薬（3.3.x）は
+  // 同じ部品から出る別系統なので、番号の頭で分けて見る。
+  const groups = new Map<string, { el: string; no: number[] }[]>();
+  for (const f of found) {
+    const no = xsdNo(f.el);
+    if (!no) continue;
+    const key = `${f.parents.join(">")}|${no.split(".")[0]}`;
+    (groups.get(key) ?? groups.set(key, []).get(key)!).push({ el: f.el, no: parts(no) });
+  }
+
+  for (const [key, list] of groups) {
+    if (list.length < 2) continue;
+    it(`${key.split("|")[0] || "タブ直下"}（${key.split("|")[1]}系）のブロックが番号順`, () => {
+      const out: string[] = [];
+      for (let i = 1; i < list.length; i++) {
+        if (cmp(list[i - 1].no, list[i].no) >= 0) {
+          out.push(`${list[i - 1].no.join(".")} の次が ${list[i].no.join(".")}`);
+        }
+      }
+      expect(out, "画面は届書の順に並べる（横3列の枠では左→右→次の行の順に読む）").toEqual([]);
+    });
+  }
+});

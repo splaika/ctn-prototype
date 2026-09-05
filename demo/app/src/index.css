@@ -363,7 +363,7 @@
 .fblock-b{margin-top:12px;display:grid;grid-template-columns:1fr 1fr;gap:14px 18px}
 .fblock-b.one{grid-template-columns:1fr}
 /* 短い欄が3つ以上並ぶブロックは3列。2列だと3つ目が必ず単独の行になる */
-.fblock-b.three{grid-template-columns:repeat(3,1fr)}
+.fblock-b.three{grid-template-columns:repeat(3,minmax(0,1fr))}
 @media(max-width:1180px){.fblock-b.three{grid-template-columns:1fr 1fr}}
 @media(max-width:760px){.fblock-b,.fblock-b.three{grid-template-columns:1fr}}
 .field{display:flex;flex-direction:column;gap:6px}
@@ -371,8 +371,20 @@
 /* 3列のうち2列ぶん（長文欄を、短い欄と同じ行に置くため） */
 .field-w2{grid-column:span 2}
 /* ブロックの中の一部の欄だけを3列にする（小ブロックの並びは変えない） */
-.frow3{grid-column:1/-1;display:grid;grid-template-columns:repeat(3,1fr);gap:14px 18px}
+.frow3{grid-column:1/-1;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px 18px}
 @media(max-width:760px){.frow3{grid-template-columns:1fr}}
+/* ブロックそのものを3つ横に並べる。欄が1つだけのブロックが1行を使うのを避ける。
+   届書の順序は左→右→次の行で保たれる */
+.bgrid3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:20px 18px;align-items:start;margin-top:20px}
+.sect-b>.bgrid3:first-child{margin-top:0}
+.drugcard-b>.bgrid3{margin-top:0}
+.bgrid3>.fblock{grid-column:auto;margin-top:0;border-top:none;padding-top:0}
+/* 親がブロックの中身（その他治験使用薬の 3.3）のときも1行を使う */
+.fblock-b>.bgrid3{grid-column:1/-1}
+/* 長い記述欄が出るブロックは1/3幅では狭いので1行を使う */
+.bgrid3>.fblock.span-all{grid-column:1/-1}
+@media(max-width:1180px){.bgrid3{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:760px){.bgrid3{grid-template-columns:1fr}}
 @media(max-width:760px){.field-w2{grid-column:1/-1}}
 .field>label{font-size:11px;font-weight:700;color:var(--ink-3);text-transform:uppercase;letter-spacing:.4px;display:flex;align-items:center}
 .field-hint{font-size:11px;color:var(--ink-3);line-height:1.4}

@@ -141,7 +141,7 @@ export function Section({ title, sub, right, children, tableSchema, colSchema }:
  * 畳むと欄の数だけを出す。
  */
 export function FormBlock({
-  el, under, note, right, cols = "2", collapsible = true, defaultOpen = true, transparent = false, children,
+  el, under, note, right, cols = "2", collapsible = true, defaultOpen = true, transparent = false, spanAll = false, children,
 }: {
   el: string;
   /** 同名要素がXSD上の複数箇所にある場合の親要素名 */
@@ -157,6 +157,11 @@ export function FormBlock({
    * 入れ物が無い場合に使う（薬カードを主たる被験薬とその他で使い回すため）。
    */
   transparent?: boolean;
+  /**
+   * .bgrid3（ブロックを3つ横に並べる枠）の中で1行を使う。
+   * 長い記述欄が出るブロックは1/3幅では狭いため。
+   */
+  spanAll?: boolean;
   /** 省略可。届書にはあるが入力を別タブに置いた欄の案内だけを出す場合に使う */
   children?: ReactNode;
 }) {
@@ -172,7 +177,7 @@ export function FormBlock({
   const canToggle = collapsible && shown.length > 0;
   const body = !canToggle || open;
   return (
-    <div className={`fblock${canToggle ? " has-tog" : ""}${canToggle && !open ? " closed" : ""}`}>
+    <div className={`fblock${canToggle ? " has-tog" : ""}${canToggle && !open ? " closed" : ""}${spanAll ? " span-all" : ""}`}>
       <div className="fblock-h">
         {canToggle && (
           <button type="button" className={`tog2${open ? " open" : ""}`} onClick={() => setOpen((o) => !o)} aria-expanded={open} aria-label={open ? "折りたたむ" : "開く"}>
