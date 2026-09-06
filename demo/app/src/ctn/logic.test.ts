@@ -17,8 +17,12 @@ import {
   BYTE_RULES,
   canCompleteReview,
   canSubmit,
+  canDownloadPackage,
   diffRoster,
 } from "./logic";
+// 画面のソースをそのまま読む（宣言を別に持つと画面とずれるため）
+import detailSrc from "./components/NotificationDetail.tsx?raw";
+import xmlPreviewSrc from "./components/XmlPreview.tsx?raw";
 import { generateCtnXml, validateAgainstSubset, type XmlContext } from "./xml";
 import { deriveAlerts, hasSubInvestigatorMovement } from "./derive";
 import { KUBUN, DRUG_ROLE, DOCTOR_ROLE, CHANGE_TYPE } from "./refData";
@@ -264,4 +268,54 @@ describe("採番モデル：届出回数/変更回数（根幹）", () => {
     expect(n.filingCount).toBe(1);
     expect(n.changeCount).toBeUndefined();
   });
+});
+
+// ---------------------------------------------------------------------------
+// (S13) 提出パッケージのダウンロード
+// ---------------------------------------------------------------------------
+// 最終承認前は画面で確認するだけ。手元に古いファイルが残らないようにするため
+// （クライアント要望 2026-09-05）。
+describe("提出パッケージのダウンロードは最終承認後だけ", () => {
+  it("作成中は落とせない", () => {
+    const r = canDownloadPackage({ status: "draft" });
+    expect(r.ok).toBe(false);
+    expect(r.reason).toContain("最終承認");
+  });
+
+  it("レビュー中も落とせない（承認前だから）", () => {
+    expect(canDownloadPackage({ status: "review" }).ok).toBe(false);
+  });
+
+  it("提出済み（レビュー完了＝最終承認）なら落とせる", () => {
+    expect(canDownloadPackage({ status: "submitted" }).ok).toBe(true);
+  });
+
+  it("提出できる状態とダウンロードできる状態は別（レビュー中は提出可・DL不可）", () => {
+    // ここが同じだと「レビューに回した時点で配れる」ことになってしまう
+    expect(canSubmit({ status: "review" }).ok).toBe(true);
+    expect(canDownloadPackage({ status: "review" }).ok).toBe(false);
+  });
+});
+
+// 画面が自前の条件で分岐していないことを見る。同じ条件を画面ごとに書くと、
+// 片方だけ直し忘れて「XMLプレビューからは落とせる」というすり抜けが残る。
+describe("ダウンロードを出す画面はすべて logic.ts の判定を使う", () => {
+  const screens: [string, string][] = [
+    ["提出パッケージ（届書PDF・CTN XML）", detailSrc],
+    ["XMLプレビュー", xmlPreviewSrc],
+  ];
+  for (const [name, src] of screens) {
+    it(`${name} が canDownloadPackage を使っている`, () => {
+      expect(src).toContain("canDownloadPackage");
+    });
+    it(`${name} のダウンロードが canDownloadPackage の結果で分岐している`, () => {
+      // 判定結果を素通しで使う。ここで別の条件を混ぜると画面ごとにずれる。
+      // （status === "submitted" 自体は GW受付番号の表示などにも使うので禁止しない）
+      expect(/(approved|mayDownload\.ok)\s*\?|mayDownload\.ok\s*&&/.test(src)).toBe(true);
+      expect(
+        /const approved = mayDownload\.ok;/.test(src) || !/\bapproved\b/.test(src),
+        "approved は mayDownload.ok から作る（自前の status 判定を復活させない）"
+      ).toBe(true);
+    });
+  }
 });

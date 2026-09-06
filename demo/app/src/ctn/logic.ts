@@ -259,6 +259,21 @@ export function canSubmit(notification: Pick<Notification, "status">): { ok: boo
 }
 
 // ---------------------------------------------------------------------------
+// (S13) 提出パッケージのダウンロード — 最終承認を通ったものだけ
+// ---------------------------------------------------------------------------
+// クライアント要望（2026-09-05）: 最終承認前の届書PDF・CTN XML は画面で確認する。
+// 都度ダウンロードすると手元にファイルが溜まり、修正が入ったときにどれが最新か
+// 分からなくなる。最終承認＝レビュー完了・提出（status: submitted）。
+//
+// 画面ごとに条件を書くと片方を直し忘れてすり抜けるので、ここを唯一のルールにする
+// （届書PDF・提出パッケージの XML・XMLプレビューの XML すべてこれを見る）。
+export function canDownloadPackage(notification: Pick<Notification, "status">): { ok: boolean; reason?: string } {
+  if (notification.status !== "submitted")
+    return { ok: false, reason: "ダウンロードはレビュー完了（最終承認）後にできるようになります。" };
+  return { ok: true };
+}
+
+// ---------------------------------------------------------------------------
 // (S12) 開発状態の更新 — 開発中止届の提出でシリーズを「開発中止」へ
 // ---------------------------------------------------------------------------
 export function devStatusAfterSubmit(notifType: Notification["notifType"]): number | null {

@@ -13,6 +13,7 @@ import {
   recommendKubun,
   canCompleteReview,
   canSubmit,
+  canDownloadPackage,
 } from "../logic";
 import {
   CHANGE_TYPE,
@@ -100,7 +101,24 @@ export function NotificationDetail({
   // 届書PDF は formTree/pdfForm が pdf-lib で直接描画する（DOM のラスタライズは廃止）
   const [exporting, setExporting] = useState(false);
   const [pkg, setPkg] = useState<SubmissionPackage | null>(null);
+  const [pkgTab, setPkgTab] = useState<"pdf" | "xml">("pdf");
   const [exportErr, setExportErr] = useState<string | null>(null);
+  // ダウンロードできるのは最終承認（レビュー完了・提出）を通ったものだけ。
+  // 作成中・レビュー中に配ると、手元に古いファイルが残って版が分からなくなる
+  // （クライアント要望 2026-09-05）。それまでは画面で確認する。判定は logic.ts
+  const mayDownload = canDownloadPackage(draft);
+  const approved = mayDownload.ok;
+  // 届書PDF はブラウザのPDF表示に渡す。blob: の URL は使い終わったら解放する
+  const [pdfUrl, setPdfUrl] = useState<string | null>(null);
+  useEffect(() => {
+    if (!pkg) {
+      setPdfUrl(null);
+      return;
+    }
+    const url = URL.createObjectURL(new Blob([pkg.pdfBytes as BlobPart], { type: "application/pdf" }));
+    setPdfUrl(url);
+    return () => URL.revokeObjectURL(url);
+  }, [pkg]);
   const baseName = `${compound.compoundCode}_第${draft.filingCount}回${draft.changeCount != null ? `_変更${draft.changeCount}` : ""}`;
   const runExport = async () => {
     setExporting(true);
@@ -912,28 +930,47 @@ export function NotificationDetail({
 
       {pkg && (
         <Modal
-          title={t("Submission package", "提出パッケージ出力")}
-          sub={t("Client demo: PDF from print view + XML. The form PDF bundles the packing list.", "デモのクライアント生成（印刷ビュー→PDF＋XML）。届書PDFにPacking Listを同梱。")}
-          size="md"
+          title={approved ? t("Submission package", "提出パッケージ") : t("Submission package - check on screen", "提出パッケージの確認")}
+          sub={approved
+            ? t("Approved. Download the two files to submit them.", "最終承認済みです。この2ファイルをダウンロードして提出します。")
+            : t("Check it here until the review is completed. Download becomes available after final approval, so that no stale copy is left on anyone's desk.", "レビュー完了（最終承認）まではこの画面で確認します。ダウンロードは最終承認後です（修正のたびに古いファイルが手元に残らないようにするため）。")}
+          size="xl"
           onClose={() => setPkg(null)}
-          footer={<Btn onClick={() => setPkg(null)}>{t("Close", "閉じる")}</Btn>}
+          footer={<>
+            {approved ? (
+              <>
+                <Btn kind="p" onClick={() => downloadBlob(pkg.pdfBytes, `${baseName}.pdf`, "application/pdf")}>{Icon.doc} {t("Download PDF", "届書PDFをDL")}</Btn>
+                <Btn onClick={() => downloadBlob(pkg.xml, `${baseName}.xml`, "application/xml")}>{Icon.doc} {t("Download XML", "CTN XMLをDL")}</Btn>
+              </>
+            ) : (
+              <span className="muted small">{mayDownload.reason}</span>
+            )}
+            <div style={{ flex: 1 }} />
+            <Btn onClick={() => setPkg(null)}>{t("Close", "閉じる")}</Btn>
+          </>}
         >
-          <div className="form-grid">
-            <Field label={t("Notification PDF", "届書PDF")}>
-              <div className="inline">
-                <span className="muted small">{pkg.pageCount}{t(" pages", "頁")}{pkg.packingListsIncluded > 0 ? t(` · packing list ×${pkg.packingListsIncluded}`, ` ・Packing List ${pkg.packingListsIncluded}件同梱`) : ""}</span>
-                <Btn kind="p" small onClick={() => downloadBlob(pkg.pdfBytes, `${baseName}.pdf`, "application/pdf")}>{Icon.doc} {t("Download PDF", "PDFをDL")}</Btn>
-              </div>
-            </Field>
-            <Field label={t("CTN XML", "CTN XML")}>
-              <div className="inline">
-                <span className="muted small">{(pkg.xml.match(/<[A-Z]/g) ?? []).length}{t(" elements", "要素")}</span>
-                <Btn small onClick={() => downloadBlob(pkg.xml, `${baseName}.xml`, "application/xml")}>{Icon.doc} {t("Download XML", "XMLをDL")}</Btn>
-              </div>
-            </Field>
+          <div className="seg pkg-seg">
+            <button type="button" className={pkgTab === "pdf" ? "on" : ""} onClick={() => setPkgTab("pdf")}>
+              {t("Notification PDF", "届書PDF")}
+              <span className="muted small">{pkg.pageCount}{t("p", "頁")}{pkg.packingListsIncluded > 0 ? t(` +PL x${pkg.packingListsIncluded}`, ` ・PL${pkg.packingListsIncluded}件`) : ""}</span>
+            </button>
+            <button type="button" className={pkgTab === "xml" ? "on" : ""} onClick={() => setPkgTab("xml")}>
+              CTN XML
+              <span className="muted small">{(pkg.xml.match(/<[A-Z]/g) ?? []).length}{t(" el.", "要素")}</span>
+            </button>
           </div>
-          <div className="form-sub">{t("XML preview", "XMLプレビュー")}</div>
-          <pre style={{ maxHeight: "260px", overflow: "auto", background: "var(--row)", border: "1px solid var(--border2)", borderRadius: "8px", padding: "10px", fontSize: "11px", whiteSpace: "pre-wrap" }}>{pkg.xml}</pre>
+          {pkgTab === "pdf"
+            ? (pdfUrl && (
+              <>
+                {/* 最終承認前はPDF表示側のツールバー（ダウンロード・印刷）も出さない。
+                    「ダウンロードは最終承認後」と言いながらDLボタンが見えていると、
+                    どちらが本当なのか分からなくなる。スクロールと ctrl+ホイールの
+                    拡大は効くので、確認そのものはできる */}
+                <iframe className="pkg-pdf" src={approved ? pdfUrl : `${pdfUrl}#toolbar=0`} title={t("Notification PDF", "届書PDF")} />
+                {!approved && <div className="pkg-note">{t(`Scroll to check all ${pkg.pageCount} pages. Ctrl + wheel zooms.`, `スクロールで全${pkg.pageCount}頁を確認できます（Ctrl＋ホイールで拡大）。`)}</div>}
+              </>
+            ))
+            : <pre className="xml-pre pkg-xml">{pkg.xml}</pre>}
         </Modal>
       )}
 
@@ -952,9 +989,12 @@ export function NotificationDetail({
           {draft.status === "review" && (
             <Btn kind="p" small onClick={() => onSubmit(draft.id)} disabled={dirty || jobSepBlocked || !maySubmit.ok} title={!maySubmit.ok ? maySubmit.reason : dirty ? "先に保存してください" : jobSepBlocked ? "職務分離：起票者は自分の届をレビュー完了できません" : ""}>{t("Complete review & submit", "レビュー完了・提出")}</Btn>
           )}
-          {/* XML プレビューと提出パッケージ出力は読み取りのため制限しない */}
+          {/* XML プレビューと提出パッケージの確認は読み取りのため制限しない */}
           <Btn small onClick={() => onGenerateXml(draft)}>{Icon.doc} XML{t(" preview", "プレビュー")}</Btn>
-          <Btn kind="p" small onClick={runExport} disabled={exporting}>{Icon.doc} {exporting ? t("Generating…", "生成中…") : t("Export PDF+XML", "提出パッケージ出力")}</Btn>
+          {/* 最終承認前は画面で確認するだけなので、ボタン名も「確認」にする */}
+          <Btn kind="p" small onClick={runExport} disabled={exporting}>{Icon.doc} {exporting
+            ? t("Generating…", "生成中…")
+            : approved ? t("Export PDF+XML", "提出パッケージ出力") : t("Check PDF+XML", "提出パッケージを確認")}</Btn>
           {draft.status === "draft" && (
             <Btn kind="danger" small onClick={() => onDelete(draft.id)} disabled={!mayDelete.ok} title={!mayDelete.ok ? mayDelete.reason : ""}>{Icon.trash}</Btn>
           )}

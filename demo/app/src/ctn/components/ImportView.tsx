@@ -153,8 +153,8 @@ export function ImportView({ onImport }: { onImport: (p: ParsedImport) => void }
 
       <div className="dash-note">
         {t(
-          "Tip: export any filing's XML from the detail screen (XML preview → download), then import it here to see the round-trip.",
-          "ヒント：詳細画面のXMLプレビューからダウンロードしたXMLをここで取り込むと、ラウンドトリップを確認できます。"
+          "Tip: download the XML of a submitted filing from the detail screen, then import it here to see the round-trip. Download opens up after final approval.",
+          "ヒント：提出済みの届の詳細画面からダウンロードしたXMLをここで取り込むと、ラウンドトリップを確認できます（ダウンロードは最終承認後にできるようになります）。"
         )}
       </div>
     </>

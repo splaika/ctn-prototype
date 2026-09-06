@@ -1,6 +1,7 @@
 import { useMemo } from "react";
 import { useLang } from "../../i18n";
 import { generateCtnXml, validateAgainstSubset, type XmlContext } from "../xml";
+import { canDownloadPackage } from "../logic";
 import { DOCTOR_ROLE, DRUG_ROLE, label, SET } from "../refData";
 import { Modal, Btn } from "./common";
 import type { CtnDb } from "../data/repository";
@@ -24,6 +25,10 @@ export function XmlPreview({ notification, db, onClose, onGenerated }: { notific
   }, [notification, db]);
   void ctx;
 
+  // ダウンロードは最終承認（レビュー完了・提出）後だけ。作成中・レビュー中に
+  // 配ると手元に古いファイルが残る（クライアント要望 2026-09-05）
+  const mayDownload = canDownloadPackage(notification);
+
   const download = () => {
     const blob = new Blob([xml], { type: "application/xml" });
     const url = URL.createObjectURL(blob);
@@ -40,7 +45,9 @@ export function XmlPreview({ notification, db, onClose, onGenerated }: { notific
       sub={t("Demo subset XSD — not the official iykckn_all_v3_0_0.xsd. Serial numbers are revealed here.", "デモ用サブセットXSD（公式 iykckn_all_v3_0_0.xsd ではありません）。順序番号はこの確認ステップで提示されます。")}
       onClose={onClose}
       size="xl"
-      footer={<><div className={`xsd-verdict ${check.ok ? "ok" : "err"}`}>{check.ok ? `✓ ${t("Valid", "検証OK")}` : `✕ ${t("Invalid", "検証NG")}`} ・ {check.elementCount} {t("elements", "要素")}</div><div style={{ flex: 1 }} /><Btn onClick={download}>{t("Download .xml", "XMLをダウンロード")}</Btn><Btn kind="p" disabled={!check.ok} onClick={() => onGenerated(notification)}>{t("Record generation", "生成を記録")}</Btn></>}
+      footer={<><div className={`xsd-verdict ${check.ok ? "ok" : "err"}`}>{check.ok ? `✓ ${t("Valid", "検証OK")}` : `✕ ${t("Invalid", "検証NG")}`} ・ {check.elementCount} {t("elements", "要素")}</div><div style={{ flex: 1 }} />{mayDownload.ok
+        ? <Btn onClick={download}>{t("Download .xml", "XMLをダウンロード")}</Btn>
+        : <span className="muted small">{mayDownload.reason}</span>}<Btn kind="p" disabled={!check.ok} onClick={() => onGenerated(notification)}>{t("Record generation", "生成を記録")}</Btn></>}
     >
       {/* 順序番号サマリ */}
       <div className="serial-summary">

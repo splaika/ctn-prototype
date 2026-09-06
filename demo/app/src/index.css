@@ -537,6 +537,12 @@
 .modal-x:hover{background:var(--line-2)}.modal-x svg{width:18px;height:18px}
 /* flex:1 + min-height:0 lets the body take remaining space and actually scroll */
 .modal-b{padding:20px 22px;overflow-y:auto;flex:1 1 auto;min-height:0}
+/* 提出パッケージの確認（最終承認までは画面で見る） */
+.pkg-seg{width:max-content;margin-bottom:14px}
+.pkg-seg .muted{margin-left:5px;font-weight:500}
+.pkg-pdf{display:block;width:100%;height:calc(100vh - 320px);min-height:380px;border:1px solid var(--line);border-radius:10px;background:var(--row)}
+.pkg-xml{height:calc(100vh - 320px);min-height:380px;margin:0}
+.pkg-note{margin-top:8px;font-size:11px;color:var(--ink-4)}
 .modal-f{padding:14px 22px;border-top:1px solid var(--line);display:flex;gap:10px;align-items:center;flex:none}
 
 /* wizard */
